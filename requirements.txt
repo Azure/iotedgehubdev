@@ -1,0 +1,4 @@
+docker==3.0.0
+pyOpenSSL==17.4.0
+click==6.7
+requests==2.18.4
