@@ -12,13 +12,6 @@ services:
     environment:
     - FOO=bar
     - BAZ=quux
-    command: "['date']"
-    healthcheck:
-      test: "['string']"
-      interval: 0ms
-      timeout: 0ms
-      retries: 0
-      start_period: 0ms
     working_dir: ''
     entrypoint: ''
     mac_address: 12:34:56:78:9a:bc
@@ -45,4 +38,5 @@ services:
   filterModule:
     image: yuganacr.azurecr.io/filtermodule:0.0.1-amd64
     container_name: filterModule
-
+networks:
+volumes:
