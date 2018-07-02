@@ -1,0 +1,48 @@
+version: '3.4'
+services:
+  tempSensor:
+    image: ubuntu
+    container_name: tempSensor
+    hostname: ''
+    domainname: ''
+    user: ''
+    expose:
+    - 22/tcp
+    tty: false
+    environment:
+    - FOO=bar
+    - BAZ=quux
+    command: "['date']"
+    healthcheck:
+      test: "['string']"
+      interval: 0ms
+      timeout: 0ms
+      retries: 0
+      start_period: 0ms
+    working_dir: ''
+    entrypoint: ''
+    mac_address: 12:34:56:78:9a:bc
+    labels:
+      com.example.vendor: Acme
+      com.example.license: GPL
+      com.example.version: '1.0'
+    stop_signal: SIGTERM
+    stop_grace_period: 10s
+    privileged: false
+    network_mode: bridge
+    dns:
+    - 8.8.8.8
+    dns_search:
+    - ''
+    cap_add:
+    - NET_ADMIN
+    cap_drop:
+    - MKNOD
+    read_only: false
+    pid: ''
+    security_opt: []
+    cgroup_parent: ''
+  filterModule:
+    image: yuganacr.azurecr.io/filtermodule:0.0.1-amd64
+    container_name: filterModule
+
