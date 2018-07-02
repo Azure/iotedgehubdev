@@ -11,8 +11,11 @@ def service_parser_expose(create_options_details):
     return service_expose_ports
 
 def service_parser_command(create_options_details):
-    if isinstance(create_options_details,list) : return str(create_options_details)
-    else : return create_options_details
+    if not isinstance(create_options_details,list) : return create_options_details
+    command_ret = ""
+    for cmd in create_options_details:
+        command_ret = command_ret + ' ' + cmd
+    return command_ret
 
 def service_parser_healthcheck(create_options_details):    
     healthcheck_config = {}
@@ -37,7 +40,7 @@ COMPOSE_KEY_CREATE_OPTION_MAPPING={
     'expose':{'API_key':'ExposedPorts','parser_func':service_parser_expose},
     'tty':{'API_key':'Tty','parser_func':service_parser_naive},
     'environment':{'API_key':'Env','parser_func':service_parser_naive},
-    # 'command':{'API_key':'Cmd','parser_func':service_parser_command},
+    'command':{'API_key':'Cmd','parser_func':service_parser_command},
     # 'healthcheck':{'API_key':'Healthcheck','parser_func':service_parser_healthcheck},
     'image':{'API_key':'Image','parser_func':service_parser_naive},
     'working_dir':{'API_key':'WorkingDir','parser_func':service_parser_naive},

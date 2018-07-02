@@ -1,4 +1,4 @@
-from compose_parser import COMPOSE_KEY_CREATE_OPTION_MAPPING
+from compose.compose_parser import COMPOSE_KEY_CREATE_OPTION_MAPPING
 import json
 from ruamel.yaml import YAML
 
@@ -65,8 +65,8 @@ class ComposeProject(object):
                 else: create_options_dict[key_path[-1]] = ret
         return create_options_dict 
 
-    def dump(self):
-        stream = open('compose/docker-compose.yml', 'w')
+    def dump(self,target):
+        stream = open(target, 'w')
         yaml = YAML()
         self.yaml_dict['version'] = str(COMPOSE_VERSION)
         self.yaml_dict['services'] = self.Services
