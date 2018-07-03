@@ -33,11 +33,13 @@ def main():
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
-               help='Setup edgeHub. This must be done before starting.')
-@click.option('--connectionstring',
+               help='setup EdgeHub. This must be done before starting.')
+@click.option('--connection-string',
+              '-c',
               required=True,
               help='Provide the connection string of the edge device.')
-@click.option('--gatewayhost',
+@click.option('--gateway-host',
+              '-g',
               required=False,
               help='GatewayHostName value for the module to connect. Default is the FQDN of the device')
 def setup(connectionstring, gatewayhost):
@@ -58,11 +60,11 @@ def setup(connectionstring, gatewayhost):
     }
     configJson = json.dumps(configDict, indent=2, sort_keys=True)
     Utils.create_file(configFile, configJson, fileType)
-    output.info('Setup edgeHub successfully')
+    output.info('Setup EdgeHub successfully')
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
-               help='get the connection string of target module')
+               help='get the connection string of target module.')
 @click.option('--islocal',
               default=False,
               required=False,
@@ -94,12 +96,13 @@ def targetconnstr(islocal, outputfile):
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
-               help="start the edgeHub in single module test mode")
+               help="start the EdgeHub runtime.")
 @click.option('--inputs',
+              '-i',
               required=False,
               default=None,
               help='use `--inputs` to specify the input array of the target module')
-def singlemoduletest(inputs):
+def start(inputs):
     configFile = HostPlatform.get_config_file_path()
     if Utils.check_if_file_exists(configFile) is not True:
         output.error('Cannot find config file. Please setup first')
@@ -124,7 +127,7 @@ def singlemoduletest(inputs):
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
-               help="stop the edgeHub runtime")
+               help="stop the EdgeHub runtime.")
 def stop():
     try:
         EdgeManager.stop()
@@ -135,7 +138,7 @@ def stop():
 
 main.add_command(setup)
 main.add_command(targetconnstr)
-main.add_command(singlemoduletest)
+main.add_command(start)
 main.add_command(stop)
 
 if __name__ == "__main__":
