@@ -1,4 +1,3 @@
-from .compose_parser import COMPOSE_KEY_CREATE_OPTION_MAPPING
 from .compose_parser import CreateOptionParser
 import json
 from ruamel.yaml import YAML
