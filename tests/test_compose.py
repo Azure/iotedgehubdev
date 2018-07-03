@@ -8,6 +8,6 @@ def test_compose():
         proj = ComposeProject(json_data)
         proj.parse_services()
         proj.dump('tests/test_compose_resources/docker-compose_test.yml')
-        actual_output  = open('tests/test_compose_resources/docker-compose_test.yml', 'r').read()
+        actual_output = open('tests/test_compose_resources/docker-compose_test.yml', 'r').read()
         expected_output = open('tests/test_compose_resources/docker-compose.yml', 'r').read()
         assert actual_output == expected_output

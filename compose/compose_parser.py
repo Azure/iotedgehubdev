@@ -21,7 +21,8 @@ class CreateOptionParser(object):
             value_list = jsonpath_expr.find(self.create_option)
             if value_list:
                 create_option_value_dict[API_key] = value_list[0].value
-        # If there is only one API key mapping to the compose key, we don't need a dict to specify the create option and just return the value
+        # If there is only one API key mapping to the compose key,
+        # we don't need a dict to specify the create option and just return the value
         if len(create_option_value_dict) == 1:
             create_option_value_dict = list(create_option_value_dict.values())[0]
         return create_option_value_dict
