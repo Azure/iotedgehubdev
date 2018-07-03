@@ -25,11 +25,13 @@ class ComposeProject(object):
             self.Services[service_name]['image'] = config['settings']['image']
             self.Services[service_name]['container_name'] = service_name
 
+    # TODO: implement this in a future PR
     def parse_networks(self, networks_config):
-        return None
+        pass
 
+    # TODO: implement this in a future PR
     def parse_volumes(self, volumes_config):
-        return None
+        pass
 
     def dump(self, target):
         stream = open(target, 'w')

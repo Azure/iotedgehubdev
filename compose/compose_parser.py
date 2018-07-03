@@ -35,10 +35,7 @@ def service_parser_naive(create_options_details):
 
 
 def service_parser_expose(create_options_details):
-    service_expose_ports = []
-    for port in create_options_details:
-        service_expose_ports.append(port)
-    return service_expose_ports
+    return list(create_options_details.keys())
 
 
 def service_parser_command(create_options_details):
