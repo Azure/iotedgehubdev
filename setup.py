@@ -3,7 +3,12 @@ My Tool does one thing, and one thing well.
 """
 from setuptools import find_packages, setup
 
-dependencies = ['click']
+dependencies = [
+    'click',
+    'docker',
+    'pyOpenSSL',
+    'requests'
+]
 
 setup(
     name='iotedgehubdev',

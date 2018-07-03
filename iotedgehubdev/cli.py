@@ -63,11 +63,16 @@ def setup(connectionstring, gatewayhost):
 
 @click.command(context_settings=CONTEXT_SETTINGS,
                help='get the connection string of target module')
+@click.option('--islocal',
+              default=False,
+              required=False,
+              is_flag=True,
+              help='if set `GatewayHostName` is `localhost` for module to run on host natively')
 @click.option('--outputfile',
               required=False,
               default=None,
               help='use `--outputfile` to specify the output file to save the connection string')
-def targetconnstr(outputfile):
+def targetconnstr(islocal, outputfile):
     configFile = HostPlatform.get_config_file_path()
     if Utils.check_if_file_exists(configFile) is not True:
         output.error('Cannot find config file. Please setup first')
@@ -80,7 +85,7 @@ def targetconnstr(outputfile):
                 certPath = jsonObj[CERT_PATH]
                 gatewayhost = jsonObj[GATEWAY_HOST]
                 edgeManager = EdgeManager(connectionString, gatewayhost, certPath)
-                connstr = edgeManager.getOrAddModule('target')
+                connstr = edgeManager.getOrAddModule('target', islocal)
                 output.info('Target module connection string is {0}'.format(connstr))
             else:
                 output.error('Missing keys in config file. Please setup again')
