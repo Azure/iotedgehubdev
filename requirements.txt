@@ -7,3 +7,5 @@ pyOpenSSL
 requests
 rope
 tox
+ruamel.yaml
+jsonpath_rw

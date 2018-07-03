@@ -7,7 +7,9 @@ dependencies = [
     'click',
     'docker',
     'pyOpenSSL',
-    'requests'
+    'requests',
+    'ruamel.yaml',
+    'jsonpath_rw'
 ]
 
 setup(
