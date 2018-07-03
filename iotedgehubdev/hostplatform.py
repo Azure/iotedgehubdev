@@ -4,7 +4,7 @@ from .errors import EdgeInvalidArgument
 
 
 class HostPlatform(object):
-    _edge_dir = 'azure-iot-edge-local'
+    _edge_dir = 'iotedgehubdev'
     _edgehub_config = 'edgehub.json'
     _certs = 'certs'
     _windows_config_path = os.getenv('PROGRAMDATA', '%%PROGRAMDATA%%')

@@ -13,7 +13,7 @@ class EdgeManager(object):
     DEVICE_PREFIX = 'DeviceId='
     KEY_PREFIX = 'SharedAccessKey='
     LABEL = 'edgehublocaltest'
-    EDGEHUB_IMG = 'microsoft/azureiotedge-hub:1.0-preview'
+    EDGEHUB_IMG = 'mcr.microsoft.com/azureiotedge-hub:1.0'
     TESTUTILITY_IMG = 'adashen/iot-edge-testing-utility:0.0.1'
     EDGEHUB_MODULE = '$edgeHub'
     EDGEHUB = 'edgeHubTest'
@@ -27,6 +27,8 @@ class EdgeManager(object):
     HUB_CERT_ENV = 'EdgeModuleHubServerCertificateFile=/mnt/edgehub/edge-hub-server.cert.pfx'
     HUB_SRC_ENV = 'configSource=local'
     MODULE_CA_ENV = "EdgeModuleCACertificateFile=/mnt/edgemodule/edge-device-ca.cert.pem"
+    HUB_SSLPATH_ENV = 'SSL_CERTIFICATE_PATH=/mnt/edgehub/'
+    HUB_SSLCRT_ENV = 'SSL_CERTIFICATE_NAME=edge-hub-server.cert.pfx'
 
     def __init__(self, connectionStr, gatewayhost, certPath):
         values = connectionStr.split(';')
@@ -54,8 +56,8 @@ class EdgeManager(object):
         edgedockerclient.stop_by_label(EdgeManager.LABEL)
 
     def startForSingleModule(self, inputs):
-        edgeHubConnStr = self.getOrAddModule(EdgeManager.EDGEHUB_MODULE)
-        inputConnStr = self.getOrAddModule(EdgeManager.INPUT)
+        edgeHubConnStr = self.getOrAddModule(EdgeManager.EDGEHUB_MODULE, False)
+        inputConnStr = self.getOrAddModule(EdgeManager.INPUT, False)
         edgedockerclient = EdgeDockerClient()
 
         EdgeManager.stop()
@@ -102,19 +104,19 @@ class EdgeManager(object):
     def start(self, modulesDict, routes):
         return
 
-    def getOrAddModule(self, name):
+    def getOrAddModule(self, name, islocal):
         try:
-            return self.getModule(name)
+            return self.getModule(name, islocal)
         except ResponseError as geterr:
             if geterr.status_code == 404:
                 try:
-                    return self.addModule(name)
+                    return self.addModule(name, islocal)
                 except ResponseError as adderr:
                     raise adderr
             else:
                 raise geterr
 
-    def getModule(self, name):
+    def getModule(self, name, islocal):
         moduleUri = "https://{0}/devices/{1}/modules/{2}?api-version=2017-11-08-preview".format(
             self.hostname, self.deviceId, name)
         sas = Utils.get_iot_hub_sas_token(self.deviceUri, self.key, None)
@@ -127,9 +129,9 @@ class EdgeManager(object):
         )
         if res.ok is not True:
             raise ResponseError(res.status_code, res.text)
-        return self._generateModuleConnectionStr(res)
+        return self._generateModuleConnectionStr(res, islocal)
 
-    def addModule(self, name):
+    def addModule(self, name, islocal):
         moduleUri = "https://{0}/devices/{1}/modules/{2}?api-version=2017-11-08-preview".format(
             self.hostname, self.deviceId, name)
         sas = Utils.get_iot_hub_sas_token(self.deviceUri, self.key, None)
@@ -146,19 +148,22 @@ class EdgeManager(object):
         )
         if res.ok is not True:
             raise ResponseError(res.status_code, res.text)
-        return self._generateModuleConnectionStr(res)
+        return self._generateModuleConnectionStr(res, islocal)
 
-    def _generateModuleConnectionStr(self, response):
+    def _generateModuleConnectionStr(self, response, islocal):
         jsonObj = json.loads(response.content)
         moduleId = jsonObj['moduleId']
         deviceId = jsonObj['deviceId']
         sasKey = jsonObj['authentication']['symmetricKey']['primaryKey']
         hubTemplate = 'HostName={0};DeviceId={1};ModuleId={2};SharedAccessKey={3}'
         moduleTemplate = 'HostName={0};GatewayHostName={1};DeviceId={2};ModuleId={3};SharedAccessKey={4}'
+        gatewayhost = self.gatewayhost
+        if (islocal):
+            gatewayhost = 'localhost'
         if (moduleId == '$edgeHub'):
             return hubTemplate.format(self.hostname, deviceId, moduleId, sasKey)
         else:
-            return moduleTemplate.format(self.hostname, self.gatewayhost, deviceId, moduleId, sasKey)
+            return moduleTemplate.format(self.hostname, gatewayhost, deviceId, moduleId, sasKey)
 
     def _generateRoutesEnvFromInputs(self, inputs):
         routes = [
@@ -188,6 +193,8 @@ class EdgeManager(object):
             EdgeManager.HUB_CA_ENV,
             EdgeManager.HUB_CERT_ENV,
             EdgeManager.HUB_SRC_ENV,
+            EdgeManager.HUB_SSLPATH_ENV,
+            EdgeManager.HUB_SSLCRT_ENV,
             'IotHubConnectionString={0}'.format(edgeHubConnStr)]
         hubEnv.extend(routes)
         hubContainer = edgedockerclient.create_container(
