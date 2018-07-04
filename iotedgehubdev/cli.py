@@ -52,11 +52,12 @@ def setup(connection_string, gateway_host):
     }
     configJson = json.dumps(configDict, indent=2, sort_keys=True)
     Utils.create_file(configFile, configJson, fileType)
-    output.info('Setup EdgeHub runtime successfully')
+    output.info('Setup EdgeHub runtime successfully.')
 
-
+# short_help hack to prevent Click truncating help text (https://github.com/pallets/click/issues/486)
 @click.command(context_settings=CONTEXT_SETTINGS,
-               help='Get the connection string of target module.')
+               short_help='Get the credentials of target module such as connection string and certificate file path.',
+               help='Get the credentials of target module such as connection string and certificate file path.')
 @click.option('--local',
               '-l',
               required=False,
@@ -64,14 +65,12 @@ def setup(connection_string, gateway_host):
               default=False,
               show_default=True,
               help='Set `localhost` to `GatewayHostName` for module to run on host natively.')
-@click.option('--output',
+@click.option('--output-file',
               '-o',
-              'output_file',  # non-user-facing alias to prevent conflict with the other variable named `output`
               required=False,
               show_default=True,
               help='Specify the output file to save the connection string.')
-#   TODO: better naming or shorter
-def targetconnstr(local, output_file):
+def modulecred(local, output_file):
     configFile = HostPlatform.get_config_file_path()
     if Utils.check_if_file_exists(configFile) is not True:
         output.error('Cannot find config file. Please setup first')
@@ -87,49 +86,51 @@ def targetconnstr(local, output_file):
                 connstr = edgeManager.getOrAddModule('target', local)
                 output.info('Target module connection string is {0}'.format(connstr))
             else:
-                output.error('Missing keys in config file. Please setup again')
+                output.error('Missing keys in config file. Please run `iotedgehubdev setup` again.')
     except Exception as e:
-        output.error('Error: {0}'.format(str(e)))
+        output.error('Error: {0}.'.format(str(e)))
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
                help="Start the EdgeHub runtime.")
-@click.option('--compose',
-              '-c',
-              required=False,
-              is_flag=True,
-              default=False,
-              show_default=True,
-              help='Start EdgeHub runtime in Docker Compose mode.')
 @click.option('--inputs',
               '-i',
               required=False,
-              default=None,
-              help='Specify the inputs of the target module, separated by commas.')
-#   TODO: Use multi?
-def start(compose, inputs):
-    print(single_mode)
-    configFile = HostPlatform.get_config_file_path()
-    if Utils.check_if_file_exists(configFile) is not True:
-        output.error('Cannot find config file. Please run `iotedgehubdev setup` first.')
-        return
+              help='Start EdgeHub runtime in single module mode '
+                   'using the specified comma-separated inputs of the target module, e.g., `input1,input2`.')
+@click.option('--deployment',
+              '-d',
+              required=False,
+              help='Start EdgeHub runtime in Docker Compose mode using the specified deployment manifest.')
+def start(inputs, deployment):
+    if inputs is None and deployment is None:
+        output.error('You might specify either inputs or deployment manifest to start the EdgeHub runtime.')
+    elif inputs is not None:
+        if deployment is None:
+            output.info('Deployment manifest is ignored when inputs are present.')
+        configFile = HostPlatform.get_config_file_path()
+        if Utils.check_if_file_exists(configFile) is not True:
+            output.error('Cannot find config file. Please run `iotedgehubdev setup` first.')
+            return
 
-    try:
-        with open(configFile) as f:
-            jsonObj = json.load(f)
-            if CONN_STR in jsonObj and CERT_PATH in jsonObj and GATEWAY_HOST in jsonObj:
-                if inputs is None:
-                    inputs = ['input1']
-                connectionString = jsonObj[CONN_STR]
-                certPath = jsonObj[CERT_PATH]
-                gatewayhost = jsonObj[GATEWAY_HOST]
-                edgeManager = EdgeManager(connectionString, gatewayhost, certPath)
-                edgeManager.startForSingleModule(inputs)
-                output.info('EdgeHub runtime has been started in single mode. Please connect your module as target and test.')
-            else:
-                output.error('Missing keys in config file. Please run `iotedgehubdev setup` again.')
-    except Exception as e:
-        output.error('Error: {0}'.format(str(e)))
+        try:
+            with open(configFile) as f:
+                jsonObj = json.load(f)
+                if CONN_STR in jsonObj and CERT_PATH in jsonObj and GATEWAY_HOST in jsonObj:
+                    inputs = [input.strip() for input in inputs.strip().split(',')]
+                    connectionString = jsonObj[CONN_STR]
+                    certPath = jsonObj[CERT_PATH]
+                    gatewayhost = jsonObj[GATEWAY_HOST]
+                    edgeManager = EdgeManager(connectionString, gatewayhost, certPath)
+                    edgeManager.startForSingleModule(inputs)
+                    output.info('EdgeHub runtime has been started in single module mode.'
+                                'Please connect your module as target and test.')
+                else:
+                    output.error('Missing keys in config file. Please run `iotedgehubdev setup` again.')
+        except Exception as e:
+            output.error('Error: {0}.'.format(str(e)))
+    else:
+        pass
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
@@ -139,11 +140,11 @@ def stop():
         EdgeManager.stop()
         output.info('EdgeHub runtime has been stopped successfully')
     except Exception as e:
-        output.error('Error: {0}'.format(str(e)))
+        output.error('Error: {0}.'.format(str(e)))
 
 
 main.add_command(setup)
-main.add_command(targetconnstr)
+main.add_command(modulecred)
 main.add_command(start)
 main.add_command(stop)
 
