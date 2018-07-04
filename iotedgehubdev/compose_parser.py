@@ -8,10 +8,13 @@ class CreateOptionParser(object):
     def parse_create_option(self):
         ret = {}
         for compose_key in COMPOSE_KEY_CREATE_OPTION_MAPPING:
-            parser_func = COMPOSE_KEY_CREATE_OPTION_MAPPING[compose_key]['parser_func']
             create_option_value = self.get_create_option_value(compose_key)
             if create_option_value:
-                ret[compose_key] = parser_func(create_option_value)
+                parser_func = COMPOSE_KEY_CREATE_OPTION_MAPPING[compose_key]['parser_func']
+                try:
+                    ret[compose_key] = parser_func(create_option_value)
+                except Exception as err:
+                    print(err)
         return ret
 
     def get_create_option_value(self, compose_key):
@@ -39,27 +42,98 @@ def service_parser_expose(create_options_details):
 def service_parser_command(create_options_details):
     if not isinstance(create_options_details, list):
         return create_options_details
-    command_ret = ""
-    for cmd in create_options_details:
-        command_ret = command_ret + ' ' + cmd
-    return command_ret.lstrip().rstrip()
+    return ' '.join(create_options_details).strip()
 
 
 def service_parser_healthcheck(create_options_details):
-    healthcheck_config = {}
-    healthcheck_config['test'] = str(create_options_details['Test'])  # Maybe need a better fomat
-    healthcheck_config['interval'] = time_ns_ms(create_options_details['Interval'])
-    healthcheck_config['timeout'] = time_ns_ms(create_options_details['Timeout'])
-    healthcheck_config['retries'] = create_options_details['Retries']
-    healthcheck_config['start_period'] = time_ns_ms(create_options_details['StartPeriod'])
-    return healthcheck_config
+    try:
+        return {
+            'test': create_options_details['Test'],
+            'interval': time_ns_ms(create_options_details['Interval']),
+            'timeout': time_ns_ms(create_options_details['Timeout']),
+            'retries': create_options_details['Retries'],
+            'start_period': time_ns_ms(create_options_details['StartPeriod'])
+        }
+    except KeyError as err:
+        raise KeyError('Missing key : {0} in Healthcheck'.format(err))
 
 
 def service_parser_stop_timeout(create_options_details):
-    return str(int(create_options_details)) + 's'
+    try:
+        return str(int(create_options_details)) + 's'
+    except TypeError:
+        raise TypeError('StopTimeout should be an integer.')
+
+
+def service_parser_hostconfig_devices(create_options_details):
+    devices_list = []
+    for device in create_options_details:
+        try:
+            devices_list.append("{0}:{1}:{2}".format(device['PathOnHost'],
+                                                     device['PathInContainer'], device['CgroupPermissions']))
+        except KeyError as err:
+            raise KeyError('Missing key : {0} in HostConfig.Devices.'.format(err))
+    return devices_list
+
+
+def service_parser_hostconfig_restart(create_options_details):
+    ret = ""
+    if create_options_details['Name'] == "":
+        ret = "no"
+    elif create_options_details['Name'] == "on-failure":
+        try:
+            ret = "on-failure:{0}".format(create_options_details['MaximumRetryCount'])
+        except KeyError as err:
+            raise KeyError('Missing key : {0} in HostConfig.RestartPolicy.'.format(err))
+    elif create_options_details['Name'] == "always" or create_options_details['Name'] == "unless-stopped":
+        ret = create_options_details['Name']
+    else:
+        raise ValueError("RestartPolicy Name should be one of '', 'always', 'unless-stopped', 'on-failure'")
+    return ret
+
+
+def service_parser_hostconfig_ulimits(create_options_details):
+    ulimits_dict = {}
+    for ulimit in create_options_details:
+        try:
+            ulimits_dict[ulimit['Name']] = {
+                'soft': ulimit['Soft'],
+                'hard': ulimit['Hard']
+            }
+        except KeyError as err:
+            raise KeyError('Missing key : {0} in HostConfig.Ulimits'.format(err))
+    return ulimits_dict
+
+
+def service_parser_hostconfig_logging(create_options_details):
+    try:
+        logging_dict = {
+            'driver': create_options_details['Type'],
+            'options': create_options_details['Config']
+        }
+    except KeyError as err:
+        raise KeyError('Missing key : {0} in HostConfig.LogConfig'.format(err))
+    return logging_dict
+
+
+def service_parser_hostconfig_ports(create_options_details):
+    ports_list = []
+    for container_port, host_ports in create_options_details.items():
+        for host_port_info in host_ports:
+            host_port = ""
+            if 'HostIp' in host_port_info and 'HostPort' in host_port_info:
+                host_port = "{0}:{1}".format(host_port_info['HostIp'], host_port_info['HostPort'])
+            elif 'HostIp' in host_port_info:
+                host_port = host_port_info['HostIp']
+            elif 'HostPort' in host_port_info:
+                host_port = host_port_info['HostPort']
+            ports_list.append("{0}:{1}".format(host_port, container_port))
+    return ports_list
 
 
 def time_ns_ms(ns):
+    if ns is not 0 and ns < 1000000:
+        raise ValueError('The time should be 0 or at least 1000000 (1 ms)')
     return str(int(ns / 1000000)) + 'ms'
 
 
@@ -85,19 +159,21 @@ COMPOSE_KEY_CREATE_OPTION_MAPPING = {
     'stop_signal': {'API_Info': {'StopSignal': "$['StopSignal']"}, 'parser_func': service_parser_naive},
     'stop_grace_period': {'API_Info': {'StopTimeout': "$['StopTimeout']"}, 'parser_func': service_parser_stop_timeout},
 
-    # # HostConfig
-    'privileged': {'API_Info': {'Privileged': "$['HostConfig']['Hostname']"}, 'parser_func': service_parser_naive},
-    # 'volumes:':{'API_Info':['Binds','Mounts'],'parser_func':service_parser_naive},
-    # # 'volumes_from:':{'API_Info':'VolumesFrom','parser_func':service_parser_naive},
+    # HostConfig
+    'ports': {'API_Info': {'PortBindings': "$['HostConfig']['PortBindings']"}, 'parser_func': service_parser_hostconfig_ports},
+    'privileged': {'API_Info': {'Privileged': "$['HostConfig']['Privileged']"}, 'parser_func': service_parser_naive},
     'network_mode': {'API_Info': {'NetworkMode': "$['HostConfig']['NetworkMode']"}, 'parser_func': service_parser_naive},
-    # 'devices:':{'API_Info':'Devices','parser_func':service_parser_naive},
+    'devices': {'API_Info': {'Devices': "$['HostConfig']['Devices']"}, 'parser_func': service_parser_hostconfig_devices},
     'dns': {'API_Info': {'Dns': "$['HostConfig']['Dns']"}, 'parser_func': service_parser_naive},
     'dns_search': {'API_Info': {'DnsSearch': "$['HostConfig']['DnsSearch']"}, 'parser_func': service_parser_naive},
-    # 'restart:':{'API_Info':'RestartPolicy','parser_func':service_parser_naive},
+    'restart': {
+        'API_Info': {'RestartPolicy': "$['HostConfig']['RestartPolicy']"},
+        'parser_func': service_parser_hostconfig_restart
+    },
     'cap_add': {'API_Info': {'CapAdd': "$['HostConfig']['CapAdd']"}, 'parser_func': service_parser_naive},
     'cap_drop': {'API_Info': {'CapDrop': "$['HostConfig']['CapDrop']"}, 'parser_func': service_parser_naive},
-    # 'ulimits:':{'API_Info':'Ulimits','parser_func':service_parser_naive},
-    # 'logging:':{'API_Info':'LogConfig','parser_func':service_parser_naive},
+    'ulimits': {'API_Info': {'Ulimits': "$['HostConfig']['Ulimits']"}, 'parser_func': service_parser_hostconfig_ulimits},
+    'logging': {'API_Info': {'LogConfig': "$['HostConfig']['LogConfig']"}, 'parser_func': service_parser_hostconfig_logging},
     'extra_hosts': {'API_Info': {'ExtraHosts': "$['HostConfig']['ExtraHosts']"}, 'parser_func': service_parser_naive},
     'read_only': {'API_Info': {'ReadonlyRootfs': "$['HostConfig']['ReadonlyRootfs']"}, 'parser_func': service_parser_naive},
     'pid': {'API_Info': {'PidMode': "$['HostConfig']['PidMode']"}, 'parser_func': service_parser_naive},
@@ -105,10 +181,13 @@ COMPOSE_KEY_CREATE_OPTION_MAPPING = {
     'ipc': {'API_Info': {'IpcMode': "$['HostConfig']['IpcMode']"}, 'parser_func': service_parser_naive},
     'cgroup_parent': {'API_Info': {'CgroupParent': "$['HostConfig']['CgroupParent']"}, 'parser_func': service_parser_naive},
     # 'shm_size:':{'API_Info':'ShmSize','parser_func':service_parser_naive},
-    # 'sysctls:':{'API_Info':'Sysctls','parser_func':service_parser_naive},
+    'sysctls': {'API_Info': {'Sysctls': "$['HostConfig']['Sysctls']"}, 'parser_func': service_parser_naive},
     # 'tmpfs:':{'API_Info':'Tmpfs','parser_func':service_parser_naive},
     'userns_mode': {'API_Info': {'UsernsMode': "$['HostConfig']['UsernsMode']"}, 'parser_func': service_parser_naive},
     'isolation': {'API_Info': {'Isolation': "$['HostConfig']['Isolation']"}, 'parser_func': service_parser_naive},
+
+    # Volumes
+    # 'volumes:':{'API_Info':{''},'parser_func':service_parser_naive},
 
     # # NetworkingConfig
     # 'aliases':{'API_Info':'IPv4Address','parser_func':service_parser_naive},

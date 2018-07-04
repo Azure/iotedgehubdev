@@ -2,20 +2,25 @@ from .compose_parser import CreateOptionParser
 import json
 from ruamel.yaml import YAML
 
-COMPOSE_VERSION = 3.4
+COMPOSE_VERSION = 3.6
 
 
 class ComposeProject(object):
     def __init__(self, deployment_config):
         self.deployment_config = deployment_config
-        self.custom_modules = deployment_config['modulesContent']['$edgeAgent']['properties.desired']['modules']
         self.yaml_dict = {}
         self.Services = {}
-        self.Networks = self.parse_networks(deployment_config)
-        self.Volumes = self.parse_volumes(deployment_config)
+        self.Networks = {}
+        self.Volumes = {}
+
+    def compose(self):
+        self.parse_services()
+        self.parse_networks()
+        self.parse_volumes()
 
     def parse_services(self):
-        for service_name, config in self.custom_modules.items():
+        custom_modules = self.deployment_config['modulesContent']['$edgeAgent']['properties.desired']['modules']
+        for service_name, config in custom_modules.items():
             self.Services[service_name] = {}
             create_option_str = config['settings']['createOptions']
             create_option = json.loads(create_option_str)
@@ -25,11 +30,11 @@ class ComposeProject(object):
             self.Services[service_name]['container_name'] = service_name
 
     # TODO: implement this in a future PR
-    def parse_networks(self, networks_config):
+    def parse_networks(self):
         pass
 
     # TODO: implement this in a future PR
-    def parse_volumes(self, volumes_config):
+    def parse_volumes(self):
         pass
 
     def dump(self, target):

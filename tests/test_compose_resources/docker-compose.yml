@@ -1,4 +1,4 @@
-version: '3.4'
+version: '3.6'
 services:
   tempSensor:
     expose:
@@ -8,7 +8,8 @@ services:
     - BAZ=quux
     command: date
     healthcheck:
-      test: "['string']"
+      test:
+      - string
       interval: 0ms
       timeout: 0ms
       retries: 0
@@ -21,18 +22,24 @@ services:
       com.example.version: '1.0'
     stop_signal: SIGTERM
     stop_grace_period: 10s
+    ports:
+    - 11022:22/tcp
     network_mode: bridge
     dns:
     - 8.8.8.8
     dns_search:
     - ''
+    restart: no
     cap_add:
     - NET_ADMIN
     cap_drop:
     - MKNOD
+    logging:
+      driver: json-file
+      options: {}
     container_name: tempSensor
   filterModule:
     image: yuganacr.azurecr.io/filtermodule:0.0.1-amd64
     container_name: filterModule
-networks:
-volumes:
+networks: {}
+volumes: {}
