@@ -54,8 +54,9 @@ def setup(connection_string, gateway_host):
     Utils.create_file(configFile, configJson, fileType)
     output.info('Setup EdgeHub runtime successfully.')
 
-# short_help hack to prevent Click truncating help text (https://github.com/pallets/click/issues/486)
+
 @click.command(context_settings=CONTEXT_SETTINGS,
+               # short_help hack to prevent Click truncating help text (https://github.com/pallets/click/issues/486)
                short_help='Get the credentials of target module such as connection string and certificate file path.',
                help='Get the credentials of target module such as connection string and certificate file path.')
 @click.option('--local',
@@ -106,7 +107,7 @@ def start(inputs, deployment):
     if inputs is None and deployment is None:
         output.error('You might specify either inputs or deployment manifest to start the EdgeHub runtime.')
     elif inputs is not None:
-        if deployment is None:
+        if deployment is not None:
             output.info('Deployment manifest is ignored when inputs are present.')
         configFile = HostPlatform.get_config_file_path()
         if Utils.check_if_file_exists(configFile) is not True:
