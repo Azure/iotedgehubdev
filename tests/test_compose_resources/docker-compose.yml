@@ -1,45 +1,45 @@
 version: '3.6'
 services:
+  filterModule:
+    container_name: filterModule
+    image: yuganacr.azurecr.io/filtermodule:0.0.1-amd64
   tempSensor:
-    expose:
-    - 22/tcp
-    environment:
-    - FOO=bar
-    - BAZ=quux
-    command: date
-    healthcheck:
-      test:
-      - string
-      interval: 0ms
-      timeout: 0ms
-      retries: 0
-      start_period: 0ms
-    image: microsoft/azureiotedge-simulated-temperature-sensor:1.0-preview
-    mac_address: 12:34:56:78:9a:bc
-    labels:
-      com.example.vendor: Acme
-      com.example.license: GPL
-      com.example.version: '1.0'
-    stop_signal: SIGTERM
-    stop_grace_period: 10s
-    ports:
-    - 11022:22/tcp
-    network_mode: bridge
-    dns:
-    - 8.8.8.8
-    dns_search:
-    - ''
-    restart: no
     cap_add:
     - NET_ADMIN
     cap_drop:
     - MKNOD
+    command: date
+    container_name: tempSensor
+    dns:
+    - 8.8.8.8
+    dns_search:
+    - ''
+    environment:
+    - FOO=bar
+    - BAZ=quux
+    expose:
+    - 22/tcp
+    healthcheck:
+      interval: 0ms
+      retries: 0
+      start_period: 0ms
+      test:
+      - string
+      timeout: 0ms
+    image: microsoft/azureiotedge-simulated-temperature-sensor:1.0-preview
+    labels:
+      com.example.license: GPL
+      com.example.vendor: Acme
+      com.example.version: '1.0'
     logging:
       driver: json-file
       options: {}
-    container_name: tempSensor
-  filterModule:
-    image: yuganacr.azurecr.io/filtermodule:0.0.1-amd64
-    container_name: filterModule
+    mac_address: 12:34:56:78:9a:bc
+    network_mode: bridge
+    ports:
+    - 11022:22/tcp
+    restart: 'no'
+    stop_grace_period: 10s
+    stop_signal: SIGTERM
 networks: {}
 volumes: {}

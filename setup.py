@@ -8,7 +8,7 @@ dependencies = [
     'docker',
     'pyOpenSSL',
     'requests',
-    'ruamel.yaml',
+    'pyyaml',
     'jsonpath_rw'
 ]
 
