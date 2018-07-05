@@ -75,7 +75,7 @@ def modulecred(local, output_file):
     configFile = HostPlatform.get_config_file_path()
     if Utils.check_if_file_exists(configFile) is not True:
         output.error('Cannot find config file. Please setup first')
-        sys.exit(-1)
+        sys.exit(1)
     try:
         with open(configFile) as f:
             jsonObj = json.load(f)
@@ -88,10 +88,10 @@ def modulecred(local, output_file):
                 output.info('Target module connection string is {0}'.format(connstr))
             else:
                 output.error('Missing keys in config file. Please run `iotedgehubdev setup` again.')
-                sys.exit(-1)
+                sys.exit(1)
     except Exception as e:
         output.error('Error: {0}.'.format(str(e)))
-        sys.exit(-1)
+        sys.exit(1)
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
@@ -116,7 +116,7 @@ def start(inputs):
         configFile = HostPlatform.get_config_file_path()
         if Utils.check_if_file_exists(configFile) is not True:
             output.error('Cannot find config file. Please run `iotedgehubdev setup` first.')
-            sys.exit(-1)
+            sys.exit(1)
 
         try:
             with open(configFile) as f:
@@ -135,10 +135,10 @@ def start(inputs):
                                 'Please connect your module as target and test.')
                 else:
                     output.error('Missing keys in config file. Please run `iotedgehubdev setup` again.')
-                    sys.exit(-1)
+                    sys.exit(1)
         except Exception as e:
             output.error('Error: {0}.'.format(str(e)))
-            sys.exit(-1)
+            sys.exit(1)
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
@@ -149,7 +149,7 @@ def stop():
         output.info('EdgeHub runtime has been stopped successfully')
     except Exception as e:
         output.error('Error: {0}.'.format(str(e)))
-        sys.exit(-1)
+        sys.exit(1)
 
 
 main.add_command(setup)
