@@ -28,7 +28,7 @@ dependencies = [
     'pyOpenSSL',
     'requests',
     'six',
-    'applicationinsights'
+    'applicationinsights',
     'pyyaml',
     'jsonpath_rw'
 ]
