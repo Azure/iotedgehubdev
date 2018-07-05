@@ -6,6 +6,9 @@ from .hostplatform import HostPlatform
 from .edgecert import EdgeCert
 from .edgemanager import EdgeManager
 from .utils import Utils
+from functools import wraps
+from . import configs
+from . import telemetry
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'], max_content_width=120)
 output = Output()
@@ -14,14 +17,22 @@ CONN_STR = 'connectionString'
 CERT_PATH = 'certPath'
 GATEWAY_HOST = 'gatewayhost'
 
-# @click.command()
-# @click.option('--as-cowboy', '-c', is_flag=True, help='Greet as a cowboy.')
-# @click.argument('name', default='world', required=False)
-# def main(name, as_cowboy):
-#     """My Tool does one thing, and one thing well."""
-#     greet = 'Howdy' if as_cowboy else 'Hello'
-#     click.echo('{0}, {1}.'.format(greet, name))
+def _with_telemetry(func):
+    @wraps(func)
+    def _wrapper(*args, **kwargs):
+        configs.check_firsttime()
+        telemetry.start(func.__name__)
+        value = None
+        try :
+            value = func(*args, **kwargs)
+            telemetry.success()
+            telemetry.flush()
+            return value
+        except Exception as e:
+            output.error('Error: {0}'.format(str(e)))
+            telemetry.fail(str(e), 'Command failed')
 
+    return _wrapper
 
 @click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
 @click.version_option()
@@ -125,6 +136,7 @@ def singlemoduletest(inputs):
 
 @click.command(context_settings=CONTEXT_SETTINGS,
                help="stop the edgeHub runtime")
+@_with_telemetry
 def stop():
     try:
         EdgeManager.stop()

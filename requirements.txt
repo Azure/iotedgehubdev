@@ -5,5 +5,8 @@ docker
 flake8
 pyOpenSSL
 requests
+six
+applicationinsights
+prompt_toolkit
 rope
 tox
