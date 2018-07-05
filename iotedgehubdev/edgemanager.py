@@ -103,13 +103,26 @@ class EdgeManager(object):
         edgedockerclient.start(inputContainer.get('Id'))
 
     def start_solution(self, deployment_config):
+        edgedockerclient = EdgeDockerClient()
+
+        EdgeManager.stop()
+        status = edgedockerclient.status(EdgeManager.EDGEHUB)
+        if status is not None:
+            edgedockerclient.stop(EdgeManager.EDGEHUB)
+            edgedockerclient.remove(EdgeManager.EDGEHUB)
+        status = edgedockerclient.status(EdgeManager.INPUT)
+        if status is not None:
+            edgedockerclient.stop(EdgeManager.INPUT)
+            edgedockerclient.remove(EdgeManager.INPUT)
+
+        self._prepare(edgedockerclient)
+
         module_names = [EdgeManager.EDGEHUB_MODULE]
         custom_modules = deployment_config['moduleContent']['$edgeAgent']['properties.desired']['modules']
         for module_name in custom_modules:
             module_names.append(module_name)
 
         ConnStr_info = {}
-        ConnStr_info['edgeHub'] = self.getOrAddModule(EdgeManager.EDGEHUB_MODULE, False)
         for module_name in module_names:
             ConnStr_info[module_name] = self.getOrAddModule(module_name, False)
 

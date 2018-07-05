@@ -101,14 +101,43 @@ def modulecred(local, output_file):
               required=False,
               help='Start EdgeHub runtime in single module mode '
                    'using the specified comma-separated inputs of the target module, e.g., `input1,input2`.')
-# @click.option('--deployment',
-#               '-d',
-#               required=False,
-#               help='Start EdgeHub runtime in Docker Compose mode using the specified deployment manifest.')
-def start(inputs):
-    deployment = None
+@click.option('--deployment',
+              '-d',
+              required=False,
+              help='Start EdgeHub runtime in Docker Compose mode using the specified deployment manifest.')
+def start(inputs, deployment):
+    # deployment = None
     if inputs is None and deployment is not None:
-        pass
+        configFile = HostPlatform.get_config_file_path()
+        if Utils.check_if_file_exists(configFile) is not True:
+            output.error('Cannot find config file. Please run `iotedgehubdev setup` first.')
+            sys.exit(1)
+
+        try:
+            with open(configFile) as f:
+                jsonObj = json.load(f)
+                if CONN_STR in jsonObj and CERT_PATH in jsonObj and GATEWAY_HOST in jsonObj:
+                    if inputs is None:
+                        input_list = ['input1']
+                    else:
+                        input_list = [input_.strip() for input_ in inputs.strip().split(',')]
+                    connectionString = jsonObj[CONN_STR]
+                    certPath = jsonObj[CERT_PATH]
+                    gatewayhost = jsonObj[GATEWAY_HOST]
+
+                    with open(deployment) as json_file:
+                        json_data = json.load(json_file)
+
+                        edgeManager = EdgeManager(connectionString, gatewayhost, certPath)
+                        edgeManager.start_solution(json_data)
+                        output.info('EdgeHub runtime has been started in solution mode.'
+                                    'Please connect your module as target and test.')
+                else:
+                    output.error('Missing keys in config file. Please run `iotedgehubdev setup` again.')
+                    sys.exit(1)
+        except Exception as e:
+            output.error('Error: {0}.'.format(str(e)))
+            sys.exit(1)
     else:
         if deployment is not None:
             output.info('Deployment manifest is ignored when inputs are present.')

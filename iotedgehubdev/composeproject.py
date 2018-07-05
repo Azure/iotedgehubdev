@@ -29,9 +29,10 @@ class ComposeProject(object):
         for service_name, config in custom_modules.items():
             self.Services[service_name] = {}
             create_option_str = config['settings']['createOptions']
-            create_option = json.loads(create_option_str)
-            create_option_parser = CreateOptionParser(create_option)
-            self.Services[service_name].update(create_option_parser.parse_create_option())
+            if create_option_str:
+                create_option = json.loads(create_option_str)
+                create_option_parser = CreateOptionParser(create_option)
+                self.Services[service_name].update(create_option_parser.parse_create_option())
             self.Services[service_name]['image'] = config['settings']['image']
             self.Services[service_name]['container_name'] = service_name
 
@@ -47,7 +48,7 @@ class ComposeProject(object):
                 self.Services[service_name]['environment'] = []
             for module_env in self.edge_info['env_info']['module_env'].values():
                 self.Services[service_name]['environment'].append(module_env)
-            self.Services[service_name]['environment'].append(self.edge_info['ConnStr_info'][service_name])
+            self.Services[service_name]['environment'].append('EdgeHubConnectionString=' + self.edge_info['ConnStr_info'][service_name])
 
             if 'networks' not in self.Services[service_name]:
                 self.Services[service_name]['networks'] = {}
@@ -57,8 +58,9 @@ class ComposeProject(object):
         self.edge_info = info
 
     def config_egde_hub(self):
+        edgeHub_config = self.deployment_config['moduleContent']['$edgeAgent']['properties.desired']['systemModules']['edgeHub']
         self.Services['edgeHub'] = {
-            'image': self.deployment_config['moduleContent']['$edgeAgent']['properties.desired']['systemModules']['edgeHub']['image'],
+            'image': edgeHub_config['settings']['image'],
             'environment': list(self.edge_info['env_info']['hub_env'].values()),
             'volumes': [{
                 'type': 'volume',
@@ -69,20 +71,27 @@ class ComposeProject(object):
                 ComposeProject.edge_network_name: {
                     'aliases': [self.edge_info['network_info']['ALIASES']]
                 }
-            }
+            },
+            'container_name' : 'edgeHub_test'
         }
 
         routes_env = self.parse_routes()
         for e in routes_env:
             self.Services['edgeHub']['environment'].append(e)
 
-        self.Services['edgeHub']['environment'].append(self.edge_info['ConnStr_info']['edgeHub'])
+        self.Services['edgeHub']['environment'].append('IotHubConnectionString=' + self.edge_info['ConnStr_info']['$edgeHub'])
+
+        create_option_str = edgeHub_config['settings']['createOptions']
+        if create_option_str:
+            create_option = json.loads(create_option_str)
+            create_option_parser = CreateOptionParser(create_option)
+            self.Services['edgeHub'].update(create_option_parser.parse_create_option())
 
     def parse_routes(self):
         routes = self.deployment_config['moduleContent']['$edgeHub']['properties.desired']['routes']
         routes_env = []
-        for name, path in routes:
-            routes_env.append(name + '__' + path)
+        for name, path in routes.items():
+            routes_env.append('routes__' + name + '=' + path)
         return routes_env
 
     # TODO: implement this in a future PR
