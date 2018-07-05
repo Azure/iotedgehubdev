@@ -7,7 +7,9 @@ dependencies = [
     'click',
     'docker',
     'pyOpenSSL',
-    'requests'
+    'requests',
+    'pyyaml',
+    'jsonpath_rw'
 ]
 
 setup(
