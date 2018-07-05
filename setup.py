@@ -29,6 +29,8 @@ dependencies = [
     'requests',
     'six',
     'applicationinsights'
+    'pyyaml',
+    'jsonpath_rw'
 ]
 
 setup(
