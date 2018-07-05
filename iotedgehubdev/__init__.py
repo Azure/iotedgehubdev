@@ -1,5 +1,5 @@
 import pkg_resources
-import six
+import six  # noqa: F401
 
 pkg_resources.declare_namespace(__name__)
 

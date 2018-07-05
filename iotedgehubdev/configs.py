@@ -1,7 +1,6 @@
 import os
 
 from six.moves import configparser
-from functools import wraps
 from . import decorators
 from .hostplatform import HostPlatform
 
@@ -14,8 +13,9 @@ The iotedgehubdev collects usage data in order to improve your experience.
 The data is anonymous and does not include commandline argument values.
 The data is collected by Microsoft.
 
-You can change your telemetry settings by updating 'collect_telemetry' to 'no' in {0} 
+You can change your telemetry settings by updating 'collect_telemetry' to 'no' in {0}
 """
+
 
 class ProductConfig(object):
     def __init__(self):
@@ -41,7 +41,7 @@ class ProductConfig(object):
                     self.config.write(iniFile)
         except Exception:
             pass
-    
+
     @decorators.suppress_all_exceptions()
     def update_config(self):
         with open(HostPlatform.get_setting_ini_path(), 'w') as iniFile:
@@ -56,13 +56,16 @@ class ProductConfig(object):
 
 _prod_config = ProductConfig()
 
+
 @decorators.suppress_all_exceptions()
 def get_ini_config():
     return _prod_config.config
 
+
 @decorators.suppress_all_exceptions()
 def update_ini():
     _prod_config.update_config()
+
 
 @decorators.suppress_all_exceptions()
 def check_firsttime():

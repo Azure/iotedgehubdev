@@ -1,11 +1,8 @@
 import unittest
-from unittest import mock
 
 
 class TestGetIniConfig(unittest.TestCase):
-    @mock.patch('iotedgehubdev.hostplatform.HostPlatform', autospec=True)
-    def test_exception_hostplatform(self, mockHostPlatform):
-        mockHostPlatform.get_config_path.side_effect = OSError()
+    def test(self):
         from iotedgehubdev import configs
         iniConfig = configs.get_ini_config()
         self.assertEqual(iniConfig.get('DEFAULT', 'firsttime'), 'yes')

@@ -8,7 +8,7 @@ def suppress_all_exceptions(fallback_return=None):
         def _wrapped_func(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
-            except Exception:  # nopa pylint: disable=broad-except
+            except Exception:
                 if fallback_return:
                     return fallback_return
                 else:
@@ -17,6 +17,7 @@ def suppress_all_exceptions(fallback_return=None):
         return _wrapped_func
 
     return _decorator
+
 
 def call_once(factory_func):
     """"
@@ -32,6 +33,7 @@ def call_once(factory_func):
 
         return factory_func.cached_result
     return _wrapped
+
 
 def hash256_result(func):
     """Secure the return string of the annotated function with SHA256 algorithm. If the annotated

@@ -7,14 +7,13 @@ import sys
 import json
 
 from collections import defaultdict
-from six.moves import configparser
 from functools import wraps
 from . import decorators
-from .hostplatform import HostPlatform
 from . import telemetry_upload as telemetry_core
 from . import configs
 
 PRODUCT_NAME = 'iotedgehubdev'
+
 
 class TelemetrySession(object):
     def __init__(self, correlation_id=None):
@@ -41,8 +40,8 @@ class TelemetrySession(object):
             'OS.Type': platform.system().lower(),
             'OS.Version': platform.version().lower(),
             'Result': self.result,
-            'StartTime': self.start_time,
-            'EndTime': self.end_time
+            'StartTime': str(self.start_time),
+            'EndTime': str(self.end_time)
         }
 
         if self.result_summary:
@@ -58,7 +57,7 @@ class TelemetrySession(object):
 
         payload = json.dumps(self.events)
         return _remove_symbols(payload)
-    
+
     @decorators.suppress_all_exceptions()
     @decorators.hash256_result
     def _get_hash_mac_address(self):
@@ -74,29 +73,34 @@ class TelemetrySession(object):
 
 _session = TelemetrySession()
 
+
 def _user_agrees_to_telemetry(func):
     @wraps(func)
     def _wrapper(*args, **kwargs):
-        if not configs.get_ini_config().getboolean('core', 'collect_telemetry', fallback=True):
+        if not configs.get_ini_config().getboolean('DEFAULT', 'collect_telemetry', fallback=True):
             return None
         return func(*args, **kwargs)
 
     return _wrapper
+
 
 @decorators.suppress_all_exceptions()
 def start(cmdname):
     _session.command = cmdname
     _session.start_time = datetime.datetime.utcnow()
 
+
 @decorators.suppress_all_exceptions()
 def success():
     _session.result = 'Success'
+
 
 @decorators.suppress_all_exceptions()
 def fail(exception, summary):
     _session.exception = exception
     _session.result = 'Fail'
     _session.result_summary = summary
+
 
 @_user_agrees_to_telemetry
 @decorators.suppress_all_exceptions()
@@ -117,16 +121,19 @@ def _get_core_version():
     from iotedgehubdev import __version__ as core_version
     return core_version
 
+
 @decorators.suppress_all_exceptions()
 def _get_AI_key():
     from iotedgehubdev import __AIkey__ as key
     return key
+
 
 # This includes a final user-agreement-check; ALL methods sending telemetry MUST call this.
 @_user_agrees_to_telemetry
 @decorators.suppress_all_exceptions()
 def _upload_telemetry_with_user_agreement(payload, **kwargs):
     subprocess.Popen([sys.executable, os.path.realpath(telemetry_core.__file__), payload], **kwargs)
+
 
 def _remove_symbols(s):
     if isinstance(s, str):

@@ -1,13 +1,10 @@
 try:
     # Python 2.x
     import urllib2 as HTTPClient
-    from urllib2 import HTTPError
 except ImportError:
     # Python 3.x
     import urllib.request as HTTPClient
-    from urllib.error import HTTPError
 
-import os
 import sys
 import json
 import six
@@ -16,6 +13,7 @@ from applicationinsights import TelemetryClient
 from applicationinsights.exceptions import enable
 from applicationinsights.channel import SynchronousSender, SynchronousQueue, TelemetryChannel
 from iotedgehubdev import decorators
+
 
 class LimitedRetrySender(SynchronousSender):
     def __init__(self):
@@ -32,6 +30,7 @@ class LimitedRetrySender(SynchronousSender):
         except Exception:  # pylint: disable=broad-except
             pass
 
+
 @decorators.suppress_all_exceptions()
 def upload(data_to_save):
     try:
@@ -43,7 +42,6 @@ def upload(data_to_save):
         client = TelemetryClient(instrumentation_key=instrumentation_key,
                                  telemetry_channel=TelemetryChannel(queue=SynchronousQueue(LimitedRetrySender())))
         enable(instrumentation_key)
-
         for record in data_to_save[instrumentation_key]:
             name = record['name']
             raw_properties = record['properties']
@@ -56,6 +54,7 @@ def upload(data_to_save):
                     measurements[k] = v
             client.track_event(name, properties, measurements)
         client.flush()
+
 
 if __name__ == '__main__':
     # If user doesn't agree to upload telemetry, this scripts won't be executed. The caller should control.
