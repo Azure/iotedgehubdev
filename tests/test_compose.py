@@ -1,7 +1,10 @@
 from iotedgehubdev.composeproject import ComposeProject
 import iotedgehubdev.compose_parser
 import json
+import os
 import unittest
+
+OUTPUT_PATH = 'tests/output'
 
 
 class ComposeTest(unittest.TestCase):
@@ -10,8 +13,10 @@ class ComposeTest(unittest.TestCase):
             json_data = json.load(json_file)
             proj = ComposeProject(json_data)
             proj.compose()
-            proj.dump('tests/test_compose_resources/docker-compose_test.yml')
-            actual_output = open('tests/test_compose_resources/docker-compose_test.yml', 'r').read()
+            if not os.path.exists(OUTPUT_PATH):
+                os.makedirs(OUTPUT_PATH)
+            proj.dump('{}/docker-compose_test.yml'.format(OUTPUT_PATH))
+            actual_output = open('tests/output/docker-compose_test.yml', 'r').read()
             expected_output = open('tests/test_compose_resources/docker-compose.yml', 'r').read()
             assert actual_output == expected_output
 

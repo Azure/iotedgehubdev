@@ -12,16 +12,16 @@ class EdgeManager(object):
     HOST_PREFIX = 'HostName='
     DEVICE_PREFIX = 'DeviceId='
     KEY_PREFIX = 'SharedAccessKey='
-    LABEL = 'edgehublocaltest'
+    LABEL = 'iotedgehubdev'
     EDGEHUB_IMG = 'mcr.microsoft.com/azureiotedge-hub:1.0'
-    TESTUTILITY_IMG = 'adashen/iot-edge-testing-utility:0.0.1'
+    TESTUTILITY_IMG = 'mcr.microsoft.com/azureiotedge-testing-utility:1.0.0-rc1'
     EDGEHUB_MODULE = '$edgeHub'
-    EDGEHUB = 'edgeHubTest'
+    EDGEHUB = 'edgeHubDev'
     INPUT = 'input'
     NW_NAME = 'azure-iot-edge-test'
-    HUB_VOLUME = 'edgehubtest'
+    HUB_VOLUME = 'edgehubdev'
     HUB_MOUNT = '/mnt/edgehub'
-    MODULE_VOLUME = 'edgemoduletest'
+    MODULE_VOLUME = 'edgemoduledev'
     MODULE_MOUNT = '/mnt/edgemodule'
     HUB_CA_ENV = 'EdgeModuleHubServerCAChainCertificateFile=/mnt/edgehub/edge-chain-ca.cert.pem'
     HUB_CERT_ENV = 'EdgeModuleHubServerCertificateFile=/mnt/edgehub/edge-hub-server.cert.pfx'
@@ -170,7 +170,8 @@ class EdgeManager(object):
             'routes__output=FROM /messages/modules/target/outputs/* INTO BrokeredEndpoint("/modules/input/inputs/print")'
         ]
         template = 'routes__r{0}=FROM /messages/modules/input/outputs/{1} INTO BrokeredEndpoint("/modules/target/inputs/{2}")'
-        for (idx, input) in enumerate(inputs):
+        inputSet = set(inputs)
+        for (idx, input) in enumerate(inputSet):
             routes.append(template.format(idx + 1, input, input))
         return routes
 

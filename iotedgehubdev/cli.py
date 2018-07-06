@@ -6,6 +6,9 @@ from .hostplatform import HostPlatform
 from .edgecert import EdgeCert
 from .edgemanager import EdgeManager
 from .utils import Utils
+from functools import wraps
+from . import configs
+from . import telemetry
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'], max_content_width=120)
 output = Output()
@@ -13,6 +16,24 @@ output = Output()
 CONN_STR = 'connectionString'
 CERT_PATH = 'certPath'
 GATEWAY_HOST = 'gatewayhost'
+
+
+def _with_telemetry(func):
+    @wraps(func)
+    def _wrapper(*args, **kwargs):
+        configs.check_firsttime()
+        telemetry.start(func.__name__)
+        value = None
+        try:
+            value = func(*args, **kwargs)
+            telemetry.success()
+            telemetry.flush()
+            return value
+        except Exception as e:
+            output.error('Error: {0}'.format(str(e)))
+            telemetry.fail(str(e), 'Command failed')
+
+    return _wrapper
 
 
 @click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
@@ -36,6 +57,7 @@ def main():
               default=Utils.get_hostname(),
               show_default=True,
               help='GatewayHostName value for the module to connect.')
+@_with_telemetry
 def setup(connection_string, gateway_host):
     fileType = 'edgehub.config'
     certDir = HostPlatform.get_default_cert_path()
@@ -71,6 +93,7 @@ def setup(connection_string, gateway_host):
               required=False,
               show_default=True,
               help='Specify the output file to save the connection string.')
+@_with_telemetry
 def modulecred(local, output_file):
     configFile = HostPlatform.get_config_file_path()
     if Utils.check_if_file_exists(configFile) is not True:
@@ -105,6 +128,7 @@ def modulecred(local, output_file):
 #               '-d',
 #               required=False,
 #               help='Start EdgeHub runtime in Docker Compose mode using the specified deployment manifest.')
+@_with_telemetry
 def start(inputs):
     deployment = None
     if inputs is None and deployment is not None:
@@ -143,6 +167,7 @@ def start(inputs):
 
 @click.command(context_settings=CONTEXT_SETTINGS,
                help="Stop the EdgeHub runtime.")
+@_with_telemetry
 def stop():
     try:
         EdgeManager.stop()
