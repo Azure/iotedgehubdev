@@ -96,7 +96,7 @@ class ComposeProject(object):
         routes = self.deployment_config['moduleContent']['$edgeHub']['properties.desired']['routes']
         routes_env = []
         for name, path in routes.items():
-            routes_env.append('routes__' + name + '=' + path)
+            routes_env.append(('routes__' + name + '=' + path).replace('$', '$$'))
         return routes_env
 
     # TODO: implement this in a future PR

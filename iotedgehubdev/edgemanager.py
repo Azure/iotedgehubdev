@@ -130,27 +130,27 @@ class EdgeManager(object):
 
         env_info = {
             'hub_env': {
-                'HUB_CA_ENV': EdgeManager.HUB_CA_ENV,
-                'HUB_CERT_ENV': EdgeManager.HUB_CERT_ENV,
-                'HUB_SRC_ENV': EdgeManager.HUB_SRC_ENV,
-                'HUB_SSLPATH_ENV': EdgeManager.HUB_SSLPATH_ENV,
-                'HUB_SSLCRT_ENV': EdgeManager.HUB_SSLCRT_ENV
+                'HUB_CA_ENV': EdgeManager.HUB_CA_ENV.replace('$', '$$'),
+                'HUB_CERT_ENV': EdgeManager.HUB_CERT_ENV.replace('$', '$$'),
+                'HUB_SRC_ENV': EdgeManager.HUB_SRC_ENV.replace('$', '$$'),
+                'HUB_SSLPATH_ENV': EdgeManager.HUB_SSLPATH_ENV.replace('$', '$$'),
+                'HUB_SSLCRT_ENV': EdgeManager.HUB_SSLCRT_ENV.replace('$', '$$')
             },
             'module_env': {
-                'MODULE_CA_ENV': EdgeManager.MODULE_CA_ENV
+                'MODULE_CA_ENV': EdgeManager.MODULE_CA_ENV.replace('$', '$$')
             }
         }
 
         volume_info = {
-            'HUB_MOUNT': EdgeManager.HUB_MOUNT,
-            'HUB_VOLUME': EdgeManager.HUB_VOLUME,
-            'MODULE_VOLUME': EdgeManager.MODULE_VOLUME,
-            'MODULE_MOUNT': EdgeManager.MODULE_MOUNT
+            'HUB_MOUNT': EdgeManager.HUB_MOUNT.replace('$', '$$'),
+            'HUB_VOLUME': EdgeManager.HUB_VOLUME.replace('$', '$$'),
+            'MODULE_VOLUME': EdgeManager.MODULE_VOLUME.replace('$', '$$'),
+            'MODULE_MOUNT': EdgeManager.MODULE_MOUNT.replace('$', '$$')
         }
 
         network_info = {
-            'NW_NAME': EdgeManager.NW_NAME,
-            'ALIASES': self.gatewayhost
+            'NW_NAME': EdgeManager.NW_NAME.replace('$', '$$'),
+            'ALIASES': self.gatewayhost.replace('$', '$$')
         }
 
         compose_project = ComposeProject(deployment_config)
