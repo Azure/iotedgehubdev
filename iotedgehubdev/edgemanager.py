@@ -55,7 +55,7 @@ class EdgeManager(object):
         edgedockerclient = EdgeDockerClient()
         edgedockerclient.stop_by_label(EdgeManager.LABEL)
 
-    def startForSingleModule(self, inputs):
+    def startForSingleModule(self, inputs, port):
         edgeHubConnStr = self.getOrAddModule(EdgeManager.EDGEHUB_MODULE, False)
         inputConnStr = self.getOrAddModule(EdgeManager.INPUT, False)
         edgedockerclient = EdgeDockerClient()
@@ -81,7 +81,7 @@ class EdgeManager(object):
         input_host_config = edgedockerclient.create_host_config(
             mounts=[docker.types.Mount(EdgeManager.MODULE_MOUNT, EdgeManager.MODULE_VOLUME)],
             port_bindings={
-                '3000': 3000
+                '3000': port
             }
         )
         inputContainer = edgedockerclient.create_container(
