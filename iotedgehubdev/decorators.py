@@ -19,22 +19,6 @@ def suppress_all_exceptions(fallback_return=None):
     return _decorator
 
 
-def call_once(factory_func):
-    """"
-    When a function is annotated by this decorator, it will be only executed once. The result will
-    be cached and return for following invocations.
-    """
-    factory_func.executed = False
-    factory_func.cached_result = None
-
-    def _wrapped(*args, **kwargs):
-        if not factory_func.executed:
-            factory_func.cached_result = factory_func(*args, **kwargs)
-
-        return factory_func.cached_result
-    return _wrapped
-
-
 def hash256_result(func):
     """Secure the return string of the annotated function with SHA256 algorithm. If the annotated
     function doesn't return string or return None, raise ValueError."""
