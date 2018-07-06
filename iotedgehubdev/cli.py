@@ -166,7 +166,7 @@ def start(inputs):
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
-               help="Stop the EdgeHub runtime")
+               help="Stop the EdgeHub runtime.")
 @_with_telemetry
 def stop():
     try:
