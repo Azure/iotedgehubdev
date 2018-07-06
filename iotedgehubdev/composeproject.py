@@ -48,11 +48,16 @@ class ComposeProject(object):
                 self.Services[service_name]['environment'] = []
             for module_env in self.edge_info['env_info']['module_env'].values():
                 self.Services[service_name]['environment'].append(module_env)
-            self.Services[service_name]['environment'].append('EdgeHubConnectionString=' + self.edge_info['ConnStr_info'][service_name])
+            self.Services[service_name]['environment'].append(
+                'EdgeHubConnectionString=' + self.edge_info['ConnStr_info'][service_name])
 
             if 'networks' not in self.Services[service_name]:
                 self.Services[service_name]['networks'] = {}
             self.Services[service_name]['networks'][ComposeProject.edge_network_name] = None
+
+            self.Services[service_name]['depends_on'] = ['edgeHub']
+
+            self.Services[service_name]['restart'] = config['restartPolicy']
 
     def get_edge_info(self, info):
         self.edge_info = info
@@ -72,7 +77,7 @@ class ComposeProject(object):
                     'aliases': [self.edge_info['network_info']['ALIASES']]
                 }
             },
-            'container_name' : 'edgeHub_test'
+            'container_name': 'edgeHub_test'
         }
 
         routes_env = self.parse_routes()

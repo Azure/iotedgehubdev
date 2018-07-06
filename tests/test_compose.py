@@ -1,20 +1,8 @@
-from iotedgehubdev.composeproject import ComposeProject
 import iotedgehubdev.compose_parser
-import json
 import unittest
 
 
 class ComposeTest(unittest.TestCase):
-    def test_compose(self):
-        with open('tests/test_compose_resources/deplyment_with_createoption.json') as json_file:
-            json_data = json.load(json_file)
-            proj = ComposeProject(json_data)
-            proj.compose()
-            proj.dump('tests/test_compose_resources/docker-compose_test.yml')
-            actual_output = open('tests/test_compose_resources/docker-compose_test.yml', 'r').read()
-            expected_output = open('tests/test_compose_resources/docker-compose.yml', 'r').read()
-            assert actual_output == expected_output
-
     def test_service_parser_expose(self):
         expose_API = {
             "22/tcp": {}
