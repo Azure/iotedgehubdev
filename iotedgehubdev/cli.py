@@ -124,12 +124,18 @@ def modulecred(local, output_file):
               required=False,
               help='Start EdgeHub runtime in single module mode '
                    'using the specified comma-separated inputs of the target module, e.g., `input1,input2`.')
+@click.option('--port',
+              '-p',
+              required=False,
+              default=53000,
+              show_default=True,
+              help='Port of the service for sending message.')
 # @click.option('--deployment',
 #               '-d',
 #               required=False,
 #               help='Start EdgeHub runtime in Docker Compose mode using the specified deployment manifest.')
 @_with_telemetry
-def start(inputs):
+def start(inputs, port):
     deployment = None
     if inputs is None and deployment is not None:
         pass
@@ -154,9 +160,20 @@ def start(inputs):
                     certPath = jsonObj[CERT_PATH]
                     gatewayhost = jsonObj[GATEWAY_HOST]
                     edgeManager = EdgeManager(connectionString, gatewayhost, certPath)
-                    edgeManager.startForSingleModule(input_list)
-                    output.info('EdgeHub runtime has been started in single module mode.'
-                                'Please connect your module as target and test.')
+                    edgeManager.startForSingleModule(input_list, port)
+
+                    data = '--data \'{{"inputName": "{0}","data":"hello world"}}\''.format(input_list[0])
+                    url = 'http://localhost:{0}/api/v1/messages'.format(port)
+                    curl_msg = '        curl --header "Content-Type: application/json" --request POST {0} {1}'.format(data, url)
+                    output.info('EdgeHub runtime has been started in single module mode.')
+                    output.info('Please run `iotedgehubdev modulecred` to get credential to connect your module.')
+                    output.info('And send message through:')
+                    output.line()
+                    output.echo(curl_msg, 'green')
+                    output.line()
+                    output.info(
+                        'Please refer to https://github.com/Azure/iot-edge-testing-utility/blob/master/swagger.json'
+                        ' for detail schema')
                 else:
                     output.error('Missing keys in config file. Please run `iotedgehubdev setup` again.')
                     sys.exit(1)
