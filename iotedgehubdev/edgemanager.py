@@ -14,7 +14,7 @@ class EdgeManager(object):
     KEY_PREFIX = 'SharedAccessKey='
     LABEL = 'iotedgehubdev'
     EDGEHUB_IMG = 'mcr.microsoft.com/azureiotedge-hub:1.0'
-    TESTUTILITY_IMG = 'adashen/iot-edge-testing-utility:0.0.1'
+    TESTUTILITY_IMG = 'mcr.microsoft.com/azureiotedge-testing-utility:1.0.0-rc1'
     EDGEHUB_MODULE = '$edgeHub'
     EDGEHUB = 'edgeHubDev'
     INPUT = 'input'
