@@ -128,6 +128,7 @@ def modulecred(local, output_file):
               '-p',
               required=False,
               default=53000,
+              show_default=True,
               help='Port of the service for sending message.')
 # @click.option('--deployment',
 #               '-d',
@@ -170,7 +171,9 @@ def start(inputs, port):
                     output.line()
                     output.echo(curl_msg, 'green')
                     output.line()
-                    output.info('Please refer to https://github.com/Azure/iot-edge-testing-utility/blob/master/swagger.json for detail schema')
+                    output.info(
+                        'Please refer to https://github.com/Azure/iot-edge-testing-utility/blob/master/swagger.json'
+                        ' for detail schema')
                 else:
                     output.error('Missing keys in config file. Please run `iotedgehubdev setup` again.')
                     sys.exit(1)
