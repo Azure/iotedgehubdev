@@ -1,6 +1,7 @@
 import requests
 import json
 import docker
+import os
 from .constants import EdgeConstants as EC
 from .utils import Utils
 from .errors import ResponseError
@@ -115,6 +116,26 @@ class EdgeManager(object):
                     raise adderr
             else:
                 raise geterr
+
+    def outputModuleCred(self, name, islocal, output_file):
+        connstrENV = 'EdgeHubConnectionString={0}'.format(self.getOrAddModule(name, islocal))
+        if islocal is True:
+            deviceCAEnv = 'EdgeModuleCACertificateFile={0}'.format(self.edgeCert.get_cert_file_path(EC.EDGE_DEVICE_CA))
+        else:
+            deviceCAEnv = EdgeManager.MODULE_CA_ENV
+        cred = [connstrENV, deviceCAEnv]
+
+        if output_file is not None:
+            dir = os.path.dirname(output_file)
+            if not os.path.exists(dir):
+                os.makedirs(dir)
+            if not os.path.exists(output_file):
+                with open(output_file, 'w') as envFile:
+                    envFile.writelines(['\n', cred[0], '\n', cred[1]])
+            else:
+                with open(output_file, 'a') as envFile:
+                    envFile.writelines(['\n', cred[0], '\n', cred[1]])
+        return cred
 
     def getModule(self, name, islocal):
         moduleUri = "https://{0}/devices/{1}/modules/{2}?api-version=2017-11-08-preview".format(

@@ -102,16 +102,17 @@ def modulecred(local, output_file):
     try:
         with open(configFile) as f:
             jsonObj = json.load(f)
-            if CONN_STR in jsonObj and CERT_PATH in jsonObj and GATEWAY_HOST in jsonObj:
-                connectionString = jsonObj[CONN_STR]
-                certPath = jsonObj[CERT_PATH]
-                gatewayhost = jsonObj[GATEWAY_HOST]
-                edgeManager = EdgeManager(connectionString, gatewayhost, certPath)
-                connstr = edgeManager.getOrAddModule('target', local)
-                output.info('Target module connection string is {0}'.format(connstr))
-            else:
-                output.error('Missing keys in config file. Please run `iotedgehubdev setup` again.')
-                sys.exit(1)
+        if CONN_STR in jsonObj and CERT_PATH in jsonObj and GATEWAY_HOST in jsonObj:
+            connectionString = jsonObj[CONN_STR]
+            certPath = jsonObj[CERT_PATH]
+            gatewayhost = jsonObj[GATEWAY_HOST]
+            edgeManager = EdgeManager(connectionString, gatewayhost, certPath)
+            credential = edgeManager.outputModuleCred('target', local, output_file)
+            output.info(credential[0])
+            output.info(credential[1])
+        else:
+            output.error('Missing keys in config file. Please run `iotedgehubdev setup` again.')
+            sys.exit(1)
     except Exception as e:
         output.error('Error: {0}.'.format(str(e)))
         sys.exit(1)
