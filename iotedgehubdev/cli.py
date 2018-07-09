@@ -6,6 +6,9 @@ from .hostplatform import HostPlatform
 from .edgecert import EdgeCert
 from .edgemanager import EdgeManager
 from .utils import Utils
+from functools import wraps
+from . import configs
+from . import telemetry
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'], max_content_width=120)
 output = Output()
@@ -13,6 +16,24 @@ output = Output()
 CONN_STR = 'connectionString'
 CERT_PATH = 'certPath'
 GATEWAY_HOST = 'gatewayhost'
+
+
+def _with_telemetry(func):
+    @wraps(func)
+    def _wrapper(*args, **kwargs):
+        configs.check_firsttime()
+        telemetry.start(func.__name__)
+        value = None
+        try:
+            value = func(*args, **kwargs)
+            telemetry.success()
+            telemetry.flush()
+            return value
+        except Exception as e:
+            output.error('Error: {0}'.format(str(e)))
+            telemetry.fail(str(e), 'Command failed')
+
+    return _wrapper
 
 
 @click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
@@ -36,6 +57,7 @@ def main():
               default=Utils.get_hostname(),
               show_default=True,
               help='GatewayHostName value for the module to connect.')
+@_with_telemetry
 def setup(connection_string, gateway_host):
     fileType = 'edgehub.config'
     certDir = HostPlatform.get_default_cert_path()
@@ -70,7 +92,8 @@ def setup(connection_string, gateway_host):
               '-o',
               required=False,
               show_default=True,
-              help='Specify the output file to save the connection string.')
+              help='Specify the output file to save the connection string. If the file exists, the content will be overwritten.')
+@_with_telemetry
 def modulecred(local, output_file):
     configFile = HostPlatform.get_config_file_path()
     if Utils.check_if_file_exists(configFile) is not True:
@@ -79,16 +102,17 @@ def modulecred(local, output_file):
     try:
         with open(configFile) as f:
             jsonObj = json.load(f)
-            if CONN_STR in jsonObj and CERT_PATH in jsonObj and GATEWAY_HOST in jsonObj:
-                connectionString = jsonObj[CONN_STR]
-                certPath = jsonObj[CERT_PATH]
-                gatewayhost = jsonObj[GATEWAY_HOST]
-                edgeManager = EdgeManager(connectionString, gatewayhost, certPath)
-                connstr = edgeManager.getOrAddModule('target', local)
-                output.info('Target module connection string is {0}'.format(connstr))
-            else:
-                output.error('Missing keys in config file. Please run `iotedgehubdev setup` again.')
-                sys.exit(1)
+        if CONN_STR in jsonObj and CERT_PATH in jsonObj and GATEWAY_HOST in jsonObj:
+            connectionString = jsonObj[CONN_STR]
+            certPath = jsonObj[CERT_PATH]
+            gatewayhost = jsonObj[GATEWAY_HOST]
+            edgeManager = EdgeManager(connectionString, gatewayhost, certPath)
+            credential = edgeManager.outputModuleCred('target', local, output_file)
+            output.info(credential[0])
+            output.info(credential[1])
+        else:
+            output.error('Missing keys in config file. Please run `iotedgehubdev setup` again.')
+            sys.exit(1)
     except Exception as e:
         output.error('Error: {0}.'.format(str(e)))
         sys.exit(1)
@@ -101,6 +125,7 @@ def modulecred(local, output_file):
               required=False,
               help='Start EdgeHub runtime in single module mode '
                    'using the specified comma-separated inputs of the target module, e.g., `input1,input2`.')
+
 @click.option('--deployment',
               '-d',
               required=False,
@@ -154,9 +179,20 @@ def start(inputs, deployment):
                     certPath = jsonObj[CERT_PATH]
                     gatewayhost = jsonObj[GATEWAY_HOST]
                     edgeManager = EdgeManager(connectionString, gatewayhost, certPath)
-                    edgeManager.startForSingleModule(input_list)
-                    output.info('EdgeHub runtime has been started in single module mode.'
-                                'Please connect your module as target and test.')
+                    edgeManager.startForSingleModule(input_list, port)
+
+                    data = '--data \'{{"inputName": "{0}","data":"hello world"}}\''.format(input_list[0])
+                    url = 'http://localhost:{0}/api/v1/messages'.format(port)
+                    curl_msg = '        curl --header "Content-Type: application/json" --request POST {0} {1}'.format(data, url)
+                    output.info('EdgeHub runtime has been started in single module mode.')
+                    output.info('Please run `iotedgehubdev modulecred` to get credential to connect your module.')
+                    output.info('And send message through:')
+                    output.line()
+                    output.echo(curl_msg, 'green')
+                    output.line()
+                    output.info(
+                        'Please refer to https://github.com/Azure/iot-edge-testing-utility/blob/master/swagger.json'
+                        ' for detail schema')
                 else:
                     output.error('Missing keys in config file. Please run `iotedgehubdev setup` again.')
                     sys.exit(1)
@@ -167,6 +203,7 @@ def start(inputs, deployment):
 
 @click.command(context_settings=CONTEXT_SETTINGS,
                help="Stop the EdgeHub runtime.")
+@_with_telemetry
 def stop():
     try:
         EdgeManager.stop()

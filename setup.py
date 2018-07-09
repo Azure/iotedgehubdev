@@ -3,18 +3,39 @@ My Tool does one thing, and one thing well.
 """
 from setuptools import find_packages, setup
 
+VERSION = '0.1.0'
+# If we have source, validate that our version numbers match
+# This should prevent uploading releases with mismatched versions.
+try:
+    with open('iotedgehubdev/__init__.py', 'r', encoding='utf-8') as f:
+        content = f.read()
+except OSError:
+    pass
+else:
+    import re
+    import sys
+    m = re.search(r'__version__\s*=\s*[\'"](.+?)[\'"]', content)
+    if not m:
+        print('Could not find __version__ in iotedgehubdev/__init__.py')
+        sys.exit(1)
+    if m.group(1) != VERSION:
+        print('Expected __version__ = "{}"; found "{}"'.format(VERSION, m.group(1)))
+        sys.exit(1)
+
 dependencies = [
     'click',
     'docker',
     'pyOpenSSL',
     'requests',
+    'six',
+    'applicationinsights',
     'pyyaml',
     'jsonpath_rw'
 ]
 
 setup(
     name='iotedgehubdev',
-    version='0.1.0',
+    version=VERSION,
     url='https://github.com/adashen/iotedgelocal',
     license='BSD',
     author='iotedgehubdev',

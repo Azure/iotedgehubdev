@@ -1,6 +1,8 @@
 import iotedgehubdev.compose_parser
 import unittest
 
+OUTPUT_PATH = 'tests/output'
+
 
 class ComposeTest(unittest.TestCase):
     def test_service_parser_expose(self):
