@@ -3,6 +3,8 @@ import json
 import yaml
 from collections import OrderedDict
 import sys
+from .output import Output
+output = Output()
 
 COMPOSE_VERSION = 3.6
 
@@ -30,9 +32,12 @@ class ComposeProject(object):
             self.Services[service_name] = {}
             create_option_str = config['settings']['createOptions']
             if create_option_str:
-                create_option = json.loads(create_option_str)
-                create_option_parser = CreateOptionParser(create_option)
-                self.Services[service_name].update(create_option_parser.parse_create_option())
+                try:
+                    create_option = json.loads(create_option_str)
+                    create_option_parser = CreateOptionParser(create_option)
+                    self.Services[service_name].update(create_option_parser.parse_create_option())
+                except Exception as e:
+                    output.error('Error: {0}.'.format(str(e)))
             self.Services[service_name]['image'] = config['settings']['image']
             self.Services[service_name]['container_name'] = service_name
 
@@ -87,10 +92,13 @@ class ComposeProject(object):
         self.Services['edgeHub']['environment'].append('IotHubConnectionString=' + self.edge_info['ConnStr_info']['$edgeHub'])
 
         create_option_str = edgeHub_config['settings']['createOptions']
-        if create_option_str:
-            create_option = json.loads(create_option_str)
-            create_option_parser = CreateOptionParser(create_option)
-            self.Services['edgeHub'].update(create_option_parser.parse_create_option())
+        try:
+            if create_option_str:
+                create_option = json.loads(create_option_str)
+                create_option_parser = CreateOptionParser(create_option)
+                self.Services['edgeHub'].update(create_option_parser.parse_create_option())
+        except Exception as e:
+            output.error('Error: {0}.'.format(str(e)))
 
     def parse_routes(self):
         routes = self.deployment_config['moduleContent']['$edgeHub']['properties.desired']['routes']
