@@ -117,10 +117,6 @@ def start(inputs, deployment):
             with open(configFile) as f:
                 jsonObj = json.load(f)
                 if CONN_STR in jsonObj and CERT_PATH in jsonObj and GATEWAY_HOST in jsonObj:
-                    if inputs is None:
-                        input_list = ['input1']
-                    else:
-                        input_list = [input_.strip() for input_ in inputs.strip().split(',')]
                     connectionString = jsonObj[CONN_STR]
                     certPath = jsonObj[CERT_PATH]
                     gatewayhost = jsonObj[GATEWAY_HOST]
@@ -130,8 +126,7 @@ def start(inputs, deployment):
 
                         edgeManager = EdgeManager(connectionString, gatewayhost, certPath)
                         edgeManager.start_solution(json_data)
-                        output.info('EdgeHub runtime has been started in solution mode.'
-                                    'Please connect your module as target and test.')
+                        output.info('EdgeHub runtime has been started in solution mode.')
                 else:
                     output.error('Missing keys in config file. Please run `iotedgehubdev setup` again.')
                     sys.exit(1)

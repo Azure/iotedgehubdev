@@ -36,8 +36,8 @@ class ComposeProject(object):
                     create_option = json.loads(create_option_str)
                     create_option_parser = CreateOptionParser(create_option)
                     self.Services[service_name].update(create_option_parser.parse_create_option())
-                except Exception as e:
-                    output.error('Error: {0}.'.format(str(e)))
+                except Exception:
+                    raise
             self.Services[service_name]['image'] = config['settings']['image']
             self.Services[service_name]['container_name'] = service_name
 
@@ -62,9 +62,16 @@ class ComposeProject(object):
 
             self.Services[service_name]['depends_on'] = ['edgeHub']
 
-            self.Services[service_name]['restart'] = config['restartPolicy']
+            try:
+                self.Services[service_name]['restart'] = {
+                    'never': 'no',
+                    'on-failure': 'on-failure',
+                    'always': 'always'
+                }[config['restartPolicy']]
+            except KeyError as e:
+                raise KeyError('Unsupported restart policy {0} in solution mode.'.format(e))
 
-    def get_edge_info(self, info):
+    def set_edge_info(self, info):
         self.edge_info = info
 
     def config_egde_hub(self):
@@ -82,7 +89,7 @@ class ComposeProject(object):
                     'aliases': [self.edge_info['network_info']['ALIASES']]
                 }
             },
-            'container_name': 'edgeHub_test'
+            'container_name': self.edge_info['hub_name']
         }
 
         routes_env = self.parse_routes()
@@ -97,8 +104,8 @@ class ComposeProject(object):
                 create_option = json.loads(create_option_str)
                 create_option_parser = CreateOptionParser(create_option)
                 self.Services['edgeHub'].update(create_option_parser.parse_create_option())
-        except Exception as e:
-            output.error('Error: {0}.'.format(str(e)))
+        except Exception:
+            raise
 
     def parse_routes(self):
         routes = self.deployment_config['moduleContent']['$edgeHub']['properties.desired']['routes']

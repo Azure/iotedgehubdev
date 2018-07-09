@@ -110,10 +110,6 @@ class EdgeManager(object):
         if status is not None:
             edgedockerclient.stop(EdgeManager.EDGEHUB)
             edgedockerclient.remove(EdgeManager.EDGEHUB)
-        status = edgedockerclient.status(EdgeManager.INPUT)
-        if status is not None:
-            edgedockerclient.stop(EdgeManager.INPUT)
-            edgedockerclient.remove(EdgeManager.INPUT)
 
         self._prepare(edgedockerclient)
         self._prepare_cert(edgedockerclient)
@@ -125,6 +121,7 @@ class EdgeManager(object):
 
         ConnStr_info = {}
         for module_name in module_names:
+            # TODO: In futrue PR $ escape will be done before yaml file dump.
             # Replace $ by $$ to escape $ in yaml file
             ConnStr_info[module_name] = self.getOrAddModule(module_name, False).replace('$', '$$')
 
@@ -154,11 +151,12 @@ class EdgeManager(object):
         }
 
         compose_project = ComposeProject(deployment_config)
-        compose_project.get_edge_info({
+        compose_project.set_edge_info({
             'ConnStr_info': ConnStr_info,
             'env_info': env_info,
             'volume_info': volume_info,
-            'network_info': network_info
+            'network_info': network_info,
+            'hub_name' : EdgeManager.EDGEHUB
         })
 
         compose_project.compose()
@@ -174,6 +172,8 @@ class EdgeManager(object):
             mounts=[docker.types.Mount(EdgeManager.HUB_MOUNT, EdgeManager.HUB_VOLUME),
                     docker.types.Mount(EdgeManager.MODULE_MOUNT, EdgeManager.MODULE_VOLUME)]
         )
+
+        edgedockerclient.pull('busybox:latest', None, None)
 
         # Ignore flake8 local variable 'cert_helper' is assigned to but never used error
         cert_helper = edgedockerclient.create_container(  # noqa: F841
