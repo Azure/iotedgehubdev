@@ -92,7 +92,7 @@ def setup(connection_string, gateway_host):
               '-o',
               required=False,
               show_default=True,
-              help='Specify the output file to save the connection string.')
+              help='Specify the output file to save the connection string. If the file exits, the content will be overwritten.')
 @_with_telemetry
 def modulecred(local, output_file):
     configFile = HostPlatform.get_config_file_path()
