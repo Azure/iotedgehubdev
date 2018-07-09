@@ -3,8 +3,6 @@ import json
 import yaml
 from collections import OrderedDict
 import sys
-from .output import Output
-output = Output()
 
 COMPOSE_VERSION = 3.6
 

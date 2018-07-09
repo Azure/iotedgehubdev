@@ -157,7 +157,7 @@ class EdgeManager(object):
             'env_info': env_info,
             'volume_info': volume_info,
             'network_info': network_info,
-            'hub_name' : EdgeManager.EDGEHUB
+            'hub_name': EdgeManager.EDGEHUB
         })
 
         compose_project.compose()

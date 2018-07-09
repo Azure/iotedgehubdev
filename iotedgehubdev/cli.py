@@ -125,12 +125,18 @@ def modulecred(local, output_file):
               required=False,
               help='Start EdgeHub runtime in single module mode '
                    'using the specified comma-separated inputs of the target module, e.g., `input1,input2`.')
-
+@click.option('--port',
+              '-p',
+              required=False,
+              default=53000,
+              show_default=True,
+              help='Port of the service for sending message.')
 @click.option('--deployment',
               '-d',
               required=False,
               help='Start EdgeHub runtime in Docker Compose mode using the specified deployment manifest.')
-def start(inputs, deployment):
+@_with_telemetry
+def start(inputs, port, deployment):
     # deployment = None
     if inputs is None and deployment is not None:
         configFile = HostPlatform.get_config_file_path()
