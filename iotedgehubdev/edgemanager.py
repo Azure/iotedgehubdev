@@ -1,6 +1,7 @@
 import requests
 import json
 import docker
+import os
 from .constants import EdgeConstants as EC
 from .utils import Utils
 from .errors import ResponseError
@@ -13,16 +14,16 @@ class EdgeManager(object):
     HOST_PREFIX = 'HostName='
     DEVICE_PREFIX = 'DeviceId='
     KEY_PREFIX = 'SharedAccessKey='
-    LABEL = 'edgehublocaltest'
+    LABEL = 'iotedgehubdev'
     EDGEHUB_IMG = 'mcr.microsoft.com/azureiotedge-hub:1.0'
-    TESTUTILITY_IMG = 'adashen/iot-edge-testing-utility:0.0.1'
+    TESTUTILITY_IMG = 'mcr.microsoft.com/azureiotedge-testing-utility:1.0.0-rc1'
     EDGEHUB_MODULE = '$edgeHub'
-    EDGEHUB = 'edgeHubTest'
+    EDGEHUB = 'edgeHubDev'
     INPUT = 'input'
     NW_NAME = 'azure-iot-edge-test'
-    HUB_VOLUME = 'edgehubtest'
+    HUB_VOLUME = 'edgehubdev'
     HUB_MOUNT = '/mnt/edgehub'
-    MODULE_VOLUME = 'edgemoduletest'
+    MODULE_VOLUME = 'edgemoduledev'
     MODULE_MOUNT = '/mnt/edgemodule'
     HUB_CA_ENV = 'EdgeModuleHubServerCAChainCertificateFile=/mnt/edgehub/edge-chain-ca.cert.pem'
     HUB_CERT_ENV = 'EdgeModuleHubServerCertificateFile=/mnt/edgehub/edge-hub-server.cert.pfx'
@@ -56,7 +57,7 @@ class EdgeManager(object):
         edgedockerclient = EdgeDockerClient()
         edgedockerclient.stop_by_label(EdgeManager.LABEL)
 
-    def startForSingleModule(self, inputs):
+    def startForSingleModule(self, inputs, port):
         edgeHubConnStr = self.getOrAddModule(EdgeManager.EDGEHUB_MODULE, False)
         inputConnStr = self.getOrAddModule(EdgeManager.INPUT, False)
         edgedockerclient = EdgeDockerClient()
@@ -82,7 +83,7 @@ class EdgeManager(object):
         input_host_config = edgedockerclient.create_host_config(
             mounts=[docker.types.Mount(EdgeManager.MODULE_MOUNT, EdgeManager.MODULE_VOLUME)],
             port_bindings={
-                '3000': 3000
+                '3000': port
             }
         )
         inputContainer = edgedockerclient.create_container(
@@ -209,6 +210,22 @@ class EdgeManager(object):
             else:
                 raise geterr
 
+    def outputModuleCred(self, name, islocal, output_file):
+        connstrENV = 'EdgeHubConnectionString={0}'.format(self.getOrAddModule(name, islocal))
+        if islocal:
+            deviceCAEnv = 'EdgeModuleCACertificateFile={0}'.format(self.edgeCert.get_cert_file_path(EC.EDGE_DEVICE_CA))
+        else:
+            deviceCAEnv = EdgeManager.MODULE_CA_ENV
+        cred = [connstrENV, deviceCAEnv]
+
+        if output_file is not None:
+            dir = os.path.dirname(output_file)
+            if not os.path.exists(dir):
+                os.makedirs(dir)
+            with open(output_file, 'w+') as envFile:
+                envFile.writelines(['\n', cred[0], '\n', cred[1]])
+        return cred
+
     def getModule(self, name, islocal):
         moduleUri = "https://{0}/devices/{1}/modules/{2}?api-version=2017-11-08-preview".format(
             self.hostname, self.deviceId, name)
@@ -263,7 +280,8 @@ class EdgeManager(object):
             'routes__output=FROM /messages/modules/target/outputs/* INTO BrokeredEndpoint("/modules/input/inputs/print")'
         ]
         template = 'routes__r{0}=FROM /messages/modules/input/outputs/{1} INTO BrokeredEndpoint("/modules/target/inputs/{2}")'
-        for (idx, input) in enumerate(inputs):
+        inputSet = set(inputs)
+        for (idx, input) in enumerate(inputSet):
             routes.append(template.format(idx + 1, input, input))
         return routes
 

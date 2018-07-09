@@ -103,4 +103,8 @@ venv.bak/
 # mypy
 .mypy_cache/
 
+# testoutput
+%%PROGRAMDATA%%/
+tests/output/
+
 .vscode/tags

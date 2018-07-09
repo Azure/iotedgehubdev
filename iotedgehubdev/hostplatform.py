@@ -6,6 +6,7 @@ from .errors import EdgeInvalidArgument
 class HostPlatform(object):
     _edge_dir = 'iotedgehubdev'
     _edgehub_config = 'edgehub.json'
+    _setting_ini = 'setting.ini'
     _certs = 'certs'
     _windows_config_path = os.getenv('PROGRAMDATA', '%%PROGRAMDATA%%')
 
@@ -82,6 +83,13 @@ class HostPlatform(object):
         configPath = HostPlatform.get_config_path()
         if configPath is not None:
             return os.path.join(configPath, HostPlatform._edgehub_config)
+        return None
+
+    @staticmethod
+    def get_setting_ini_path():
+        configPath = HostPlatform.get_config_path()
+        if configPath is not None:
+            return os.path.join(configPath, HostPlatform._setting_ini)
         return None
 
     @staticmethod
