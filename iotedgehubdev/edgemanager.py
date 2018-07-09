@@ -119,7 +119,7 @@ class EdgeManager(object):
 
     def outputModuleCred(self, name, islocal, output_file):
         connstrENV = 'EdgeHubConnectionString={0}'.format(self.getOrAddModule(name, islocal))
-        if islocal is True:
+        if islocal:
             deviceCAEnv = 'EdgeModuleCACertificateFile={0}'.format(self.edgeCert.get_cert_file_path(EC.EDGE_DEVICE_CA))
         else:
             deviceCAEnv = EdgeManager.MODULE_CA_ENV
