@@ -131,7 +131,7 @@ class EdgeManager(object):
                 os.makedirs(dir)
             if not os.path.exists(output_file):
                 with open(output_file, 'w') as envFile:
-                    envFile.writelines(['\n', cred[0], '\n', cred[1]])
+                    envFile.writelines([cred[0], '\n', cred[1]])
             else:
                 with open(output_file, 'a') as envFile:
                     envFile.writelines(['\n', cred[0], '\n', cred[1]])
