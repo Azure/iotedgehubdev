@@ -83,6 +83,10 @@ class EdgeManager(object):
             mounts=[docker.types.Mount(EdgeManager.MODULE_MOUNT, EdgeManager.MODULE_VOLUME)],
             port_bindings={
                 '3000': port
+            },
+            restart_policy={
+                'MaximumRetryCount': 3,
+                'Name': 'on-failure'
             }
         )
         inputContainer = edgedockerclient.create_container(
