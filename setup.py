@@ -8,7 +8,7 @@ VERSION = '0.1.0'
 # This should prevent uploading releases with mismatched versions.
 try:
     with open('iotedgehubdev/__init__.py', 'rb') as f:
-        content = f.read().decode('UTF-8')
+        content = f.read().decode('utf-8')
 except OSError:
     pass
 else:
