@@ -19,7 +19,7 @@ class EdgeManager(object):
     EDGEHUB_MODULE = '$edgeHub'
     EDGEHUB = 'edgeHubDev'
     INPUT = 'input'
-    NW_NAME = 'azure-iot-edge-test'
+    NW_NAME = 'azure-iot-edge-dev'
     HUB_VOLUME = 'edgehubdev'
     HUB_MOUNT = '/mnt/edgehub'
     MODULE_VOLUME = 'edgemoduledev'

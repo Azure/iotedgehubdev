@@ -59,6 +59,7 @@ def main():
               help='GatewayHostName value for the module to connect.')
 @_with_telemetry
 def setup(connection_string, gateway_host):
+    gateway_host = gateway_host.lower()
     fileType = 'edgehub.config'
     certDir = HostPlatform.get_default_cert_path()
     Utils.mkdir_if_needed(certDir)
