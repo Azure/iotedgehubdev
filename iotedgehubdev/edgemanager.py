@@ -170,7 +170,8 @@ class EdgeManager(object):
 
         compose_project.compose()
         compose_project.dump(EdgeManager.COMPOSE_FILE)
-        cmd = "docker-compose -f {0} up -d".format(EdgeManager.COMPOSE_FILE)
+        # cmd = "docker-compose -f {0} up -d".format(EdgeManager.COMPOSE_FILE)
+        cmd = "docker-compose -f {0} up".format(EdgeManager.COMPOSE_FILE)
         Utils.exe_proc(cmd.split())
 
     def _prepare_cert(self, edgedockerclient):

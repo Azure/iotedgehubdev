@@ -115,15 +115,9 @@ class Utils(object):
 
     @staticmethod
     def exe_proc(params, shell=False, cwd=None, suppress_out=False):
-        proc = subprocess.Popen(
-            params, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=shell, cwd=cwd)
-
-        stdout_data, stderr_data = proc.communicate()
-        stdout_data = stdout_data.decode('utf-8').strip()
-        stderr_data = stderr_data.decode('utf-8').strip()
-        if not suppress_out and stdout_data != "":
-            output.procout(stdout_data)
-
-        if proc.returncode != 0:
-            output.error(stderr_data)
-            sys.exit()
+        try:
+            subprocess.check_call(params, shell=shell, cwd=cwd)
+        except KeyboardInterrupt as ki:
+            return
+        except Exception as e:
+            output.error("Error while executing command: {0}. {1}".format(' '.join(params), str(e)))
