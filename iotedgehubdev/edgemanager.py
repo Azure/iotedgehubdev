@@ -39,6 +39,7 @@ class EdgeManager(object):
         self.hostname = ''
         self.deviceId = ''
         self.key = ''
+        self.compose_file = None
 
         for val in values:
             stripped = val.strip()
@@ -58,6 +59,11 @@ class EdgeManager(object):
     def stop():
         edgedockerclient = EdgeDockerClient()
         edgedockerclient.stop_by_label(EdgeManager.LABEL)
+        cmd = "docker-compose -f {0} down".format('docker-compose.yml')
+        try:
+            Utils.exe_proc(cmd.split())
+        except Exception as e:
+            print(e)
 
     def startForSingleModule(self, inputs, port):
         edgeHubConnStr = self.getOrAddModule(EdgeManager.EDGEHUB_MODULE, False)
@@ -163,7 +169,10 @@ class EdgeManager(object):
         })
 
         compose_project.compose()
-        compose_project.dump('docker-compose.yml')
+        self.compose_file = 'docker-compose.yml'
+        compose_project.dump(self.compose_file)
+        cmd = "docker-compose -f {0} up -d".format(self.compose_file)
+        Utils.exe_proc(cmd.split())
 
     def _prepare_cert(self, edgedockerclient):
         status = edgedockerclient.status(EdgeManager.CERT_HELPER)

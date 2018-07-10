@@ -4,15 +4,19 @@ import stat
 import errno
 import socket
 import sys
+import subprocess
 from base64 import b64encode, b64decode
 from hashlib import sha256
 from hmac import HMAC
 from time import time
+from .output import Output
 from .errors import EdgeFileAccessError
 if sys.version_info.major >= 3:
     from urllib.parse import quote_plus, urlencode
 else:
     from urllib import quote_plus, urlencode
+
+output = Output()
 
 
 class Utils(object):
@@ -108,3 +112,18 @@ class Utils(object):
         del func, excinfo
         os.chmod(path, stat.S_IWRITE)
         os.unlink(path)
+
+    @staticmethod
+    def exe_proc(params, shell=False, cwd=None, suppress_out=False):
+        proc = subprocess.Popen(
+            params, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=shell, cwd=cwd)
+        
+        stdout_data, stderr_data = proc.communicate()
+        stdout_data = stdout_data.decode('utf-8').strip()
+        stderr_data = stderr_data.decode('utf-8').strip()
+        if not suppress_out and stdout_data != "":
+            output.procout(stdout_data)
+
+        if proc.returncode != 0:
+            output.error(stderr_data)
+            sys.exit()
