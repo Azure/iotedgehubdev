@@ -31,7 +31,8 @@ class EdgeManager(object):
     MODULE_CA_ENV = "EdgeModuleCACertificateFile=/mnt/edgemodule/edge-device-ca.cert.pem"
     HUB_SSLPATH_ENV = 'SSL_CERTIFICATE_PATH=/mnt/edgehub/'
     HUB_SSLCRT_ENV = 'SSL_CERTIFICATE_NAME=edge-hub-server.cert.pfx'
-    CERT_HELPER = 'hello-world:latest'
+    CERT_HELPER = 'cert_helper'
+    HELPER_IMG = 'hello-world:latest'
 
     def __init__(self, connectionStr, gatewayhost, certPath):
         values = connectionStr.split(';')
@@ -165,35 +166,35 @@ class EdgeManager(object):
         compose_project.dump('docker-compose.yml')
 
     def _prepare_cert(self, edgedockerclient):
-        status = edgedockerclient.status('cert_helper')
+        status = edgedockerclient.status(EdgeManager.CERT_HELPER)
         if status is not None:
-            edgedockerclient.stop('cert_helper')
-            edgedockerclient.remove('cert_helper')
+            edgedockerclient.stop(EdgeManager.CERT_HELPER)
+            edgedockerclient.remove(EdgeManager.CERT_HELPER)
 
         helper_host_config = edgedockerclient.create_host_config(
             mounts=[docker.types.Mount(EdgeManager.HUB_MOUNT, EdgeManager.HUB_VOLUME),
                     docker.types.Mount(EdgeManager.MODULE_MOUNT, EdgeManager.MODULE_VOLUME)]
         )
 
-        edgedockerclient.pull('busybox:latest', None, None)
+        edgedockerclient.pull(EdgeManager.HELPER_IMG, None, None)
 
         # Ignore flake8 local variable 'cert_helper' is assigned to but never used error
         cert_helper = edgedockerclient.create_container(  # noqa: F841
-            'busybox:latest',
-            name='cert_helper',
+            EdgeManager.HELPER_IMG,
+            name=EdgeManager.CERT_HELPER,
             volumes=[EdgeManager.HUB_MOUNT, EdgeManager.MODULE_MOUNT],
             host_config=helper_host_config,
             labels=[EdgeManager.LABEL]
         )
 
         edgedockerclient.copy_file_to_volume(
-            'cert_helper', EdgeManager._chain_cert(),
+            EdgeManager.CERT_HELPER, EdgeManager._chain_cert(),
             EdgeManager.HUB_MOUNT, self.edgeCert.get_cert_file_path(EC.EDGE_CHAIN_CA))
         edgedockerclient.copy_file_to_volume(
-            'cert_helper', EdgeManager._hubserver_pfx(),
+            EdgeManager.CERT_HELPER, EdgeManager._hubserver_pfx(),
             EdgeManager.HUB_MOUNT, self.edgeCert.get_pfx_file_path(EC.EDGE_HUB_SERVER))
         edgedockerclient.copy_file_to_volume(
-            'cert_helper', self._device_cert(),
+            EdgeManager.CERT_HELPER, self._device_cert(),
             EdgeManager.MODULE_MOUNT, self.edgeCert.get_cert_file_path(EC.EDGE_DEVICE_CA))
 
     def start(self, modulesDict, routes):
