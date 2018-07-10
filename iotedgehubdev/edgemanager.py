@@ -20,7 +20,7 @@ class EdgeManager(object):
     EDGEHUB_MODULE = '$edgeHub'
     EDGEHUB = 'edgeHubDev'
     INPUT = 'input'
-    NW_NAME = 'azure-iot-edge-test'
+    NW_NAME = 'azure-iot-edge-dev'
     HUB_VOLUME = 'edgehubdev'
     HUB_MOUNT = '/mnt/edgehub'
     MODULE_VOLUME = 'edgemoduledev'
@@ -31,6 +31,7 @@ class EdgeManager(object):
     MODULE_CA_ENV = "EdgeModuleCACertificateFile=/mnt/edgemodule/edge-device-ca.cert.pem"
     HUB_SSLPATH_ENV = 'SSL_CERTIFICATE_PATH=/mnt/edgehub/'
     HUB_SSLCRT_ENV = 'SSL_CERTIFICATE_NAME=edge-hub-server.cert.pfx'
+    CERT_HELPER = 'hello-world:latest'
 
     def __init__(self, connectionStr, gatewayhost, certPath):
         values = connectionStr.split(';')
