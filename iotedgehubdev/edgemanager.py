@@ -8,6 +8,7 @@ from .errors import ResponseError
 from .edgedockerclient import EdgeDockerClient
 from .edgecert import EdgeCert
 from .composeproject import ComposeProject
+from .hostplatform import HostPlatform
 
 
 class EdgeManager(object):
@@ -33,6 +34,7 @@ class EdgeManager(object):
     HUB_SSLCRT_ENV = 'SSL_CERTIFICATE_NAME=edge-hub-server.cert.pfx'
     CERT_HELPER = 'cert_helper'
     HELPER_IMG = 'hello-world:latest'
+    COMPOSE_FILE = os.path.join(HostPlatform.get_config_path(), 'docker-compose.yml')
 
     def __init__(self, connectionStr, gatewayhost, certPath):
         values = connectionStr.split(';')
@@ -59,11 +61,9 @@ class EdgeManager(object):
     def stop():
         edgedockerclient = EdgeDockerClient()
         edgedockerclient.stop_by_label(EdgeManager.LABEL)
-        cmd = "docker-compose -f {0} down".format('docker-compose.yml')
-        try:
+        if os.path.exists(EdgeManager.COMPOSE_FILE):
+            cmd = "docker-compose -f {0} down".format(EdgeManager.COMPOSE_FILE)
             Utils.exe_proc(cmd.split())
-        except Exception as e:
-            print(e)
 
     def startForSingleModule(self, inputs, port):
         edgeHubConnStr = self.getOrAddModule(EdgeManager.EDGEHUB_MODULE, False)
@@ -169,9 +169,8 @@ class EdgeManager(object):
         })
 
         compose_project.compose()
-        self.compose_file = 'docker-compose.yml'
-        compose_project.dump(self.compose_file)
-        cmd = "docker-compose -f {0} up -d".format(self.compose_file)
+        compose_project.dump(EdgeManager.COMPOSE_FILE)
+        cmd = "docker-compose -f {0} up -d".format(EdgeManager.COMPOSE_FILE)
         Utils.exe_proc(cmd.split())
 
     def _prepare_cert(self, edgedockerclient):

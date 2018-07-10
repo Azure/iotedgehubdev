@@ -117,7 +117,7 @@ class Utils(object):
     def exe_proc(params, shell=False, cwd=None, suppress_out=False):
         proc = subprocess.Popen(
             params, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=shell, cwd=cwd)
-        
+
         stdout_data, stderr_data = proc.communicate()
         stdout_data = stdout_data.decode('utf-8').strip()
         stderr_data = stderr_data.decode('utf-8').strip()
