@@ -1,45 +1,66 @@
 version: '3.6'
 services:
-  filterModule:
-    container_name: filterModule
-    image: yuganacr.azurecr.io/filtermodule:0.0.1-amd64
-  tempSensor:
-    cap_add:
-    - NET_ADMIN
-    cap_drop:
-    - MKNOD
-    command: date
-    container_name: tempSensor
-    dns:
-    - 8.8.8.8
-    dns_search:
-    - ''
+  SampleModule:
+    container_name: SampleModule
+    depends_on:
+    - edgeHub
     environment:
-    - FOO=bar
-    - BAZ=quux
-    expose:
-    - 22/tcp
-    healthcheck:
-      interval: 0ms
-      retries: 0
-      start_period: 0ms
-      test:
-      - string
-      timeout: 0ms
-    image: microsoft/azureiotedge-simulated-temperature-sensor:1.0-preview
-    labels:
-      com.example.license: GPL
-      com.example.vendor: Acme
-      com.example.version: '1.0'
-    logging:
-      driver: json-file
-      options: {}
-    mac_address: 12:34:56:78:9a:bc
-    network_mode: bridge
+    - EdgeModuleCACertificateFile=/mnt/edgemodule/edge-device-ca.cert.pem
+    - EdgeHubConnectionString=HostName=HostName;DeviceId=DeviceId;ModuleId=SampleModule;SharedAccessKey=SharedAccessKey
+    image: localhost:5000/samplemodule:0.0.1-amd64
+    networks:
+      azure-iot-edge: null
+    restart: always
+    volumes:
+    - source: edgemoduledev
+      target: /mnt/edgemodule
+      type: volume
+  edgeHub:
+    container_name: edgeHubDev
+    environment:
+    - EdgeModuleHubServerCAChainCertificateFile=/mnt/edgehub/edge-chain-ca.cert.pem
+    - EdgeModuleHubServerCertificateFile=/mnt/edgehub/edge-hub-server.cert.pfx
+    - configSource=local
+    - SSL_CERTIFICATE_PATH=/mnt/edgehub/
+    - SSL_CERTIFICATE_NAME=edge-hub-server.cert.pfx
+    - routes__sensorToSampleModule=FROM /messages/modules/tempSensor/outputs/temperatureOutput
+      INTO BrokeredEndpoint("/modules/SampleModule/inputs/input1")
+    - routes__SampleModuleToIoTHub=FROM /messages/modules/SampleModule/outputs/output1
+      INTO $$upstream
+    - IotHubConnectionString=HostName=HostName;DeviceId=DeviceId;ModuleId=$$edgeHub;SharedAccessKey=SharedAccessKey
+    image: mcr.microsoft.com/azureiotedge-hub:1.0
+    networks:
+      azure-iot-edge:
+        aliases:
+        - gatewayhost
     ports:
-    - 11022:22/tcp
-    restart: 'no'
-    stop_grace_period: 10s
-    stop_signal: SIGTERM
-networks: {}
-volumes: {}
+    - 8883:8883/tcp
+    - 443:443/tcp
+    volumes:
+    - source: edgehubdev
+      target: /mnt/edgehub
+      type: volume
+  tempSensor:
+    container_name: tempSensor
+    depends_on:
+    - edgeHub
+    environment:
+    - EdgeModuleCACertificateFile=/mnt/edgemodule/edge-device-ca.cert.pem
+    - EdgeHubConnectionString=HostName=HostName;DeviceId=DeviceId;ModuleId=tempSensor;SharedAccessKey=SharedAccessKey
+    image: mcr.microsoft.com/azureiotedge-simulated-temperature-sensor:1.0
+    networks:
+      azure-iot-edge: null
+    restart: always
+    volumes:
+    - source: edgemoduledev
+      target: /mnt/edgemodule
+      type: volume
+networks:
+  azure-iot-edge:
+    external: true
+    name: azure-iot-edge-dev
+volumes:
+  edgehubdev:
+    external: true
+  edgemoduledev:
+    external: true

@@ -111,18 +111,7 @@ class EdgeManager(object):
             self.edgeCert.get_cert_file_path(EC.EDGE_DEVICE_CA))
         edgedockerclient.start(inputContainer.get('Id'))
 
-    def start_solution(self, deployment_config):
-        edgedockerclient = EdgeDockerClient()
-
-        EdgeManager.stop()
-        status = edgedockerclient.status(EdgeManager.EDGEHUB)
-        if status is not None:
-            edgedockerclient.stop(EdgeManager.EDGEHUB)
-            edgedockerclient.remove(EdgeManager.EDGEHUB)
-
-        self._prepare(edgedockerclient)
-        self._prepare_cert(edgedockerclient)
-
+    def config_solution(self, deployment_config, target):
         module_names = [EdgeManager.EDGEHUB_MODULE]
         custom_modules = deployment_config['moduleContent']['$edgeAgent']['properties.desired']['modules']
         for module_name in custom_modules:
@@ -130,33 +119,31 @@ class EdgeManager(object):
 
         ConnStr_info = {}
         for module_name in module_names:
-            # TODO: In futrue PR $ escape will be done before yaml file dump.
-            # Replace $ by $$ to escape $ in yaml file
-            ConnStr_info[module_name] = self.getOrAddModule(module_name, False).replace('$', '$$')
+            ConnStr_info[module_name] = self.getOrAddModule(module_name, False)
 
         env_info = {
             'hub_env': {
-                'HUB_CA_ENV': EdgeManager.HUB_CA_ENV.replace('$', '$$'),
-                'HUB_CERT_ENV': EdgeManager.HUB_CERT_ENV.replace('$', '$$'),
-                'HUB_SRC_ENV': EdgeManager.HUB_SRC_ENV.replace('$', '$$'),
-                'HUB_SSLPATH_ENV': EdgeManager.HUB_SSLPATH_ENV.replace('$', '$$'),
-                'HUB_SSLCRT_ENV': EdgeManager.HUB_SSLCRT_ENV.replace('$', '$$')
+                'HUB_CA_ENV': EdgeManager.HUB_CA_ENV,
+                'HUB_CERT_ENV': EdgeManager.HUB_CERT_ENV,
+                'HUB_SRC_ENV': EdgeManager.HUB_SRC_ENV,
+                'HUB_SSLPATH_ENV': EdgeManager.HUB_SSLPATH_ENV,
+                'HUB_SSLCRT_ENV': EdgeManager.HUB_SSLCRT_ENV
             },
             'module_env': {
-                'MODULE_CA_ENV': EdgeManager.MODULE_CA_ENV.replace('$', '$$')
+                'MODULE_CA_ENV': EdgeManager.MODULE_CA_ENV
             }
         }
 
         volume_info = {
-            'HUB_MOUNT': EdgeManager.HUB_MOUNT.replace('$', '$$'),
-            'HUB_VOLUME': EdgeManager.HUB_VOLUME.replace('$', '$$'),
-            'MODULE_VOLUME': EdgeManager.MODULE_VOLUME.replace('$', '$$'),
-            'MODULE_MOUNT': EdgeManager.MODULE_MOUNT.replace('$', '$$')
+            'HUB_MOUNT': EdgeManager.HUB_MOUNT,
+            'HUB_VOLUME': EdgeManager.HUB_VOLUME,
+            'MODULE_VOLUME': EdgeManager.MODULE_VOLUME,
+            'MODULE_MOUNT': EdgeManager.MODULE_MOUNT
         }
 
         network_info = {
-            'NW_NAME': EdgeManager.NW_NAME.replace('$', '$$'),
-            'ALIASES': self.gatewayhost.replace('$', '$$')
+            'NW_NAME': EdgeManager.NW_NAME,
+            'ALIASES': self.gatewayhost
         }
 
         compose_project = ComposeProject(deployment_config)
@@ -169,7 +156,22 @@ class EdgeManager(object):
         })
 
         compose_project.compose()
-        compose_project.dump(EdgeManager.COMPOSE_FILE)
+        compose_project.dump(target)
+
+    def start_solution(self, deployment_config):
+        edgedockerclient = EdgeDockerClient()
+
+        EdgeManager.stop()
+        status = edgedockerclient.status(EdgeManager.EDGEHUB)
+        if status is not None:
+            edgedockerclient.stop(EdgeManager.EDGEHUB)
+            edgedockerclient.remove(EdgeManager.EDGEHUB)
+
+        self._prepare(edgedockerclient)
+        self._prepare_cert(edgedockerclient)
+
+        self.config_solution(deployment_config, EdgeManager.COMPOSE_FILE)
+
         # cmd = "docker-compose -f {0} up -d".format(EdgeManager.COMPOSE_FILE)
         cmd = "docker-compose -f {0} up".format(EdgeManager.COMPOSE_FILE)
         Utils.exe_proc(cmd.split())
