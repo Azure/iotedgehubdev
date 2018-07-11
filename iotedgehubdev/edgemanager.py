@@ -20,7 +20,7 @@ class EdgeManager(object):
     EDGEHUB_MODULE = '$edgeHub'
     EDGEHUB = 'edgeHubDev'
     INPUT = 'input'
-    NW_NAME = 'azure-iot-edge-test'
+    NW_NAME = 'azure-iot-edge-dev'
     HUB_VOLUME = 'edgehubdev'
     HUB_MOUNT = '/mnt/edgehub'
     MODULE_VOLUME = 'edgemoduledev'
@@ -84,6 +84,10 @@ class EdgeManager(object):
             mounts=[docker.types.Mount(EdgeManager.MODULE_MOUNT, EdgeManager.MODULE_VOLUME)],
             port_bindings={
                 '3000': port
+            },
+            restart_policy={
+                'MaximumRetryCount': 3,
+                'Name': 'on-failure'
             }
         )
         inputContainer = edgedockerclient.create_container(
@@ -297,7 +301,8 @@ class EdgeManager(object):
             mounts=[docker.types.Mount(EdgeManager.HUB_MOUNT, EdgeManager.HUB_VOLUME)],
             port_bindings={
                 '8883': 8883,
-                '443': 443
+                '443': 443,
+                '5671': 5671
             }
         )
         hubEnv = [
@@ -316,7 +321,7 @@ class EdgeManager(object):
             networking_config=network_config,
             environment=hubEnv,
             labels=[EdgeManager.LABEL],
-            ports=[(8883, 'tcp'), (443, 'tcp')]
+            ports=[(8883, 'tcp'), (443, 'tcp'), (5671, 'tcp')]
         )
 
         edgedockerclient.copy_file_to_volume(

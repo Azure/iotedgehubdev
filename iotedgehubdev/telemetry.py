@@ -77,7 +77,7 @@ _session = TelemetrySession()
 def _user_agrees_to_telemetry(func):
     @wraps(func)
     def _wrapper(*args, **kwargs):
-        if not configs.get_ini_config().getboolean('DEFAULT', 'collect_telemetry', fallback=True):
+        if not configs.get_ini_config().getboolean('DEFAULT', 'collect_telemetry'):
             return None
         return func(*args, **kwargs)
 
