@@ -9,14 +9,11 @@ from base64 import b64encode, b64decode
 from hashlib import sha256
 from hmac import HMAC
 from time import time
-from .output import Output
 from .errors import EdgeFileAccessError
 if sys.version_info.major >= 3:
     from urllib.parse import quote_plus, urlencode
 else:
     from urllib import quote_plus, urlencode
-
-output = Output()
 
 
 class Utils(object):

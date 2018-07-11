@@ -165,9 +165,9 @@ def start(inputs, port, deployment, verbose):
         try:
             with open(deployment) as json_file:
                 json_data = json.load(json_file)
-                edgeManager.start_solution(json_data, verbose)
-                if not verbose:
-                    output.info('EdgeHub runtime has been started in solution mode.')
+            edgeManager.start_solution(json_data, verbose)
+            if not verbose:
+                output.info('EdgeHub runtime has been started in solution mode.')
         except Exception as e:
             output.error('Error: {0}.'.format(str(e)))
             sys.exit(1)
