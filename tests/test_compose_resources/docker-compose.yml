@@ -1,20 +1,5 @@
 version: '3.6'
 services:
-  SampleModule:
-    container_name: SampleModule
-    depends_on:
-    - edgeHub
-    environment:
-    - EdgeModuleCACertificateFile=/mnt/edgemodule/edge-device-ca.cert.pem
-    - EdgeHubConnectionString=HostName=HostName;DeviceId=DeviceId;ModuleId=SampleModule;SharedAccessKey=SharedAccessKey
-    image: localhost:5000/samplemodule:0.0.1-amd64
-    networks:
-      azure-iot-edge: null
-    restart: always
-    volumes:
-    - source: edgemoduledev
-      target: /mnt/edgemodule
-      type: volume
   edgeHub:
     container_name: edgeHubDev
     environment:
@@ -48,6 +33,21 @@ services:
     - EdgeModuleCACertificateFile=/mnt/edgemodule/edge-device-ca.cert.pem
     - EdgeHubConnectionString=HostName=HostName;DeviceId=DeviceId;ModuleId=tempSensor;SharedAccessKey=SharedAccessKey
     image: mcr.microsoft.com/azureiotedge-simulated-temperature-sensor:1.0
+    networks:
+      azure-iot-edge: null
+    restart: always
+    volumes:
+    - source: edgemoduledev
+      target: /mnt/edgemodule
+      type: volume
+  SampleModule:
+    container_name: SampleModule
+    depends_on:
+    - edgeHub
+    environment:
+    - EdgeModuleCACertificateFile=/mnt/edgemodule/edge-device-ca.cert.pem
+    - EdgeHubConnectionString=HostName=HostName;DeviceId=DeviceId;ModuleId=SampleModule;SharedAccessKey=SharedAccessKey
+    image: localhost:5000/samplemodule:0.0.1-amd64
     networks:
       azure-iot-edge: null
     restart: always

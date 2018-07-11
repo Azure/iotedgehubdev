@@ -3,8 +3,11 @@ import json
 import yaml
 from collections import OrderedDict
 import sys
-import io
 import os
+if sys.version_info[0] < 3:
+    import StringIO
+else:
+    import io
 
 COMPOSE_VERSION = 3.6
 
@@ -15,7 +18,7 @@ class ComposeProject(object):
     def __init__(self, deployment_config):
         self.deployment_config = deployment_config
         self.yaml_dict = OrderedDict()
-        self.Services = {}
+        self.Services = OrderedDict()
         self.Networks = {}
         self.Volumes = {}
         self.edge_info = {}
@@ -144,20 +147,24 @@ class ComposeProject(object):
         def my_unicode_repr(self, data):
             return self.represent_str(data.encode('utf-8'))
 
-        if sys.version_info[0] < 3:
-            # Add # noqa: F821 to ignore undefined name 'unicode' error
-            yaml.add_representer(unicode, my_unicode_repr)  # noqa: F821
-
         self.yaml_dict['version'] = str(COMPOSE_VERSION)
         self.yaml_dict['services'] = self.Services
         self.yaml_dict['networks'] = self.Networks
         self.yaml_dict['volumes'] = self.Volumes
 
-        yml_stream = io.StringIO()
+        if sys.version_info[0] < 3:
+            # Add # noqa: F821 to ignore undefined name 'unicode' error
+            yaml.add_representer(unicode, my_unicode_repr)  # noqa: F821
+            yml_stream = StringIO.StringIO()
+        else:
+            yml_stream = io.StringIO()
+
         yaml.dump(self.yaml_dict, yml_stream, default_flow_style=False)
         yml_str = yml_stream.getvalue().replace('$', '$$')
 
-        os.makedirs(os.path.dirname(target), exist_ok=True)
+        if not os.path.exists(os.path.dirname(target)):
+            os.makedirs(os.path.dirname(target))
+
         with open(target, 'w') as f:
             f.write(yml_str)
             f.close()

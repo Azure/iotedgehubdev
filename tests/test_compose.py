@@ -19,7 +19,8 @@ class ComposeTest(unittest.TestCase):
 
             ConnStr_info = {}
             for module_name in module_names:
-                ConnStr_info[module_name] = "HostName=HostName;DeviceId=DeviceId;ModuleId={};SharedAccessKey=SharedAccessKey".format(module_name)
+                ConnStr_info[module_name] = \
+                    "HostName=HostName;DeviceId=DeviceId;ModuleId={};SharedAccessKey=SharedAccessKey".format(module_name)
 
             env_info = {
                 'hub_env': {
@@ -59,7 +60,7 @@ class ComposeTest(unittest.TestCase):
 
             expected_output = open('tests/test_compose_resources/docker-compose.yml', 'r').read()
             actual_output = open('{}/docker-compose_test.yml'.format(OUTPUT_PATH), 'r').read()
-            assert expected_output == actual_output
+            assert ''.join(sorted(expected_output)) == ''.join(sorted(actual_output))
 
     def test_service_parser_expose(self):
         expose_API = {
