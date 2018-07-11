@@ -132,56 +132,67 @@ def modulecred(local, output_file):
               default=53000,
               show_default=True,
               help='Port of the service for sending message.')
-# @click.option('--deployment',
-#               '-d',
-#               required=False,
-#               help='Start EdgeHub runtime in Docker Compose mode using the specified deployment manifest.')
+@click.option('--deployment',
+              '-d',
+              required=False,
+              help='Start EdgeHub runtime in solution mode using the specified deployment manifest.')
+@click.option('--verbose',
+              '-v',
+              required=False,
+              is_flag=True,
+              default=False,
+              show_default=True,
+              help='Show the solution containers logs.')
 @_with_telemetry
-def start(inputs, port):
-    deployment = None
+def start(inputs, port, deployment, verbose):
+    configFile = HostPlatform.get_config_file_path()
+    try:
+        with open(configFile) as f:
+            jsonObj = json.load(f)
+            if CONN_STR in jsonObj and CERT_PATH in jsonObj and GATEWAY_HOST in jsonObj:
+                connectionString = jsonObj[CONN_STR]
+                certPath = jsonObj[CERT_PATH]
+                gatewayhost = jsonObj[GATEWAY_HOST]
+                edgeManager = EdgeManager(connectionString, gatewayhost, certPath)
+            else:
+                output.error('Missing keys in config file. Please run `iotedgehubdev setup` again.')
+                sys.exit(1)
+    except Exception as e:
+        output.error('Error: {0}.'.format(str(e)))
+        sys.exit(1)
+
     if inputs is None and deployment is not None:
-        pass
-    else:
-        if deployment is not None:
-            output.info('Deployment manifest is ignored when inputs are present.')
-
-        configFile = HostPlatform.get_config_file_path()
-        if Utils.check_if_file_exists(configFile) is not True:
-            output.error('Cannot find config file. Please run `iotedgehubdev setup` first.')
-            sys.exit(1)
-
         try:
-            with open(configFile) as f:
-                jsonObj = json.load(f)
-                if CONN_STR in jsonObj and CERT_PATH in jsonObj and GATEWAY_HOST in jsonObj:
-                    if inputs is None:
-                        input_list = ['input1']
-                    else:
-                        input_list = [input_.strip() for input_ in inputs.strip().split(',')]
-                    connectionString = jsonObj[CONN_STR]
-                    certPath = jsonObj[CERT_PATH]
-                    gatewayhost = jsonObj[GATEWAY_HOST]
-                    edgeManager = EdgeManager(connectionString, gatewayhost, certPath)
-                    edgeManager.startForSingleModule(input_list, port)
-
-                    data = '--data \'{{"inputName": "{0}","data":"hello world"}}\''.format(input_list[0])
-                    url = 'http://localhost:{0}/api/v1/messages'.format(port)
-                    curl_msg = '        curl --header "Content-Type: application/json" --request POST {0} {1}'.format(data, url)
-                    output.info('EdgeHub runtime has been started in single module mode.')
-                    output.info('Please run `iotedgehubdev modulecred` to get credential to connect your module.')
-                    output.info('And send message through:')
-                    output.line()
-                    output.echo(curl_msg, 'green')
-                    output.line()
-                    output.info(
-                        'Please refer to https://github.com/Azure/iot-edge-testing-utility/blob/master/swagger.json'
-                        ' for detail schema')
-                else:
-                    output.error('Missing keys in config file. Please run `iotedgehubdev setup` again.')
-                    sys.exit(1)
+            with open(deployment) as json_file:
+                json_data = json.load(json_file)
+            edgeManager.start_solution(json_data, verbose)
+            if not verbose:
+                output.info('EdgeHub runtime has been started in solution mode.')
         except Exception as e:
             output.error('Error: {0}.'.format(str(e)))
             sys.exit(1)
+    else:
+        if deployment is not None:
+            output.info('Deployment manifest is ignored when inputs are present.')
+        if inputs is None:
+            input_list = ['input1']
+        else:
+            input_list = [input_.strip() for input_ in inputs.strip().split(',')]
+
+        edgeManager.startForSingleModule(input_list, port)
+
+        data = '--data \'{{"inputName": "{0}","data":"hello world"}}\''.format(input_list[0])
+        url = 'http://localhost:{0}/api/v1/messages'.format(port)
+        curl_msg = '        curl --header "Content-Type: application/json" --request POST {0} {1}'.format(data, url)
+        output.info('EdgeHub runtime has been started in single module mode.')
+        output.info('Please run `iotedgehubdev modulecred` to get credential to connect your module.')
+        output.info('And send message through:')
+        output.line()
+        output.echo(curl_msg, 'green')
+        output.line()
+        output.info(
+            'Please refer to https://github.com/Azure/iot-edge-testing-utility/blob/master/swagger.json'
+            ' for detail schema')
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,

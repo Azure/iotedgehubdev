@@ -7,6 +7,8 @@ from .utils import Utils
 from .errors import ResponseError
 from .edgedockerclient import EdgeDockerClient
 from .edgecert import EdgeCert
+from .composeproject import ComposeProject
+from .hostplatform import HostPlatform
 
 
 class EdgeManager(object):
@@ -30,12 +32,16 @@ class EdgeManager(object):
     MODULE_CA_ENV = "EdgeModuleCACertificateFile=/mnt/edgemodule/edge-device-ca.cert.pem"
     HUB_SSLPATH_ENV = 'SSL_CERTIFICATE_PATH=/mnt/edgehub/'
     HUB_SSLCRT_ENV = 'SSL_CERTIFICATE_NAME=edge-hub-server.cert.pfx'
+    CERT_HELPER = 'cert_helper'
+    HELPER_IMG = 'hello-world:latest'
+    COMPOSE_FILE = os.path.join(HostPlatform.get_config_path(), 'docker-compose.yml')
 
     def __init__(self, connectionStr, gatewayhost, certPath):
         values = connectionStr.split(';')
         self.hostname = ''
         self.deviceId = ''
         self.key = ''
+        self.compose_file = None
 
         for val in values:
             stripped = val.strip()
@@ -53,6 +59,10 @@ class EdgeManager(object):
 
     @staticmethod
     def stop():
+        # TODO: Revome container by label
+        if os.path.exists(EdgeManager.COMPOSE_FILE):
+            cmd = "docker-compose -f {0} down".format(EdgeManager.COMPOSE_FILE)
+            Utils.exe_proc(cmd.split())
         edgedockerclient = EdgeDockerClient()
         edgedockerclient.stop_by_label(EdgeManager.LABEL)
 
@@ -105,6 +115,106 @@ class EdgeManager(object):
             EdgeManager.MODULE_MOUNT,
             self.edgeCert.get_cert_file_path(EC.EDGE_DEVICE_CA))
         edgedockerclient.start(inputContainer.get('Id'))
+
+    def config_solution(self, deployment_config, target):
+        module_names = [EdgeManager.EDGEHUB_MODULE]
+        custom_modules = deployment_config['moduleContent']['$edgeAgent']['properties.desired']['modules']
+        for module_name in custom_modules:
+            module_names.append(module_name)
+
+        ConnStr_info = {}
+        for module_name in module_names:
+            ConnStr_info[module_name] = self.getOrAddModule(module_name, False)
+
+        env_info = {
+            'hub_env': [
+                EdgeManager.HUB_CA_ENV,
+                EdgeManager.HUB_CERT_ENV,
+                EdgeManager.HUB_SRC_ENV,
+                EdgeManager.HUB_SSLPATH_ENV,
+                EdgeManager.HUB_SSLCRT_ENV
+            ],
+            'module_env': [
+                EdgeManager.MODULE_CA_ENV
+            ]
+        }
+
+        volume_info = {
+            'HUB_MOUNT': EdgeManager.HUB_MOUNT,
+            'HUB_VOLUME': EdgeManager.HUB_VOLUME,
+            'MODULE_VOLUME': EdgeManager.MODULE_VOLUME,
+            'MODULE_MOUNT': EdgeManager.MODULE_MOUNT
+        }
+
+        network_info = {
+            'NW_NAME': EdgeManager.NW_NAME,
+            'ALIASES': self.gatewayhost
+        }
+
+        compose_project = ComposeProject(deployment_config)
+        compose_project.set_edge_info({
+            'ConnStr_info': ConnStr_info,
+            'env_info': env_info,
+            'volume_info': volume_info,
+            'network_info': network_info,
+            'hub_name': EdgeManager.EDGEHUB,
+            'labels': EdgeManager.LABEL
+        })
+
+        compose_project.compose()
+        compose_project.dump(target)
+
+    def start_solution(self, deployment_config, verbose):
+        edgedockerclient = EdgeDockerClient()
+
+        EdgeManager.stop()
+        status = edgedockerclient.status(EdgeManager.EDGEHUB)
+        if status is not None:
+            edgedockerclient.stop(EdgeManager.EDGEHUB)
+            edgedockerclient.remove(EdgeManager.EDGEHUB)
+
+        self._prepare(edgedockerclient)
+        self._prepare_cert(edgedockerclient)
+
+        self.config_solution(deployment_config, EdgeManager.COMPOSE_FILE)
+
+        if verbose:
+            cmd = "docker-compose -f {0} up".format(EdgeManager.COMPOSE_FILE)
+        else:
+            cmd = "docker-compose -f {0} up -d".format(EdgeManager.COMPOSE_FILE)
+        Utils.exe_proc(cmd.split())
+
+    def _prepare_cert(self, edgedockerclient):
+        status = edgedockerclient.status(EdgeManager.CERT_HELPER)
+        if status is not None:
+            edgedockerclient.stop(EdgeManager.CERT_HELPER)
+            edgedockerclient.remove(EdgeManager.CERT_HELPER)
+
+        helper_host_config = edgedockerclient.create_host_config(
+            mounts=[docker.types.Mount(EdgeManager.HUB_MOUNT, EdgeManager.HUB_VOLUME),
+                    docker.types.Mount(EdgeManager.MODULE_MOUNT, EdgeManager.MODULE_VOLUME)]
+        )
+
+        edgedockerclient.pull(EdgeManager.HELPER_IMG, None, None)
+
+        # Ignore flake8 local variable 'cert_helper' is assigned to but never used error
+        cert_helper = edgedockerclient.create_container(  # noqa: F841
+            EdgeManager.HELPER_IMG,
+            name=EdgeManager.CERT_HELPER,
+            volumes=[EdgeManager.HUB_MOUNT, EdgeManager.MODULE_MOUNT],
+            host_config=helper_host_config,
+            labels=[EdgeManager.LABEL]
+        )
+
+        edgedockerclient.copy_file_to_volume(
+            EdgeManager.CERT_HELPER, EdgeManager._chain_cert(),
+            EdgeManager.HUB_MOUNT, self.edgeCert.get_cert_file_path(EC.EDGE_CHAIN_CA))
+        edgedockerclient.copy_file_to_volume(
+            EdgeManager.CERT_HELPER, EdgeManager._hubserver_pfx(),
+            EdgeManager.HUB_MOUNT, self.edgeCert.get_pfx_file_path(EC.EDGE_HUB_SERVER))
+        edgedockerclient.copy_file_to_volume(
+            EdgeManager.CERT_HELPER, self._device_cert(),
+            EdgeManager.MODULE_MOUNT, self.edgeCert.get_cert_file_path(EC.EDGE_DEVICE_CA))
 
     def start(self, modulesDict, routes):
         return

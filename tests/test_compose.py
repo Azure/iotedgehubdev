@@ -1,24 +1,67 @@
-from iotedgehubdev.composeproject import ComposeProject
 import iotedgehubdev.compose_parser
-import json
-import os
 import unittest
+from iotedgehubdev.edgemanager import EdgeManager
+from iotedgehubdev.composeproject import ComposeProject
+import json
 
 OUTPUT_PATH = 'tests/output'
 
 
 class ComposeTest(unittest.TestCase):
     def test_compose(self):
-        with open('tests/test_compose_resources/deplyment_with_createoption.json') as json_file:
-            json_data = json.load(json_file)
-            proj = ComposeProject(json_data)
-            proj.compose()
-            if not os.path.exists(OUTPUT_PATH):
-                os.makedirs(OUTPUT_PATH)
-            proj.dump('{}/docker-compose_test.yml'.format(OUTPUT_PATH))
-            actual_output = open('tests/output/docker-compose_test.yml', 'r').read()
+        with open('tests/test_compose_resources/deployment.json') as json_file:
+            deployment_config = json.load(json_file)
+
+            module_names = [EdgeManager.EDGEHUB_MODULE]
+            custom_modules = deployment_config['moduleContent']['$edgeAgent']['properties.desired']['modules']
+            for module_name in custom_modules:
+                module_names.append(module_name)
+
+            ConnStr_info = {}
+            for module_name in module_names:
+                ConnStr_info[module_name] = \
+                    "HostName=HostName;DeviceId=DeviceId;ModuleId={};SharedAccessKey=SharedAccessKey".format(module_name)
+
+            env_info = {
+                'hub_env': [
+                    EdgeManager.HUB_CA_ENV,
+                    EdgeManager.HUB_CERT_ENV,
+                    EdgeManager.HUB_SRC_ENV,
+                    EdgeManager.HUB_SSLPATH_ENV,
+                    EdgeManager.HUB_SSLCRT_ENV
+                ],
+                'module_env': [
+                    EdgeManager.MODULE_CA_ENV
+                ]
+            }
+
+            volume_info = {
+                'HUB_MOUNT': EdgeManager.HUB_MOUNT,
+                'HUB_VOLUME': EdgeManager.HUB_VOLUME,
+                'MODULE_VOLUME': EdgeManager.MODULE_VOLUME,
+                'MODULE_MOUNT': EdgeManager.MODULE_MOUNT
+            }
+
+            network_info = {
+                'NW_NAME': EdgeManager.NW_NAME,
+                'ALIASES': 'gatewayhost'
+            }
+
+            compose_project = ComposeProject(deployment_config)
+            compose_project.set_edge_info({
+                'ConnStr_info': ConnStr_info,
+                'env_info': env_info,
+                'volume_info': volume_info,
+                'network_info': network_info,
+                'hub_name': EdgeManager.EDGEHUB,
+                'labels': EdgeManager.LABEL
+            })
+            compose_project.compose()
+            compose_project.dump('{}/docker-compose_test.yml'.format(OUTPUT_PATH))
+
             expected_output = open('tests/test_compose_resources/docker-compose.yml', 'r').read()
-            assert actual_output == expected_output
+            actual_output = open('{}/docker-compose_test.yml'.format(OUTPUT_PATH), 'r').read()
+            assert ''.join(sorted(expected_output)) == ''.join(sorted(actual_output))
 
     def test_service_parser_expose(self):
         expose_API = {
