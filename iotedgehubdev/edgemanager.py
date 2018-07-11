@@ -59,11 +59,12 @@ class EdgeManager(object):
 
     @staticmethod
     def stop():
-        edgedockerclient = EdgeDockerClient()
-        edgedockerclient.stop_by_label(EdgeManager.LABEL)
+        # TODO: Revome container by label
         if os.path.exists(EdgeManager.COMPOSE_FILE):
             cmd = "docker-compose -f {0} down".format(EdgeManager.COMPOSE_FILE)
             Utils.exe_proc(cmd.split())
+        edgedockerclient = EdgeDockerClient()
+        edgedockerclient.stop_by_label(EdgeManager.LABEL)
 
     def startForSingleModule(self, inputs, port):
         edgeHubConnStr = self.getOrAddModule(EdgeManager.EDGEHUB_MODULE, False)
@@ -126,16 +127,16 @@ class EdgeManager(object):
             ConnStr_info[module_name] = self.getOrAddModule(module_name, False)
 
         env_info = {
-            'hub_env': {
-                'HUB_CA_ENV': EdgeManager.HUB_CA_ENV,
-                'HUB_CERT_ENV': EdgeManager.HUB_CERT_ENV,
-                'HUB_SRC_ENV': EdgeManager.HUB_SRC_ENV,
-                'HUB_SSLPATH_ENV': EdgeManager.HUB_SSLPATH_ENV,
-                'HUB_SSLCRT_ENV': EdgeManager.HUB_SSLCRT_ENV
-            },
-            'module_env': {
-                'MODULE_CA_ENV': EdgeManager.MODULE_CA_ENV
-            }
+            'hub_env': [
+                EdgeManager.HUB_CA_ENV,
+                EdgeManager.HUB_CERT_ENV,
+                EdgeManager.HUB_SRC_ENV,
+                EdgeManager.HUB_SSLPATH_ENV,
+                EdgeManager.HUB_SSLCRT_ENV
+            ],
+            'module_env': [
+                EdgeManager.MODULE_CA_ENV
+            ]
         }
 
         volume_info = {
@@ -156,13 +157,14 @@ class EdgeManager(object):
             'env_info': env_info,
             'volume_info': volume_info,
             'network_info': network_info,
-            'hub_name': EdgeManager.EDGEHUB
+            'hub_name': EdgeManager.EDGEHUB,
+            'labels': EdgeManager.LABEL
         })
 
         compose_project.compose()
         compose_project.dump(target)
 
-    def start_solution(self, deployment_config):
+    def start_solution(self, deployment_config, verbose):
         edgedockerclient = EdgeDockerClient()
 
         EdgeManager.stop()
@@ -176,8 +178,10 @@ class EdgeManager(object):
 
         self.config_solution(deployment_config, EdgeManager.COMPOSE_FILE)
 
-        # cmd = "docker-compose -f {0} up -d".format(EdgeManager.COMPOSE_FILE)
-        cmd = "docker-compose -f {0} up".format(EdgeManager.COMPOSE_FILE)
+        if verbose:
+            cmd = "docker-compose -f {0} up".format(EdgeManager.COMPOSE_FILE)
+        else:
+            cmd = "docker-compose -f {0} up -d".format(EdgeManager.COMPOSE_FILE)
         Utils.exe_proc(cmd.split())
 
     def _prepare_cert(self, edgedockerclient):

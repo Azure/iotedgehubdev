@@ -23,16 +23,16 @@ class ComposeTest(unittest.TestCase):
                     "HostName=HostName;DeviceId=DeviceId;ModuleId={};SharedAccessKey=SharedAccessKey".format(module_name)
 
             env_info = {
-                'hub_env': {
-                    'HUB_CA_ENV': EdgeManager.HUB_CA_ENV,
-                    'HUB_CERT_ENV': EdgeManager.HUB_CERT_ENV,
-                    'HUB_SRC_ENV': EdgeManager.HUB_SRC_ENV,
-                    'HUB_SSLPATH_ENV': EdgeManager.HUB_SSLPATH_ENV,
-                    'HUB_SSLCRT_ENV': EdgeManager.HUB_SSLCRT_ENV
-                },
-                'module_env': {
-                    'MODULE_CA_ENV': EdgeManager.MODULE_CA_ENV
-                }
+                'hub_env': [
+                    EdgeManager.HUB_CA_ENV,
+                    EdgeManager.HUB_CERT_ENV,
+                    EdgeManager.HUB_SRC_ENV,
+                    EdgeManager.HUB_SSLPATH_ENV,
+                    EdgeManager.HUB_SSLCRT_ENV
+                ],
+                'module_env': [
+                    EdgeManager.MODULE_CA_ENV
+                ]
             }
 
             volume_info = {
@@ -53,7 +53,8 @@ class ComposeTest(unittest.TestCase):
                 'env_info': env_info,
                 'volume_info': volume_info,
                 'network_info': network_info,
-                'hub_name': EdgeManager.EDGEHUB
+                'hub_name': EdgeManager.EDGEHUB,
+                'labels': EdgeManager.LABEL
             })
             compose_project.compose()
             compose_project.dump('{}/docker-compose_test.yml'.format(OUTPUT_PATH))

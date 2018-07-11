@@ -117,7 +117,7 @@ class Utils(object):
     def exe_proc(params, shell=False, cwd=None, suppress_out=False):
         try:
             subprocess.check_call(params, shell=shell, cwd=cwd)
-        except KeyboardInterrupt as ki:
-            return
+        except KeyboardInterrupt:
+            raise
         except Exception as e:
-            output.error("Error while executing command: {0}. {1}".format(' '.join(params), str(e)))
+            raise Exception("Error while executing command: {0}. {1}".format(' '.join(params), str(e)))

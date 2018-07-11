@@ -14,6 +14,8 @@ services:
       INTO $$upstream
     - IotHubConnectionString=HostName=HostName;DeviceId=DeviceId;ModuleId=$$edgeHub;SharedAccessKey=SharedAccessKey
     image: mcr.microsoft.com/azureiotedge-hub:1.0
+    labels:
+      iotedgehubdev: ''
     networks:
       azure-iot-edge:
         aliases:
@@ -33,6 +35,8 @@ services:
     - EdgeModuleCACertificateFile=/mnt/edgemodule/edge-device-ca.cert.pem
     - EdgeHubConnectionString=HostName=HostName;DeviceId=DeviceId;ModuleId=tempSensor;SharedAccessKey=SharedAccessKey
     image: mcr.microsoft.com/azureiotedge-simulated-temperature-sensor:1.0
+    labels:
+      iotedgehubdev: ''
     networks:
       azure-iot-edge: null
     restart: always
@@ -48,6 +52,8 @@ services:
     - EdgeModuleCACertificateFile=/mnt/edgemodule/edge-device-ca.cert.pem
     - EdgeHubConnectionString=HostName=HostName;DeviceId=DeviceId;ModuleId=SampleModule;SharedAccessKey=SharedAccessKey
     image: localhost:5000/samplemodule:0.0.1-amd64
+    labels:
+      iotedgehubdev: ''
     networks:
       azure-iot-edge: null
     restart: always

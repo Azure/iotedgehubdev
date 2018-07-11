@@ -11,10 +11,7 @@ class CreateOptionParser(object):
             create_option_value = self.get_create_option_value(compose_key)
             if create_option_value:
                 parser_func = COMPOSE_KEY_CREATE_OPTION_MAPPING[compose_key]['parser_func']
-                try:
-                    ret[compose_key] = parser_func(create_option_value)
-                except Exception as err:
-                    print(err)
+                ret[compose_key] = parser_func(create_option_value)
         return ret
 
     def get_create_option_value(self, compose_key):
