@@ -158,7 +158,7 @@ def start(inputs, port, deployment):
 
                         edgeManager = EdgeManager(connectionString, gatewayhost, certPath)
                         edgeManager.start_solution(json_data)
-                        output.info('EdgeHub runtime has been started in solution mode.')
+                        # soutput.info('EdgeHub runtime has been started in solution mode.')
                 else:
                     output.error('Missing keys in config file. Please run `iotedgehubdev setup` again.')
                     sys.exit(1)

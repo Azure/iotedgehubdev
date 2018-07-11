@@ -4,15 +4,19 @@ import stat
 import errno
 import socket
 import sys
+import subprocess
 from base64 import b64encode, b64decode
 from hashlib import sha256
 from hmac import HMAC
 from time import time
+from .output import Output
 from .errors import EdgeFileAccessError
 if sys.version_info.major >= 3:
     from urllib.parse import quote_plus, urlencode
 else:
     from urllib import quote_plus, urlencode
+
+output = Output()
 
 
 class Utils(object):
@@ -108,3 +112,12 @@ class Utils(object):
         del func, excinfo
         os.chmod(path, stat.S_IWRITE)
         os.unlink(path)
+
+    @staticmethod
+    def exe_proc(params, shell=False, cwd=None, suppress_out=False):
+        try:
+            subprocess.check_call(params, shell=shell, cwd=cwd)
+        except KeyboardInterrupt as ki:
+            return
+        except Exception as e:
+            output.error("Error while executing command: {0}. {1}".format(' '.join(params), str(e)))
