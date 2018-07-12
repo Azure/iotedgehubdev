@@ -142,7 +142,7 @@ def modulecred(local, output_file):
               is_flag=True,
               default=False,
               show_default=True,
-              help='Show the solution containers logs.')
+              help='Show the solution container logs.')
 @_with_telemetry
 def start(inputs, port, deployment, verbose):
     configFile = HostPlatform.get_config_file_path()
@@ -201,7 +201,7 @@ def start(inputs, port, deployment, verbose):
 def stop():
     try:
         EdgeManager.stop()
-        output.info('EdgeHub runtime has been stopped successfully')
+        output.info('EdgeHub runtime has been stopped successfully.')
     except Exception as e:
         output.error('Error: {0}.'.format(str(e)))
         sys.exit(1)
