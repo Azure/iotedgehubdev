@@ -4,6 +4,7 @@ import json
 from .output import Output
 from .hostplatform import HostPlatform
 from .edgecert import EdgeCert
+from .edgedockerclient import EdgeDockerClient
 from .edgemanager import EdgeManager
 from .utils import Utils
 from functools import wraps
@@ -142,7 +143,7 @@ def modulecred(local, output_file):
               is_flag=True,
               default=False,
               show_default=True,
-              help='Show the solution containers logs.')
+              help='Show the solution container logs.')
 @_with_telemetry
 def start(inputs, port, deployment, verbose):
     configFile = HostPlatform.get_config_file_path()
@@ -161,11 +162,12 @@ def start(inputs, port, deployment, verbose):
         output.error('Error: {0}.'.format(str(e)))
         sys.exit(1)
 
+    edgedockerclient = EdgeDockerClient()
     if inputs is None and deployment is not None:
         try:
             with open(deployment) as json_file:
                 json_data = json.load(json_file)
-            edgeManager.start_solution(json_data, verbose)
+            edgeManager.start_solution(edgedockerclient, json_data, verbose)
             if not verbose:
                 output.info('EdgeHub runtime has been started in solution mode.')
         except Exception as e:
@@ -179,7 +181,7 @@ def start(inputs, port, deployment, verbose):
         else:
             input_list = [input_.strip() for input_ in inputs.strip().split(',')]
 
-        edgeManager.start_singlemodule(input_list, port)
+        edgeManager.start_singlemodule(edgedockerclient, input_list, port)
 
         data = '--data \'{{"inputName": "{0}","data":"hello world"}}\''.format(input_list[0])
         url = 'http://localhost:{0}/api/v1/messages'.format(port)
@@ -200,8 +202,9 @@ def start(inputs, port, deployment, verbose):
 @_with_telemetry
 def stop():
     try:
-        EdgeManager.stop()
-        output.info('EdgeHub runtime has been stopped successfully')
+        edgedockerclient = EdgeDockerClient()
+        EdgeManager.stop(edgedockerclient)
+        output.info('EdgeHub runtime has been stopped successfully.')
     except Exception as e:
         output.error('Error: {0}.'.format(str(e)))
         sys.exit(1)

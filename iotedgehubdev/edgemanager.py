@@ -58,16 +58,14 @@ class EdgeManager(object):
         self.edgeCert = EdgeCert(self.certPath, self.gatewayhost)
 
     @staticmethod
-    def stop():
+    def stop(edgedockerclient):
         if os.path.exists(EdgeManager.COMPOSE_FILE):
             cmd = "docker-compose -f {0} down".format(EdgeManager.COMPOSE_FILE)
             Utils.exe_proc(cmd.split())
-        edgedockerclient = EdgeDockerClient()
         edgedockerclient.stop_remove_by_label(EdgeManager.LABEL)
 
-    def start_singlemodule(self, inputs, port):
-        EdgeManager.stop()
-        edgedockerclient = EdgeDockerClient()
+    def start_singlemodule(self, edgedockerclient, inputs, port):
+        EdgeManager.stop(edgedockerclient)
         self._prepare(edgedockerclient)
 
         edgeHubConnStr = self.getOrAddModule(EdgeManager.EDGEHUB_MODULE, False)
@@ -153,9 +151,8 @@ class EdgeManager(object):
         compose_project.compose()
         compose_project.dump(target)
 
-    def start_solution(self, deployment_config, verbose):
-        EdgeManager.stop()
-        edgedockerclient = EdgeDockerClient()
+    def start_solution(self, edgedockerclient, deployment_config, verbose):
+        EdgeManager.stop(edgedockerclient)
         self._prepare(edgedockerclient)
         self._prepare_cert(edgedockerclient)
 
