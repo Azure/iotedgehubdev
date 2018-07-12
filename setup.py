@@ -3,7 +3,7 @@ My Tool does one thing, and one thing well.
 """
 from setuptools import find_packages, setup
 
-VERSION = '0.1.0'
+VERSION = '0.1.0-rc'
 # If we have source, validate that our version numbers match
 # This should prevent uploading releases with mismatched versions.
 try:
@@ -36,10 +36,10 @@ dependencies = [
 setup(
     name='iotedgehubdev',
     version=VERSION,
-    url='https://github.com/adashen/iotedgelocal',
+    url='https://github.com/Azure/iotedgehubdev',
     license='BSD',
     author='iotedgehubdev',
-    author_email='shenwe@microsoft.com',
+    author_email='vsciet@microsoft.com',
     description='My Tool does one thing, and one thing well.',
     long_description=__doc__,
     packages=find_packages(exclude=['tests']),
