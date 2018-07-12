@@ -179,7 +179,7 @@ def start(inputs, port, deployment, verbose):
         else:
             input_list = [input_.strip() for input_ in inputs.strip().split(',')]
 
-        edgeManager.startForSingleModule(input_list, port)
+        edgeManager.start_singlemodule(input_list, port)
 
         data = '--data \'{{"inputName": "{0}","data":"hello world"}}\''.format(input_list[0])
         url = 'http://localhost:{0}/api/v1/messages'.format(port)

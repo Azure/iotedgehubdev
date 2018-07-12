@@ -216,7 +216,7 @@ class TestEdgeDockerContainerOps(unittest.TestCase):
             EdgeDockerClient.stop
             EdgeDockerClient.remove
             EdgeDockerClient.status
-            EdgeDockerClient.stop_by_label
+            EdgeDockerClient.stop_remove_by_label
             EdgeDockerClient.create
     """
     TEST_CONTAINER_NAME = 'test_name'
@@ -381,7 +381,7 @@ class TestEdgeDockerContainerOps(unittest.TestCase):
         filter_dict = {'label': self.TEST_LABEL}
 
         # act
-        client.stop_by_label(self.TEST_LABEL)
+        client.stop_remove_by_label(self.TEST_LABEL)
 
         # assert
         mock_docker_client.containers.list.assert_called_with(all=True, filters=filter_dict)
@@ -396,7 +396,7 @@ class TestEdgeDockerContainerOps(unittest.TestCase):
 
         # act, assert
         with self.assertRaises(EdgeDeploymentError):
-            client.stop_by_label(self.TEST_LABEL)
+            client.stop_remove_by_label(self.TEST_LABEL)
 
     @mock.patch('docker.APIClient', autospec=True)
     @mock.patch('docker.DockerClient', autospec=True)

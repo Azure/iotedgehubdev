@@ -23,14 +23,15 @@ class EdgeDockerClient(object):
         if self._client is not None:
             self._client.api.close()
 
-    def stop_by_label(self, label):
+    def stop_remove_by_label(self, label):
         try:
             filter_dict = {'label': label}
             containers = self._client.containers.list(all=True, filters=filter_dict)
             for container in containers:
                 container.stop()
+                self.remove(container.name)
         except docker.errors.APIError as ex:
-            msg = 'Could not stop containers by label: {0}'.format(label)
+            msg = 'Could not stop and remove containers by label: {0}'.format(label)
             raise EdgeDeploymentError(msg, ex)
 
     def get_local_image_sha_id(self, image):
