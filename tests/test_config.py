@@ -1,7 +1,23 @@
 import unittest
+import os
+from iotedgehubdev.hostplatform import HostPlatform
 
 
 class TestGetIniConfig(unittest.TestCase):
+    @classmethod
+    def cleanup(cls):
+        iniFile = HostPlatform.get_setting_ini_path()
+        if os.path.exists(iniFile):
+            os.remove(iniFile)
+
+    @classmethod
+    def setUpClass(cls):
+        cls.cleanup()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.cleanup()
+
     def test(self):
         from iotedgehubdev import configs
         iniConfig = configs.get_ini_config()

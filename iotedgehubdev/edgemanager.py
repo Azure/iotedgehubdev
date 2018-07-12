@@ -59,30 +59,19 @@ class EdgeManager(object):
 
     @staticmethod
     def stop():
-        # TODO: Revome container by label
         if os.path.exists(EdgeManager.COMPOSE_FILE):
             cmd = "docker-compose -f {0} down".format(EdgeManager.COMPOSE_FILE)
             Utils.exe_proc(cmd.split())
         edgedockerclient = EdgeDockerClient()
-        edgedockerclient.stop_by_label(EdgeManager.LABEL)
+        edgedockerclient.stop_remove_by_label(EdgeManager.LABEL)
 
-    def startForSingleModule(self, inputs, port):
-        edgeHubConnStr = self.getOrAddModule(EdgeManager.EDGEHUB_MODULE, False)
-        inputConnStr = self.getOrAddModule(EdgeManager.INPUT, False)
-        edgedockerclient = EdgeDockerClient()
-
+    def start_singlemodule(self, inputs, port):
         EdgeManager.stop()
-        status = edgedockerclient.status(EdgeManager.EDGEHUB)
-        if status is not None:
-            edgedockerclient.stop(EdgeManager.EDGEHUB)
-            edgedockerclient.remove(EdgeManager.EDGEHUB)
-        status = edgedockerclient.status(EdgeManager.INPUT)
-        if status is not None:
-            edgedockerclient.stop(EdgeManager.INPUT)
-            edgedockerclient.remove(EdgeManager.INPUT)
-
+        edgedockerclient = EdgeDockerClient()
         self._prepare(edgedockerclient)
 
+        edgeHubConnStr = self.getOrAddModule(EdgeManager.EDGEHUB_MODULE, False)
+        inputConnStr = self.getOrAddModule(EdgeManager.INPUT, False)
         routes = self._generateRoutesEnvFromInputs(inputs)
         self._start_edge_hub(edgedockerclient, edgeHubConnStr, routes)
 
@@ -165,14 +154,8 @@ class EdgeManager(object):
         compose_project.dump(target)
 
     def start_solution(self, deployment_config, verbose):
-        edgedockerclient = EdgeDockerClient()
-
         EdgeManager.stop()
-        status = edgedockerclient.status(EdgeManager.EDGEHUB)
-        if status is not None:
-            edgedockerclient.stop(EdgeManager.EDGEHUB)
-            edgedockerclient.remove(EdgeManager.EDGEHUB)
-
+        edgedockerclient = EdgeDockerClient()
         self._prepare(edgedockerclient)
         self._prepare_cert(edgedockerclient)
 
@@ -197,8 +180,7 @@ class EdgeManager(object):
 
         edgedockerclient.pull(EdgeManager.HELPER_IMG, None, None)
 
-        # Ignore flake8 local variable 'cert_helper' is assigned to but never used error
-        cert_helper = edgedockerclient.create_container(  # noqa: F841
+        edgedockerclient.create_container(
             EdgeManager.HELPER_IMG,
             name=EdgeManager.CERT_HELPER,
             volumes=[EdgeManager.HUB_MOUNT, EdgeManager.MODULE_MOUNT],
