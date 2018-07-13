@@ -221,10 +221,11 @@ class EdgeManager(object):
         cred = [connstrENV, deviceCAEnv]
 
         if output_file is not None:
-            dir = os.path.dirname(output_file)
+            output_path = os.path.abspath(output_file)
+            dir = os.path.dirname(output_path)
             if not os.path.exists(dir):
                 os.makedirs(dir)
-            with open(output_file, 'w+') as envFile:
+            with open(output_path, 'w+') as envFile:
                 envFile.writelines(['\n', cred[0], '\n', cred[1]])
         return cred
 
