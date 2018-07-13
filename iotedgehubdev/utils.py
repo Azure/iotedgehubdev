@@ -1,15 +1,17 @@
+import errno
 import os
 import shutil
-import stat
-import errno
 import socket
-import sys
+import stat
 import subprocess
-from base64 import b64encode, b64decode
+import sys
+from base64 import b64decode, b64encode
 from hashlib import sha256
 from hmac import HMAC
 from time import time
+
 from .errors import EdgeFileAccessError
+
 if sys.version_info.major >= 3:
     from urllib.parse import quote_plus, urlencode
 else:
@@ -17,6 +19,18 @@ else:
 
 
 class Utils(object):
+    @staticmethod
+    def parse_connection_str(connection_string):
+        parts = connection_string.split(';')
+        if len(parts) > 0:
+            data = dict()
+            for part in parts:
+                if "=" in part:
+                    data[part.split("=")[0].strip()] = part.split("=", 1)[1].strip()
+            return data
+        else:
+            return None
+
     @staticmethod
     def get_hostname():
         try:

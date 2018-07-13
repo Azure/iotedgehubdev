@@ -1,20 +1,19 @@
-import requests
 import json
-import docker
 import os
-from .constants import EdgeConstants as EC
-from .utils import Utils
-from .errors import ResponseError
-from .edgedockerclient import EdgeDockerClient
-from .edgecert import EdgeCert
+
+import docker
+import requests
+
 from .composeproject import ComposeProject
+from .constants import EdgeConstants as EC
+from .edgecert import EdgeCert
+from .edgedockerclient import EdgeDockerClient
+from .errors import ResponseError
 from .hostplatform import HostPlatform
+from .utils import Utils
 
 
 class EdgeManager(object):
-    HOST_PREFIX = 'HostName='
-    DEVICE_PREFIX = 'DeviceId='
-    KEY_PREFIX = 'SharedAccessKey='
     LABEL = 'iotedgehubdev'
     EDGEHUB_IMG = 'mcr.microsoft.com/azureiotedge-hub:1.0'
     TESTUTILITY_IMG = 'mcr.microsoft.com/azureiotedge-testing-utility:1.0.0-rc1'
@@ -36,26 +35,15 @@ class EdgeManager(object):
     HELPER_IMG = 'hello-world:latest'
     COMPOSE_FILE = os.path.join(HostPlatform.get_config_path(), 'docker-compose.yml')
 
-    def __init__(self, connectionStr, gatewayhost, certPath):
-        values = connectionStr.split(';')
-        self.hostname = ''
-        self.deviceId = ''
-        self.key = ''
+    def __init__(self, hostname, device_id, access_key, gatewayhost, cert_path):
+        self.hostname = hostname
+        self.device_id = device_id
+        self.access_key = access_key
         self.compose_file = None
-
-        for val in values:
-            stripped = val.strip()
-            if stripped.startswith(EdgeManager.HOST_PREFIX):
-                self.hostname = stripped[len(EdgeManager.HOST_PREFIX):]
-            elif stripped.startswith(EdgeManager.DEVICE_PREFIX):
-                self.deviceId = stripped[len(EdgeManager.DEVICE_PREFIX):]
-            elif stripped.startswith(EdgeManager.KEY_PREFIX):
-                self.key = stripped[len(EdgeManager.KEY_PREFIX):]
-
         self.gatewayhost = gatewayhost
-        self.deviceUri = '{0}/devices/{1}'.format(self.hostname, self.deviceId)
-        self.certPath = certPath
-        self.edgeCert = EdgeCert(self.certPath, self.gatewayhost)
+        self.device_uri = '{0}/devices/{1}'.format(self.hostname, self.device_id)
+        self.cert_path = cert_path
+        self.edge_cert = EdgeCert(self.cert_path, self.gatewayhost)
 
     @staticmethod
     def stop(edgedockerclient=None):
@@ -104,7 +92,7 @@ class EdgeManager(object):
         edgedockerclient.copy_file_to_volume(
             EdgeManager.INPUT, self._device_cert(),
             EdgeManager.MODULE_MOUNT,
-            self.edgeCert.get_cert_file_path(EC.EDGE_DEVICE_CA))
+            self.edge_cert.get_cert_file_path(EC.EDGE_DEVICE_CA))
         edgedockerclient.start(inputContainer.get('Id'))
 
     def config_solution(self, deployment_config, target):
@@ -192,13 +180,13 @@ class EdgeManager(object):
 
         edgedockerclient.copy_file_to_volume(
             EdgeManager.CERT_HELPER, EdgeManager._chain_cert(),
-            EdgeManager.HUB_MOUNT, self.edgeCert.get_cert_file_path(EC.EDGE_CHAIN_CA))
+            EdgeManager.HUB_MOUNT, self.edge_cert.get_cert_file_path(EC.EDGE_CHAIN_CA))
         edgedockerclient.copy_file_to_volume(
             EdgeManager.CERT_HELPER, EdgeManager._hubserver_pfx(),
-            EdgeManager.HUB_MOUNT, self.edgeCert.get_pfx_file_path(EC.EDGE_HUB_SERVER))
+            EdgeManager.HUB_MOUNT, self.edge_cert.get_pfx_file_path(EC.EDGE_HUB_SERVER))
         edgedockerclient.copy_file_to_volume(
             EdgeManager.CERT_HELPER, self._device_cert(),
-            EdgeManager.MODULE_MOUNT, self.edgeCert.get_cert_file_path(EC.EDGE_DEVICE_CA))
+            EdgeManager.MODULE_MOUNT, self.edge_cert.get_cert_file_path(EC.EDGE_DEVICE_CA))
 
     def start(self, modulesDict, routes):
         return
@@ -217,7 +205,7 @@ class EdgeManager(object):
 
     def outputModuleCred(self, name, islocal, output_file):
         connstrENV = 'EdgeHubConnectionString={0}'.format(self.getOrAddModule(name, islocal))
-        deviceCAEnv = 'EdgeModuleCACertificateFile={0}'.format(self.edgeCert.get_cert_file_path(EC.EDGE_DEVICE_CA))
+        deviceCAEnv = 'EdgeModuleCACertificateFile={0}'.format(self.edge_cert.get_cert_file_path(EC.EDGE_DEVICE_CA))
         cred = [connstrENV, deviceCAEnv]
 
         if output_file is not None:
@@ -230,8 +218,8 @@ class EdgeManager(object):
 
     def getModule(self, name, islocal):
         moduleUri = "https://{0}/devices/{1}/modules/{2}?api-version=2017-11-08-preview".format(
-            self.hostname, self.deviceId, name)
-        sas = Utils.get_iot_hub_sas_token(self.deviceUri, self.key, None)
+            self.hostname, self.device_id, name)
+        sas = Utils.get_iot_hub_sas_token(self.device_uri, self.access_key, None)
         res = requests.get(
             moduleUri,
             headers={
@@ -245,8 +233,8 @@ class EdgeManager(object):
 
     def addModule(self, name, islocal):
         moduleUri = "https://{0}/devices/{1}/modules/{2}?api-version=2017-11-08-preview".format(
-            self.hostname, self.deviceId, name)
-        sas = Utils.get_iot_hub_sas_token(self.deviceUri, self.key, None)
+            self.hostname, self.device_id, name)
+        sas = Utils.get_iot_hub_sas_token(self.device_uri, self.access_key, None)
         res = requests.put(
             moduleUri,
             headers={
@@ -255,7 +243,7 @@ class EdgeManager(object):
             },
             data=json.dumps({
                 'moduleId': name,
-                'deviceId': self.deviceId
+                'deviceId': self.device_id
             })
         )
         if res.ok is not True:
@@ -324,10 +312,10 @@ class EdgeManager(object):
 
         edgedockerclient.copy_file_to_volume(
             EdgeManager.EDGEHUB, EdgeManager._chain_cert(),
-            EdgeManager.HUB_MOUNT, self.edgeCert.get_cert_file_path(EC.EDGE_CHAIN_CA))
+            EdgeManager.HUB_MOUNT, self.edge_cert.get_cert_file_path(EC.EDGE_CHAIN_CA))
         edgedockerclient.copy_file_to_volume(
             EdgeManager.EDGEHUB, EdgeManager._hubserver_pfx(),
-            EdgeManager.HUB_MOUNT, self.edgeCert.get_pfx_file_path(EC.EDGE_HUB_SERVER))
+            EdgeManager.HUB_MOUNT, self.edge_cert.get_pfx_file_path(EC.EDGE_HUB_SERVER))
         edgedockerclient.start(hubContainer.get('Id'))
 
     @staticmethod
