@@ -21,13 +21,14 @@ else:
 
 class Utils(object):
     @staticmethod
-    def parse_connection_str(connection_string):
+    def parse_device_connection_str(connection_string):
         parts = connection_string.split(';')
         if len(parts) > 0:
             data = dict()
             for part in parts:
                 if "=" in part:
-                    data[part.split("=")[0].strip()] = part.split("=", 1)[1].strip()
+                    subparts = [s.strip() for s in part.split("=", 1)]
+                    data[subparts[0]] = subparts[1]
 
             if (EC.HOSTNAME_KEY not in data or
                 EC.DEVICE_ID_KEY not in data or

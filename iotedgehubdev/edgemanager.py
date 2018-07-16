@@ -36,7 +36,7 @@ class EdgeManager(object):
     COMPOSE_FILE = os.path.join(HostPlatform.get_config_path(), 'docker-compose.yml')
 
     def __init__(self, connection_str, gatewayhost, cert_path):
-        connection_str_dict = Utils.parse_connection_str(connection_str)
+        connection_str_dict = Utils.parse_device_connection_str(connection_str)
         self.hostname = connection_str_dict[EC.HOSTNAME_KEY]
         self.device_id = connection_str_dict[EC.DEVICE_ID_KEY]
         self.access_key = connection_str_dict[EC.ACCESS_KEY_KEY]

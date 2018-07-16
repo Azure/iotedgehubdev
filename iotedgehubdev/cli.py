@@ -61,7 +61,7 @@ def main():
 @_with_telemetry
 def setup(connection_string, gateway_host):
     try:
-        Utils.parse_connection_str(connection_string)
+        Utils.parse_device_connection_str(connection_string)
         gateway_host = gateway_host.lower()
         fileType = 'edgehub.config'
         certDir = HostPlatform.get_default_cert_path()
