@@ -127,6 +127,19 @@ def service_parser_hostconfig_ports(create_options_details):
             ports_list.append("{0}:{1}".format(host_port, container_port))
     return ports_list
 
+def service_parser_networks(create_options_details):
+    networks_dict = {}
+    for nw, nw_config in create_options_details.items():
+        networks_dict[nw] = {}
+        if 'Aliases' in nw_config:
+            networks_dict[nw]['aliases'] = nw_config['Aliases']
+        if 'IPAMConfig' in nw_config:
+            if 'IPv4Address' in nw_config['IPAMConfig']:
+                networks_dict[nw]['ipv4_address'] = nw_config['IPAMConfig']['IPv4Address']
+            if 'IPv6Address' in nw_config['IPAMConfig']:
+                networks_dict[nw]['ipv6_address'] = nw_config['IPAMConfig']['IPv6Address']
+    return networks_dict
+
 
 def time_ns_ms(ns):
     if ns is not 0 and ns < 1000000:
@@ -186,8 +199,6 @@ COMPOSE_KEY_CREATE_OPTION_MAPPING = {
     # Volumes
     # 'volumes:':{'API_Info':{''},'parser_func':service_parser_naive},
 
-    # # NetworkingConfig
-    # 'aliases':{'API_Info':'IPv4Address','parser_func':service_parser_naive},
-    # 'ipv4_address':{'API_Info':'IPv6Address','parser_func':service_parser_naive},
-    # 'ipv6_address':{'API_Info':'Aliases','parser_func':service_parser_naive}
+    # NetworkingConfig
+    'networks': {'API_Info': {'NetworkingConfig': "$['NetworkingConfig']['EndpointsConfig']"}, 'parser_func': service_parser_networks},
 }
