@@ -1,14 +1,15 @@
-import sys
-import click
 import json
-from .output import Output
-from .hostplatform import HostPlatform
+import sys
+from functools import wraps
+
+import click
+
+from . import configs, telemetry
 from .edgecert import EdgeCert
 from .edgemanager import EdgeManager
+from .hostplatform import HostPlatform
+from .output import Output
 from .utils import Utils
-from functools import wraps
-from . import configs
-from . import telemetry
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'], max_content_width=120)
 output = Output()
@@ -59,23 +60,28 @@ def main():
               help='GatewayHostName value for the module to connect.')
 @_with_telemetry
 def setup(connection_string, gateway_host):
-    gateway_host = gateway_host.lower()
-    fileType = 'edgehub.config'
-    certDir = HostPlatform.get_default_cert_path()
-    Utils.mkdir_if_needed(certDir)
-    edgeCert = EdgeCert(certDir, gateway_host)
-    edgeCert.generate_self_signed_certs()
-    configFile = HostPlatform.get_config_file_path()
-    Utils.delete_file(configFile, fileType)
-    Utils.mkdir_if_needed(HostPlatform.get_config_path())
-    configDict = {
-        CONN_STR: connection_string,
-        CERT_PATH: certDir,
-        GATEWAY_HOST: gateway_host
-    }
-    configJson = json.dumps(configDict, indent=2, sort_keys=True)
-    Utils.create_file(configFile, configJson, fileType)
-    output.info('Setup EdgeHub runtime successfully.')
+    try:
+        Utils.parse_device_connection_str(connection_string)
+        gateway_host = gateway_host.lower()
+        fileType = 'edgehub.config'
+        certDir = HostPlatform.get_default_cert_path()
+        Utils.mkdir_if_needed(certDir)
+        edgeCert = EdgeCert(certDir, gateway_host)
+        edgeCert.generate_self_signed_certs()
+        configFile = HostPlatform.get_config_file_path()
+        Utils.delete_file(configFile, fileType)
+        Utils.mkdir_if_needed(HostPlatform.get_config_path())
+        configDict = {
+            CONN_STR: connection_string,
+            CERT_PATH: certDir,
+            GATEWAY_HOST: gateway_host
+        }
+        configJson = json.dumps(configDict, indent=2, sort_keys=True)
+        Utils.create_file(configFile, configJson, fileType)
+        output.info('Setup EdgeHub runtime successfully.')
+    except Exception as e:
+        output.error('Error: {0}.'.format(str(e)))
+        sys.exit(1)
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
@@ -98,16 +104,16 @@ def setup(connection_string, gateway_host):
 def modulecred(local, output_file):
     configFile = HostPlatform.get_config_file_path()
     if Utils.check_if_file_exists(configFile) is not True:
-        output.error('Cannot find config file. Please setup first')
+        output.error('Cannot find config file. Please run `iotedgehubdev setup` first.')
         sys.exit(1)
     try:
         with open(configFile) as f:
             jsonObj = json.load(f)
         if CONN_STR in jsonObj and CERT_PATH in jsonObj and GATEWAY_HOST in jsonObj:
-            connectionString = jsonObj[CONN_STR]
-            certPath = jsonObj[CERT_PATH]
+            connection_str = jsonObj[CONN_STR]
+            cert_path = jsonObj[CERT_PATH]
             gatewayhost = jsonObj[GATEWAY_HOST]
-            edgeManager = EdgeManager(connectionString, gatewayhost, certPath)
+            edgeManager = EdgeManager(connection_str, gatewayhost, cert_path)
             credential = edgeManager.outputModuleCred('target', local, output_file)
             output.info(credential[0])
             output.info(credential[1])
@@ -150,10 +156,10 @@ def start(inputs, port, deployment, verbose):
         with open(configFile) as f:
             jsonObj = json.load(f)
             if CONN_STR in jsonObj and CERT_PATH in jsonObj and GATEWAY_HOST in jsonObj:
-                connectionString = jsonObj[CONN_STR]
-                certPath = jsonObj[CERT_PATH]
+                connection_str = jsonObj[CONN_STR]
+                cert_path = jsonObj[CERT_PATH]
                 gatewayhost = jsonObj[GATEWAY_HOST]
-                edgeManager = EdgeManager(connectionString, gatewayhost, certPath)
+                edgeManager = EdgeManager(connection_str, gatewayhost, cert_path)
             else:
                 output.error('Missing keys in config file. Please run `iotedgehubdev setup` again.')
                 sys.exit(1)

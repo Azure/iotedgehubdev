@@ -1,15 +1,18 @@
+import errno
 import os
 import shutil
-import stat
-import errno
 import socket
-import sys
+import stat
 import subprocess
-from base64 import b64encode, b64decode
+import sys
+from base64 import b64decode, b64encode
 from hashlib import sha256
 from hmac import HMAC
 from time import time
+
+from .constants import EdgeConstants as EC
 from .errors import EdgeFileAccessError
+
 if sys.version_info.major >= 3:
     from urllib.parse import quote_plus, urlencode
 else:
@@ -17,6 +20,29 @@ else:
 
 
 class Utils(object):
+    @staticmethod
+    def parse_device_connection_str(connection_string):
+        parts = connection_string.split(';')
+        if len(parts) > 0:
+            data = dict()
+            for part in parts:
+                if "=" in part:
+                    subparts = [s.strip() for s in part.split("=", 1)]
+                    data[subparts[0]] = subparts[1]
+
+            if (EC.HOSTNAME_KEY not in data or
+                EC.DEVICE_ID_KEY not in data or
+                    EC.ACCESS_KEY_KEY not in data):
+                if "SharedAccessKeyName" in data:
+                    raise KeyError('Please make sure you are using a device connection string'
+                                   'instead of an IoT Hub connection string')
+                else:
+                    raise KeyError('Error parsing connection string')
+
+            return data
+        else:
+            raise KeyError('Error parsing connection string')
+
     @staticmethod
     def get_hostname():
         try:

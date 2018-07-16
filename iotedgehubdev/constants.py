@@ -1,4 +1,8 @@
 class EdgeConstants():
+    HOSTNAME_KEY = 'HostName'
+    DEVICE_ID_KEY = 'DeviceId'
+    ACCESS_KEY_KEY = 'SharedAccessKey'
+
     SUBJECT_COUNTRY_KEY = 'countryCode'
     SUBJECT_STATE_KEY = 'state'
     SUBJECT_LOCALITY_KEY = 'locality'
