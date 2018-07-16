@@ -157,3 +157,28 @@ class ComposeTest(unittest.TestCase):
         }
         ports_list = ["127.0.0.1:11022:22/tcp"]
         assert ports_list == iotedgehubdev.compose_parser.service_parser_hostconfig_ports(portsbinding)
+
+    def test_service_parser_networks(self):
+        networkconfig = {
+            "isolated_nw": {
+                "IPAMConfig": {
+                    "IPv4Address": "172.20.30.33",
+                    "IPv6Address": "2001:db8:abcd::3033",
+                },
+                "Aliases": [
+                    "server_x",
+                    "server_y"
+                ]
+            }
+        }
+        network_dict = {
+            'isolated_nw': {
+                'aliases': [
+                    'server_x',
+                    'server_y'
+                ],
+                'ipv4_address': '172.20.30.33',
+                'ipv6_address': '2001:db8:abcd::3033'
+            }
+        }
+        assert network_dict == iotedgehubdev.compose_parser.service_parser_networks(networkconfig)

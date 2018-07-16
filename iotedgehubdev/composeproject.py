@@ -13,7 +13,6 @@ COMPOSE_VERSION = 3.6
 
 
 class ComposeProject(object):
-    edge_network_name = 'azure-iot-edge'
     edge_hub = 'edgeHub'
 
     def __init__(self, deployment_config):
@@ -59,7 +58,7 @@ class ComposeProject(object):
 
             if 'networks' not in self.Services[service_name]:
                 self.Services[service_name]['networks'] = {}
-            self.Services[service_name]['networks'][ComposeProject.edge_network_name] = None
+            self.Services[service_name]['networks'][self.edge_info['network_info']['NW_NAME']] = None
 
             if 'labels' not in self.Services[service_name]:
                 self.Services[service_name]['labels'] = {self.edge_info['labels']: ""}
@@ -91,7 +90,7 @@ class ComposeProject(object):
                 'target': self.edge_info['volume_info']['HUB_MOUNT']
             }],
             'networks': {
-                ComposeProject.edge_network_name: {
+                self.edge_info['network_info']['NW_NAME']: {
                     'aliases': [self.edge_info['network_info']['ALIASES']]
                 }
             },
@@ -120,14 +119,15 @@ class ComposeProject(object):
             routes_env.append(('routes__' + name + '=' + path))
         return routes_env
 
-    # TODO: Parse user-defined networks
     def parse_networks(self):
-        self.Networks = {
-            ComposeProject.edge_network_name: {
-                'external': True,
-                'name': self.edge_info['network_info']['NW_NAME']
+        nw_set = set()
+        for service_config in self.Services.values():
+            for nw in service_config['networks']:
+                nw_set.add(nw)
+        for nw in nw_set:
+            self.Networks[nw] = {
+                'external': True
             }
-        }
 
     # TODO: Parse user-defined volumes
     def parse_volumes(self):
