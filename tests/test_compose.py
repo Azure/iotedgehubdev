@@ -182,3 +182,65 @@ class ComposeTest(unittest.TestCase):
             }
         }
         assert network_dict == iotedgehubdev.compose_parser.service_parser_networks(networkconfig)
+
+    def test_service_parser_volumes(self):
+        volumes_config = {
+            'Mounts': [
+                {
+                    "Type": "volume",
+                    "Source": "edgehubdev",
+                    "Target": "/mnt/edgehub",
+                    "VolumeOptions": {
+                        "NoCopy": False
+                    },
+                    "ReadOnly": True
+                },
+                {
+                    "Type": "bind",
+                    "Source": "/mnt/edgehubdev",
+                    "Target": "/mnt/edgehub",
+                    "BindOptions": {
+                        "Propagation": "shared"
+                    }
+                },
+                {
+                    "Type": "tmpfs",
+                    "Target": "/mnt/edgehub",
+                    "TmpfsOptions": {
+                        "SizeBytes": 65536
+                    }
+                }
+            ],
+            'Volumes': {
+                "/mnt/edgehub": {}
+            }
+        }
+
+        volumes_list = [
+            {
+                'target': '/mnt/edgehub',
+                'type': 'volume',
+                'source': 'edgehubdev',
+                'read_only': True,
+                'volume': {
+                    'nocopy': False
+                }
+            },
+            {
+                'target': '/mnt/edgehub',
+                'type': 'bind',
+                'source': '/mnt/edgehubdev',
+                'bind': {
+                    'propagation': "shared"
+                }
+            },
+            {
+                'target': '/mnt/edgehub',
+                'type': 'tmpfs',
+                'tmpfs': {
+                    'size': 65536
+                }
+            }
+        ]
+
+        assert volumes_list == iotedgehubdev.compose_parser.service_parser_volumes(volumes_config)

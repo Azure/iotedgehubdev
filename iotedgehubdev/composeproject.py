@@ -129,16 +129,16 @@ class ComposeProject(object):
                 'external': True
             }
 
-    # TODO: Parse user-defined volumes
     def parse_volumes(self):
-        self.Volumes = {
-            self.edge_info['volume_info']['HUB_VOLUME']: {
-                'external': True
-            },
-            self.edge_info['volume_info']['MODULE_VOLUME']: {
+        volumes_set = set()
+        for service_config in self.Services.values():
+            for vol in service_config['volumes']:
+                if vol['type'] is 'volume':
+                    volumes_set.add(vol['source'])
+        for vol in volumes_set:
+            self.Volumes[vol] = {
                 'external': True
             }
-        }
 
     def dump(self, target):
         def setup_yaml():

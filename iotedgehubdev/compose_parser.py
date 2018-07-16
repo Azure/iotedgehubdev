@@ -127,6 +127,7 @@ def service_parser_hostconfig_ports(create_options_details):
             ports_list.append("{0}:{1}".format(host_port, container_port))
     return ports_list
 
+
 def service_parser_networks(create_options_details):
     networks_dict = {}
     for nw, nw_config in create_options_details.items():
@@ -139,6 +140,41 @@ def service_parser_networks(create_options_details):
             if 'IPv6Address' in nw_config['IPAMConfig']:
                 networks_dict[nw]['ipv6_address'] = nw_config['IPAMConfig']['IPv6Address']
     return networks_dict
+
+
+def service_parser_volumes(create_options_details):
+    volumes_list = []
+    for mount in create_options_details['Mounts']:
+        try:
+            if mount['Target'] not in create_options_details['Volumes']:
+                raise Exception('Missing volume target {0} in create option Volumes.'.format(mount['Target']))
+            volumes_list.append({
+                'target': mount['Target'],
+                'type': mount['Type']
+            })
+            if mount['Type'] is not 'tmpfs':
+                volumes_list[-1]['source'] = mount['Source']
+            if 'ReadOnly' in mount:
+                volumes_list[-1]['read_only'] = mount['ReadOnly']
+
+            if mount['Type'] is 'volume' and 'VolumeOptions' in mount:
+                if 'NoCopy' in mount['VolumeOptions']:
+                    volumes_list[-1]['volume'] = {
+                        'nocopy': mount['VolumeOptions']['NoCopy']
+                    }
+            if mount['Type'] is 'bind' and 'BindOptions' in mount:
+                if 'Propagation' in mount['BindOptions']:
+                    volumes_list[-1]['bind'] = {
+                        'propagation': mount['BindOptions']['Propagation']
+                    }
+            if mount['Type'] is 'tmpfs' and 'TmpfsOptions' in mount:
+                if 'SizeBytes' in mount['TmpfsOptions']:
+                    volumes_list[-1]['tmpfs'] = {
+                        'size': mount['TmpfsOptions']['SizeBytes']
+                    }
+        except KeyError as e:
+            raise KeyError('Missing key {0} in create option HostConfig Mounts.'.format(e))
+    return volumes_list
 
 
 def time_ns_ms(ns):
@@ -197,8 +233,14 @@ COMPOSE_KEY_CREATE_OPTION_MAPPING = {
     'isolation': {'API_Info': {'Isolation': "$['HostConfig']['Isolation']"}, 'parser_func': service_parser_naive},
 
     # Volumes
-    # 'volumes:':{'API_Info':{''},'parser_func':service_parser_naive},
+    'volumes:': {
+        'API_Info': {'Volumes': "$['Volumes']", 'Mounts': "$['HostConfig']['Mounts']"},
+        'parser_func': service_parser_volumes
+    },
 
     # NetworkingConfig
-    'networks': {'API_Info': {'NetworkingConfig': "$['NetworkingConfig']['EndpointsConfig']"}, 'parser_func': service_parser_networks},
+    'networks': {
+        'API_Info': {'NetworkingConfig': "$['NetworkingConfig']['EndpointsConfig']"},
+        'parser_func': service_parser_networks
+    }
 }

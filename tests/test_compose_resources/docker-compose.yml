@@ -17,7 +17,7 @@ services:
     labels:
       iotedgehubdev: ''
     networks:
-      azure-iot-edge:
+      azure-iot-edge-dev:
         aliases:
         - gatewayhost
     ports:
@@ -38,7 +38,7 @@ services:
     labels:
       iotedgehubdev: ''
     networks:
-      azure-iot-edge: null
+      azure-iot-edge-dev: null
     restart: always
     volumes:
     - source: edgemoduledev
@@ -55,16 +55,15 @@ services:
     labels:
       iotedgehubdev: ''
     networks:
-      azure-iot-edge: null
+      azure-iot-edge-dev: null
     restart: always
     volumes:
     - source: edgemoduledev
       target: /mnt/edgemodule
       type: volume
 networks:
-  azure-iot-edge:
+  azure-iot-edge-dev:
     external: true
-    name: azure-iot-edge-dev
 volumes:
   edgehubdev:
     external: true
