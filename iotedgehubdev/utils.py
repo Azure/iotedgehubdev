@@ -33,26 +33,14 @@ class Utils(object):
                 EC.DEVICE_ID_KEY not in data or
                     EC.ACCESS_KEY_KEY not in data):
                 if "SharedAccessKeyName" in data:
-                    raise KeyError('Please make sure you are using a device connection string instead of an IoT Hub connection string.')
+                    raise KeyError('Please make sure you are using a device connection string'
+                                   'instead of an IoT Hub connection string')
                 else:
-                    raise KeyError('Error parsing connection string.')
+                    raise KeyError('Error parsing connection string')
 
             return data
         else:
-            raise KeyError('Error parsing connection string.')
-
-    @staticmethod
-    def check_connection_str(connection_str):
-        connection_str_dict = Utils.parse_connection_str(connection_str)
-        if (EC.HOSTNAME_KEY not in connection_str_dict or
-            EC.DEVICE_ID_KEY not in connection_str_dict or
-                EC.ACCESS_KEY_KEY not in connection_str_dict):
-            if "SharedAccessKeyName" in connection_str_dict:
-                output.error('Please make sure you are using a device connection string instead of an IoT Hub connection string.')
-            else:
-                output.error('Error parsing connection string.')
-            sys.exit(1)
-        return connection_str_dict
+            raise KeyError('Error parsing connection string')
 
     @staticmethod
     def get_hostname():

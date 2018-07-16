@@ -1,3 +1,4 @@
+import pytest
 from iotedgehubdev.constants import EdgeConstants as EC
 from iotedgehubdev.utils import Utils
 
@@ -7,8 +8,9 @@ invalid_connectionstring = "HostName=testhub.azure-devices.net;SharedAccessKey=o
 
 
 def test_empty_connectionstring():
-    connection_str_dict = Utils.parse_connection_str(empty_string)
-    assert not connection_str_dict
+    with pytest.raises(KeyError):
+        connection_str_dict = Utils.parse_connection_str(empty_string)
+        assert not connection_str_dict
 
 
 def test_valid_connectionstring():
@@ -19,7 +21,6 @@ def test_valid_connectionstring():
 
 
 def test_invalid_connectionstring():
-    connection_str_dict = Utils.parse_connection_str(invalid_connectionstring)
-    assert connection_str_dict[EC.HOSTNAME_KEY] == "testhub.azure-devices.net"
-    assert EC.DEVICE_ID_KEY not in connection_str_dict
-    assert connection_str_dict[EC.ACCESS_KEY_KEY] == "othergibberish="
+    with pytest.raises(KeyError):
+        connection_str_dict = Utils.parse_connection_str(empty_string)
+        assert not connection_str_dict

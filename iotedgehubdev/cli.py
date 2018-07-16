@@ -5,7 +5,6 @@ from functools import wraps
 import click
 
 from . import configs, telemetry
-from .constants import EdgeConstants as EC
 from .edgecert import EdgeCert
 from .edgemanager import EdgeManager
 from .hostplatform import HostPlatform
@@ -61,24 +60,28 @@ def main():
               help='GatewayHostName value for the module to connect.')
 @_with_telemetry
 def setup(connection_string, gateway_host):
-    Utils.parse_connection_str(connection_string)
-    gateway_host = gateway_host.lower()
-    fileType = 'edgehub.config'
-    certDir = HostPlatform.get_default_cert_path()
-    Utils.mkdir_if_needed(certDir)
-    edgeCert = EdgeCert(certDir, gateway_host)
-    edgeCert.generate_self_signed_certs()
-    configFile = HostPlatform.get_config_file_path()
-    Utils.delete_file(configFile, fileType)
-    Utils.mkdir_if_needed(HostPlatform.get_config_path())
-    configDict = {
-        CONN_STR: connection_string,
-        CERT_PATH: certDir,
-        GATEWAY_HOST: gateway_host
-    }
-    configJson = json.dumps(configDict, indent=2, sort_keys=True)
-    Utils.create_file(configFile, configJson, fileType)
-    output.info('Setup EdgeHub runtime successfully.')
+    try:
+        Utils.parse_connection_str(connection_string)
+        gateway_host = gateway_host.lower()
+        fileType = 'edgehub.config'
+        certDir = HostPlatform.get_default_cert_path()
+        Utils.mkdir_if_needed(certDir)
+        edgeCert = EdgeCert(certDir, gateway_host)
+        edgeCert.generate_self_signed_certs()
+        configFile = HostPlatform.get_config_file_path()
+        Utils.delete_file(configFile, fileType)
+        Utils.mkdir_if_needed(HostPlatform.get_config_path())
+        configDict = {
+            CONN_STR: connection_string,
+            CERT_PATH: certDir,
+            GATEWAY_HOST: gateway_host
+        }
+        configJson = json.dumps(configDict, indent=2, sort_keys=True)
+        Utils.create_file(configFile, configJson, fileType)
+        output.info('Setup EdgeHub runtime successfully.')
+    except Exception as e:
+        output.error('Error: {0}.'.format(str(e)))
+        sys.exit(1)
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
