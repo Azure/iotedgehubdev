@@ -61,7 +61,7 @@ def main():
               help='GatewayHostName value for the module to connect.')
 @_with_telemetry
 def setup(connection_string, gateway_host):
-    check_connection_str(connection_string)
+    Utils.parse_connection_str(connection_string)
     gateway_host = gateway_host.lower()
     fileType = 'edgehub.config'
     certDir = HostPlatform.get_default_cert_path()
@@ -107,10 +107,10 @@ def modulecred(local, output_file):
         with open(configFile) as f:
             jsonObj = json.load(f)
         if CONN_STR in jsonObj and CERT_PATH in jsonObj and GATEWAY_HOST in jsonObj:
-            connectionString = jsonObj[CONN_STR]
-            certPath = jsonObj[CERT_PATH]
+            connection_str = jsonObj[CONN_STR]
+            cert_path = jsonObj[CERT_PATH]
             gatewayhost = jsonObj[GATEWAY_HOST]
-            edgeManager = EdgeManager(connectionString, gatewayhost, certPath)
+            edgeManager = EdgeManager(connection_str, gatewayhost, cert_path)
             credential = edgeManager.outputModuleCred('target', local, output_file)
             output.info(credential[0])
             output.info(credential[1])
@@ -156,13 +156,7 @@ def start(inputs, port, deployment, verbose):
                 connection_str = jsonObj[CONN_STR]
                 cert_path = jsonObj[CERT_PATH]
                 gatewayhost = jsonObj[GATEWAY_HOST]
-
-                connection_str_dict = Utils.parse_connection_str(connection_str)
-                hostname = connection_str_dict[EC.HOSTNAME_KEY]
-                device_id = connection_str_dict[EC.DEVICE_ID_KEY]
-                access_key = connection_str_dict[EC.ACCESS_KEY_KEY]
-
-                edgeManager = EdgeManager(hostname, device_id, access_key, gatewayhost, cert_path)
+                edgeManager = EdgeManager(connection_str, gatewayhost, cert_path)
             else:
                 output.error('Missing keys in config file. Please run `iotedgehubdev setup` again.')
                 sys.exit(1)
@@ -214,19 +208,6 @@ def stop():
     except Exception as e:
         output.error('Error: {0}.'.format(str(e)))
         sys.exit(1)
-
-
-def check_connection_str(connection_str):
-    connection_str_dict = Utils.parse_connection_str(connection_str)
-    if (EC.HOSTNAME_KEY not in connection_str_dict or
-        EC.DEVICE_ID_KEY not in connection_str_dict or
-            EC.ACCESS_KEY_KEY not in connection_str_dict):
-        if "SharedAccessKeyName" in connection_str_dict:
-            output.error('Please make sure you are using a device connection string instead of an IoT Hub connection string.')
-        else:
-            output.error('Error parsing connection string.')
-        sys.exit(1)
-    return connection_str_dict
 
 
 main.add_command(setup)

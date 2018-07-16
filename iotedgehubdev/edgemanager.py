@@ -35,10 +35,11 @@ class EdgeManager(object):
     HELPER_IMG = 'hello-world:latest'
     COMPOSE_FILE = os.path.join(HostPlatform.get_config_path(), 'docker-compose.yml')
 
-    def __init__(self, hostname, device_id, access_key, gatewayhost, cert_path):
-        self.hostname = hostname
-        self.device_id = device_id
-        self.access_key = access_key
+    def __init__(self, connection_str, gatewayhost, cert_path):
+        connection_str_dict = Utils.parse_connection_str(connection_str)
+        self.hostname = connection_str_dict[EC.HOSTNAME_KEY]
+        self.device_id = connection_str_dict[EC.DEVICE_ID_KEY]
+        self.access_key = connection_str_dict[EC.ACCESS_KEY_KEY]
         self.compose_file = None
         self.gatewayhost = gatewayhost
         self.device_uri = '{0}/devices/{1}'.format(self.hostname, self.device_id)
