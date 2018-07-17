@@ -3,6 +3,7 @@ import unittest
 from iotedgehubdev.edgemanager import EdgeManager
 from iotedgehubdev.composeproject import ComposeProject
 import json
+import pytest
 
 OUTPUT_PATH = 'tests/output'
 
@@ -93,6 +94,25 @@ class ComposeTest(unittest.TestCase):
         }
         assert healthcheck_dict == iotedgehubdev.compose_parser.service_parser_healthcheck(healthcheck_API)
 
+    def test_invalid_service_parser_healthcheck(self):
+        healthcheck_API_keyerr = {
+            "Test": ["CMD", "curl", "-f", "http://localhost"],
+            "Interval": 1000000,
+            "Timeout": 1000000,
+            "Retries": 5,
+        }
+        healthcheck_API_valerr = {
+            "Test": ["CMD", "curl", "-f", "http://localhost"],
+            "Interval": 10,
+            "Timeout": 1000000,
+            "Retries": 5,
+            "StartPeriod": 1000000
+        }
+        with pytest.raises(KeyError):
+            iotedgehubdev.compose_parser.service_parser_healthcheck(healthcheck_API_keyerr)
+        with pytest.raises(ValueError):
+            iotedgehubdev.compose_parser.service_parser_healthcheck(healthcheck_API_valerr)
+
     def test_service_parser_hostconfig_devices(self):
         devices_API = [
             {
@@ -117,6 +137,14 @@ class ComposeTest(unittest.TestCase):
         for restart_policy in restart_API:
             ret.append(iotedgehubdev.compose_parser.service_parser_hostconfig_restart(restart_policy))
         assert ret == restart_list
+
+    def test_invalid_service_parser_hostconfig_restart(self):
+        restart_API_keyerr = {"Name": "on-failure"}
+        restart_API_valerr = {"Name": "never"}
+        with pytest.raises(KeyError):
+            iotedgehubdev.compose_parser.service_parser_hostconfig_restart(restart_API_keyerr)
+        with pytest.raises(ValueError):
+            iotedgehubdev.compose_parser.service_parser_hostconfig_restart(restart_API_valerr)
 
     def test_parser_hostconfig_ulimits(self):
         ulimits_API = [
@@ -244,3 +272,21 @@ class ComposeTest(unittest.TestCase):
         ]
 
         assert volumes_list == iotedgehubdev.compose_parser.service_parser_volumes(volumes_config)
+
+    def test_invalid_service_parser_volumes(self):
+        volumes_config = {
+            'Mounts': [
+                {
+                    "Type": "volume",
+                    "Source": "edgehubdev",
+                    "Target": "/mnt/edgehub",
+                    "VolumeOptions": {
+                        "NoCopy": False
+                    },
+                    "ReadOnly": True
+                }
+            ],
+            'Volumes': {}
+        }
+        with pytest.raises(KeyError):
+            iotedgehubdev.compose_parser.service_parser_volumes(volumes_config)

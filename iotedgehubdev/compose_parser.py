@@ -147,12 +147,12 @@ def service_parser_volumes(create_options_details):
     for mount in create_options_details['Mounts']:
         try:
             if mount['Target'] not in create_options_details['Volumes']:
-                raise Exception('Missing volume target {0} in create option Volumes.'.format(mount['Target']))
+                raise KeyError('Missing volume target {0} in create option Volumes.'.format(mount['Target']))
             volumes_list.append({
                 'target': mount['Target'],
                 'type': mount['Type']
             })
-            if mount['Type'] is not 'tmpfs':
+            if mount['Type'] is 'volume' or mount['Type'] is 'bind':
                 volumes_list[-1]['source'] = mount['Source']
             if 'ReadOnly' in mount:
                 volumes_list[-1]['read_only'] = mount['ReadOnly']
