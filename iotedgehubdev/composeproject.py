@@ -29,7 +29,7 @@ class ComposeProject(object):
 
     def parse_services(self):
         modules = {
-            self.edge_info['hub_name']: 
+            self.edge_info['hub_name']:
             self.deployment_config['moduleContent']['$edgeAgent']['properties.desired']['systemModules']['edgeHub']
         }
         modules.update(self.deployment_config['moduleContent']['$edgeAgent']['properties.desired']['modules'])
