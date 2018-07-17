@@ -187,7 +187,6 @@ def time_ns_ms(ns):
 The mapping relationship between docker compose key and create option API key
 'docker compose key': {'API_Info': {'API key':'API jsonpath'}, 'parser_func': parser_func},
 '''
-# TODO: The rest parser function will be added in the future.
 COMPOSE_KEY_CREATE_OPTION_MAPPING = {
     'hostname': {'API_Info': {'Hostname': "$['Hostname']"}, 'parser_func': service_parser_naive},
     'domainname': {'API_Info': {'Domainname': "$['Domainname']"}, 'parser_func': service_parser_naive},

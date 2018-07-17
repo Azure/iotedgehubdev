@@ -13,7 +13,6 @@ COMPOSE_VERSION = 3.6
 
 
 class ComposeProject(object):
-    edge_hub = 'edgeHub'
 
     def __init__(self, deployment_config):
         self.deployment_config = deployment_config
@@ -24,14 +23,17 @@ class ComposeProject(object):
         self.edge_info = {}
 
     def compose(self):
-        self.config_egde_hub()
         self.parse_services()
         self.parse_networks()
         self.parse_volumes()
 
     def parse_services(self):
-        custom_modules = self.deployment_config['moduleContent']['$edgeAgent']['properties.desired']['modules']
-        for service_name, config in custom_modules.items():
+        modules = {
+            self.edge_info['hub_name']:
+            self.deployment_config['moduleContent']['$edgeAgent']['properties.desired']['systemModules']['edgeHub']
+        }
+        modules.update(self.deployment_config['moduleContent']['$edgeAgent']['properties.desired']['modules'])
+        for service_name, config in modules.items():
             self.Services[service_name] = {}
             create_option_str = config['settings']['createOptions']
             if create_option_str:
@@ -40,21 +42,6 @@ class ComposeProject(object):
                 self.Services[service_name].update(create_option_parser.parse_create_option())
             self.Services[service_name]['image'] = config['settings']['image']
             self.Services[service_name]['container_name'] = service_name
-
-            if 'volumes' not in self.Services[service_name]:
-                self.Services[service_name]['volumes'] = []
-            self.Services[service_name]['volumes'].append({
-                'type': 'volume',
-                'source': self.edge_info['volume_info']['MODULE_VOLUME'],
-                'target': self.edge_info['volume_info']['MODULE_MOUNT']
-            })
-
-            if 'environment' not in self.Services[service_name]:
-                self.Services[service_name]['environment'] = []
-            for module_env in self.edge_info['env_info']['module_env']:
-                self.Services[service_name]['environment'].append(module_env)
-            self.Services[service_name]['environment'].append(
-                'EdgeHubConnectionString=' + self.edge_info['ConnStr_info'][service_name])
 
             if 'networks' not in self.Services[service_name]:
                 self.Services[service_name]['networks'] = {}
@@ -65,8 +52,6 @@ class ComposeProject(object):
             else:
                 self.Services[service_name]['labels'][self.edge_info['labels']] = ""
 
-            self.Services[service_name]['depends_on'] = [ComposeProject.edge_hub]
-
             try:
                 self.Services[service_name]['restart'] = {
                     'never': 'no',
@@ -76,41 +61,58 @@ class ComposeProject(object):
             except KeyError as e:
                 raise KeyError('Unsupported restart policy {0} in solution mode.'.format(e))
 
+            if service_name is self.edge_info['hub_name']:
+                self.config_egde_hub(service_name)
+            else:
+                self.config_modules(service_name)
+
     def set_edge_info(self, info):
         self.edge_info = info
 
-    def config_egde_hub(self):
-        edgeHub_config = self.deployment_config['moduleContent']['$edgeAgent']['properties.desired']['systemModules']['edgeHub']
-        self.Services[ComposeProject.edge_hub] = {
-            'image': edgeHub_config['settings']['image'],
-            'environment': self.edge_info['env_info']['hub_env'],
-            'volumes': [{
-                'type': 'volume',
-                'source': self.edge_info['volume_info']['HUB_VOLUME'],
-                'target': self.edge_info['volume_info']['HUB_MOUNT']
-            }],
-            'networks': {
-                self.edge_info['network_info']['NW_NAME']: {
-                    'aliases': [self.edge_info['network_info']['ALIASES']]
-                }
-            },
-            'container_name': self.edge_info['hub_name']
+    def config_modules(self, service_name):
+        config = self.Services[service_name]
+        if 'volumes' not in config:
+            config['volumes'] = []
+        config['volumes'].append({
+            'type': 'volume',
+            'source': self.edge_info['volume_info']['MODULE_VOLUME'],
+            'target': self.edge_info['volume_info']['MODULE_MOUNT']
+        })
+
+        if 'environment' not in config:
+            config['environment'] = []
+        for module_env in self.edge_info['env_info']['module_env']:
+            config['environment'].append(module_env)
+        config['environment'].append(
+            'EdgeHubConnectionString=' + self.edge_info['ConnStr_info'][service_name]
+        )
+
+        if 'depends_on' not in config:
+            config['depends_on'] = []
+        config['depends_on'].append(self.edge_info['hub_name'])
+
+    def config_egde_hub(self, service_name):
+        config = self.Services[service_name]
+        if 'volumes' not in config:
+            config['volumes'] = []
+        config['volumes'].append({
+            'type': 'volume',
+            'source': self.edge_info['volume_info']['HUB_VOLUME'],
+            'target': self.edge_info['volume_info']['HUB_MOUNT']
+        })
+
+        config['networks'][self.edge_info['network_info']['NW_NAME']] = {
+            'aliases': [self.edge_info['network_info']['ALIASES']]
         }
 
+        if 'environment' not in config:
+            config['environment'] = []
         routes_env = self.parse_routes()
         for e in routes_env:
-            self.Services[ComposeProject.edge_hub]['environment'].append(e)
-
-        self.Services[ComposeProject.edge_hub]['environment'].append(
+            config['environment'].append(e)
+        config['environment'].append(
             'IotHubConnectionString=' + self.edge_info['ConnStr_info']['$edgeHub'])
-
-        self.Services[ComposeProject.edge_hub]['labels'] = {self.edge_info['labels']: ""}
-
-        create_option_str = edgeHub_config['settings']['createOptions']
-        if create_option_str:
-            create_option = json.loads(create_option_str)
-            create_option_parser = CreateOptionParser(create_option)
-            self.Services[ComposeProject.edge_hub].update(create_option_parser.parse_create_option())
+        config['environment'].extend(self.edge_info['env_info']['hub_env'])
 
     def parse_routes(self):
         routes = self.deployment_config['moduleContent']['$edgeHub']['properties.desired']['routes']
