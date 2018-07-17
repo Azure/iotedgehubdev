@@ -1,9 +1,9 @@
 """
-My Tool does one thing, and one thing well.
+Azure IoT EdgeHub Dev Tool
 """
 from setuptools import find_packages, setup
 
-VERSION = '0.1.0-rc2'
+VERSION = '0.1.0rc5'
 # If we have source, validate that our version numbers match
 # This should prevent uploading releases with mismatched versions.
 try:
@@ -21,6 +21,9 @@ else:
     if m.group(1) != VERSION:
         print('Expected __version__ = "{}"; found "{}"'.format(VERSION, m.group(1)))
         sys.exit(1)
+
+with open('README.md', 'rb') as f:
+    readme = f.read().decode('utf-8')
 
 dependencies = [
     'click',
@@ -40,8 +43,9 @@ setup(
     license='BSD',
     author='iotedgehubdev',
     author_email='vsciet@microsoft.com',
-    description='My Tool does one thing, and one thing well.',
-    long_description=__doc__,
+    description='Azure IoT EdgeHub Dev Tool',
+    long_description=readme,
+    long_description_content_type='text/markdown',
     packages=find_packages(exclude=['tests']),
     include_package_data=True,
     zip_safe=False,
