@@ -23,11 +23,6 @@ class ComposeProject(object):
         self.edge_info = {}
 
     def compose(self):
-        self.parse_services()
-        self.parse_networks()
-        self.parse_volumes()
-
-    def parse_services(self):
         modules = {
             self.edge_info['hub_name']:
             self.deployment_config['moduleContent']['$edgeAgent']['properties.desired']['systemModules']['edgeHub']
@@ -65,6 +60,17 @@ class ComposeProject(object):
                 self.config_egde_hub(service_name)
             else:
                 self.config_modules(service_name)
+
+            for nw in self.Services[service_name]['networks']:
+                self.Networks[nw] = {
+                    'external': True
+                }
+
+            for vol in self.Services[service_name]['volumes']:
+                if vol['type'] is 'volume':
+                    self.Volumes[vol['source']] = {
+                        'external': True
+                    }
 
     def set_edge_info(self, info):
         self.edge_info = info
@@ -120,27 +126,6 @@ class ComposeProject(object):
         for name, path in routes.items():
             routes_env.append(('routes__' + name + '=' + path))
         return routes_env
-
-    def parse_networks(self):
-        nw_set = set()
-        for service_config in self.Services.values():
-            for nw in service_config['networks']:
-                nw_set.add(nw)
-        for nw in nw_set:
-            self.Networks[nw] = {
-                'external': True
-            }
-
-    def parse_volumes(self):
-        volumes_set = set()
-        for service_config in self.Services.values():
-            for vol in service_config['volumes']:
-                if vol['type'] is 'volume':
-                    volumes_set.add(vol['source'])
-        for vol in volumes_set:
-            self.Volumes[vol] = {
-                'external': True
-            }
 
     def dump(self, target):
         def setup_yaml():
