@@ -34,10 +34,11 @@ class Utils(object):
                 EC.DEVICE_ID_KEY not in data or
                     EC.ACCESS_KEY_KEY not in data):
                 if "SharedAccessKeyName" in data:
-                    raise KeyError('Please make sure you are using a device connection string'
+                    raise KeyError('Please make sure you are using a device connection string '
                                    'instead of an IoT Hub connection string')
                 else:
-                    raise KeyError('Error parsing connection string')
+                    raise KeyError('Error parsing connection string. '
+                                   'Please make sure you wrap the connection string with double quotes when supplying it via CLI')
 
             return data
         else:
