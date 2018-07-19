@@ -279,7 +279,6 @@ class ComposeTest(unittest.TestCase):
                 {
                     "Type": "volume",
                     "Source": "edgehubdev",
-                    "Target": "/mnt/edgehub",
                     "VolumeOptions": {
                         "NoCopy": False
                     },

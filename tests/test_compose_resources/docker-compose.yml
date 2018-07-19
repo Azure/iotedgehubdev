@@ -67,6 +67,6 @@ networks:
     external: true
 volumes:
   edgehubdev:
-    external: true
+    name: edgehubdev
   edgemoduledev:
-    external: true
+    name: edgemoduledev
