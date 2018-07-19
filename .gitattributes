@@ -1,0 +1,2 @@
+# setuptools has trouble hanlding crlf if we load README.md content as long description
+README.md text eol=lf
