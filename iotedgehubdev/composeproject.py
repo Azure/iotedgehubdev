@@ -69,7 +69,7 @@ class ComposeProject(object):
             for vol in self.Services[service_name]['volumes']:
                 if vol['type'] == 'volume':
                     self.Volumes[vol['source']] = {
-                        'name': True
+                        'name': vol['source']
                     }
 
     def set_edge_info(self, info):
