@@ -8,24 +8,27 @@ class CreateOptionParser(object):
     def parse_create_option(self):
         ret = {}
         for compose_key in COMPOSE_KEY_CREATE_OPTION_MAPPING:
-            create_option_value = self.get_create_option_value(compose_key)
-            if create_option_value:
+            create_option_value, notnull = self.get_create_option_value(compose_key)
+            if notnull:
                 parser_func = COMPOSE_KEY_CREATE_OPTION_MAPPING[compose_key]['parser_func']
                 ret[compose_key] = parser_func(create_option_value)
         return ret
 
     def get_create_option_value(self, compose_key):
         create_option_value_dict = {}
+        notnull = False
         for API_key, API_jsonpath in COMPOSE_KEY_CREATE_OPTION_MAPPING[compose_key]['API_Info'].items():
             jsonpath_expr = parse(API_jsonpath)
             value_list = jsonpath_expr.find(self.create_option)
+            create_option_value_dict[API_key] = {}
             if value_list:
                 create_option_value_dict[API_key] = value_list[0].value
+                notnull = True
         # If there is only one API key mapping to the compose key,
         # we don't need a dict to specify the create option and just return the value
         if len(create_option_value_dict) == 1:
             create_option_value_dict = list(create_option_value_dict.values())[0]
-        return create_option_value_dict
+        return create_option_value_dict, notnull
 
 
 def service_parser_naive(create_options_details):
@@ -146,28 +149,26 @@ def service_parser_volumes(create_options_details):
     volumes_list = []
     for mount in create_options_details['Mounts']:
         try:
-            if mount['Target'] not in create_options_details['Volumes']:
-                raise KeyError('Missing volume target {0} in create option Volumes.'.format(mount['Target']))
             volumes_list.append({
                 'target': mount['Target'],
                 'type': mount['Type']
             })
-            if mount['Type'] is 'volume' or mount['Type'] is 'bind':
+            if mount['Type'] == 'volume' or mount['Type'] == 'bind':
                 volumes_list[-1]['source'] = mount['Source']
             if 'ReadOnly' in mount:
                 volumes_list[-1]['read_only'] = mount['ReadOnly']
 
-            if mount['Type'] is 'volume' and 'VolumeOptions' in mount:
+            if mount['Type'] == 'volume' and 'VolumeOptions' in mount:
                 if 'NoCopy' in mount['VolumeOptions']:
                     volumes_list[-1]['volume'] = {
                         'nocopy': mount['VolumeOptions']['NoCopy']
                     }
-            if mount['Type'] is 'bind' and 'BindOptions' in mount:
+            if mount['Type'] == 'bind' and 'BindOptions' in mount:
                 if 'Propagation' in mount['BindOptions']:
                     volumes_list[-1]['bind'] = {
                         'propagation': mount['BindOptions']['Propagation']
                     }
-            if mount['Type'] is 'tmpfs' and 'TmpfsOptions' in mount:
+            if mount['Type'] == 'tmpfs' and 'TmpfsOptions' in mount:
                 if 'SizeBytes' in mount['TmpfsOptions']:
                     volumes_list[-1]['tmpfs'] = {
                         'size': mount['TmpfsOptions']['SizeBytes']
@@ -178,7 +179,7 @@ def service_parser_volumes(create_options_details):
 
 
 def time_ns_ms(ns):
-    if ns is not 0 and ns < 1000000:
+    if ns != 0 and ns < 1000000:
         raise ValueError('The time should be 0 or at least 1000000 (1 ms)')
     return str(int(ns / 1000000)) + 'ms'
 
@@ -232,7 +233,7 @@ COMPOSE_KEY_CREATE_OPTION_MAPPING = {
     'isolation': {'API_Info': {'Isolation': "$['HostConfig']['Isolation']"}, 'parser_func': service_parser_naive},
 
     # Volumes
-    'volumes:': {
+    'volumes': {
         'API_Info': {'Volumes': "$['Volumes']", 'Mounts': "$['HostConfig']['Mounts']"},
         'parser_func': service_parser_volumes
     },

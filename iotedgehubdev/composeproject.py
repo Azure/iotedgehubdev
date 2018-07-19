@@ -56,8 +56,8 @@ class ComposeProject(object):
             except KeyError as e:
                 raise KeyError('Unsupported restart policy {0} in solution mode.'.format(e))
 
-            if service_name is self.edge_info['hub_name']:
-                self.config_egde_hub(service_name)
+            if service_name == self.edge_info['hub_name']:
+                self.config_edge_hub(service_name)
             else:
                 self.config_modules(service_name)
 
@@ -67,9 +67,9 @@ class ComposeProject(object):
                 }
 
             for vol in self.Services[service_name]['volumes']:
-                if vol['type'] is 'volume':
+                if vol['type'] == 'volume':
                     self.Volumes[vol['source']] = {
-                        'external': True
+                        'name': True
                     }
 
     def set_edge_info(self, info):
@@ -97,7 +97,7 @@ class ComposeProject(object):
             config['depends_on'] = []
         config['depends_on'].append(self.edge_info['hub_name'])
 
-    def config_egde_hub(self, service_name):
+    def config_edge_hub(self, service_name):
         config = self.Services[service_name]
         if 'volumes' not in config:
             config['volumes'] = []
