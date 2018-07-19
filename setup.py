@@ -2,8 +2,9 @@
 Azure IoT EdgeHub Dev Tool
 """
 from setuptools import find_packages, setup
+import io
 
-VERSION = '0.1.0'
+VERSION = '0.1.1'
 # If we have source, validate that our version numbers match
 # This should prevent uploading releases with mismatched versions.
 try:
@@ -22,8 +23,8 @@ else:
         print('Expected __version__ = "{}"; found "{}"'.format(VERSION, m.group(1)))
         sys.exit(1)
 
-with open('README.md', 'rb') as f:
-    readme = f.read().decode('utf-8')
+with io.open('README.md', 'r', encoding='utf-8') as f:
+    readme = f.read()
 
 dependencies = [
     'click',
