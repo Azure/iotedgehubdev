@@ -8,6 +8,7 @@ class HostPlatform(object):
     _edgehub_config = 'edgehub.json'
     _setting_ini = 'setting.ini'
     _certs = 'certs'
+    _data = 'data'
     _windows_config_path = os.getenv('PROGRAMDATA', '%%PROGRAMDATA%%')
 
     _platforms = {
@@ -100,4 +101,14 @@ class HostPlatform(object):
         host = host.lower()
         if host in HostPlatform._platforms:
             return os.path.join(HostPlatform._platforms[host]['default_edge_data_dir'], HostPlatform._certs)
+        return None
+
+    @staticmethod
+    def get_share_data_path():
+        host = platform.system()
+        if host is None:
+            raise EdgeInvalidArgument('host cannot be None')
+        host = host.lower()
+        if host in HostPlatform._platforms:
+            return os.path.join(HostPlatform._platforms[host]['default_edge_data_dir'], HostPlatform._data)
         return None
