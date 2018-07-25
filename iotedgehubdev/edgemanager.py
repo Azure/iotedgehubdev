@@ -33,7 +33,7 @@ class EdgeManager(object):
     HUB_SSLCRT_ENV = 'SSL_CERTIFICATE_NAME=edge-hub-server.cert.pfx'
     CERT_HELPER = 'cert_helper'
     HELPER_IMG = 'hello-world:latest'
-    COMPOSE_FILE = os.path.join(HostPlatform.get_config_path(), 'docker-compose.yml')
+    COMPOSE_FILE = os.path.join(HostPlatform.get_share_data_path(), 'docker-compose.yml')
 
     def __init__(self, connection_str, gatewayhost, cert_path):
         connection_str_dict = Utils.parse_device_connection_str(connection_str)

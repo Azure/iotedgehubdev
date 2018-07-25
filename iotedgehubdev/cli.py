@@ -1,10 +1,12 @@
 import json
+import os
 import sys
 from functools import wraps
 
 import click
 
 from . import configs, telemetry
+from . import decorators
 from .edgecert import EdgeCert
 from .edgemanager import EdgeManager
 from .hostplatform import HostPlatform
@@ -19,12 +21,23 @@ CERT_PATH = 'certPath'
 GATEWAY_HOST = 'gatewayhost'
 
 
+@decorators.suppress_all_exceptions()
+def _parse_params(*args, **kwargs):
+    params = []
+    for key, value in kwargs.items():
+        is_none = '='
+        if value is not None:
+            is_none = '!='
+        params.append('{0}{1}None'.format(key, is_none))
+    return params
+
+
 def _with_telemetry(func):
     @wraps(func)
     def _wrapper(*args, **kwargs):
         configs.check_firsttime()
-        telemetry.start(func.__name__)
-        value = None
+        params = _parse_params(args, kwargs)
+        telemetry.start(func.__name__, params)
         try:
             value = func(*args, **kwargs)
             telemetry.success()
@@ -33,6 +46,7 @@ def _with_telemetry(func):
         except Exception as e:
             output.error('Error: {0}'.format(str(e)))
             telemetry.fail(str(e), 'Command failed')
+            telemetry.flush()
 
     return _wrapper
 
@@ -78,6 +92,11 @@ def setup(connection_string, gateway_host):
         }
         configJson = json.dumps(configDict, indent=2, sort_keys=True)
         Utils.create_file(configFile, configJson, fileType)
+
+        dataDir = HostPlatform.get_share_data_path()
+        Utils.mkdir_if_needed(dataDir)
+        os.chmod(dataDir, 0o777)
+        Utils.create_file(EdgeManager.COMPOSE_FILE, '', 'docker-compose.yml', 0o777)
         output.info('Setup EdgeHub runtime successfully.')
     except Exception as e:
         output.error('Error: {0}.'.format(str(e)))

@@ -95,9 +95,9 @@ class Utils(object):
             raise EdgeFileAccessError(msg, file_path)
 
     @staticmethod
-    def create_file(file_path, data, file_type_diagnostic):
+    def create_file(file_path, data, file_type_diagnostic, mode=0o644):
         try:
-            fd = os.open(file_path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+            fd = os.open(file_path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, mode)
             with os.fdopen(fd, 'w') as output_file:
                 output_file.write(data)
         except OSError as ex:
