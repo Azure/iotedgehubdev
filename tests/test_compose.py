@@ -69,12 +69,12 @@ class ComposeTest(unittest.TestCase):
             "22/tcp": {}
         }
         expose_list = ["22/tcp"]
-        assert expose_list == iotedgehubdev.compose_parser.service_parser_expose(expose_API)
+        assert expose_list == iotedgehubdev.compose_parser.service_parser_expose({'ExposedPorts': expose_API})
 
     def test_service_parser_command(self):
         cmd_list = ["bundle", "exec", "thin", "-p", "3000"]
         cmd_str = "bundle exec thin -p 3000"
-        assert cmd_str == iotedgehubdev.compose_parser.service_parser_command(cmd_list)
+        assert cmd_str == iotedgehubdev.compose_parser.service_parser_command({'Cmd': cmd_list})
 
     def test_service_parser_healthcheck(self):
         healthcheck_API = {
@@ -92,7 +92,7 @@ class ComposeTest(unittest.TestCase):
             "retries": 5,
             "start_period": '1ms'
         }
-        assert healthcheck_dict == iotedgehubdev.compose_parser.service_parser_healthcheck(healthcheck_API)
+        assert healthcheck_dict == iotedgehubdev.compose_parser.service_parser_healthcheck({'Healthcheck': healthcheck_API})
 
     def test_invalid_service_parser_healthcheck(self):
         healthcheck_API_keyerr = {
@@ -109,9 +109,9 @@ class ComposeTest(unittest.TestCase):
             "StartPeriod": 1000000
         }
         with pytest.raises(KeyError):
-            iotedgehubdev.compose_parser.service_parser_healthcheck(healthcheck_API_keyerr)
+            iotedgehubdev.compose_parser.service_parser_healthcheck({'Healthcheck': healthcheck_API_keyerr})
         with pytest.raises(ValueError):
-            iotedgehubdev.compose_parser.service_parser_healthcheck(healthcheck_API_valerr)
+            iotedgehubdev.compose_parser.service_parser_healthcheck({'Healthcheck': healthcheck_API_valerr})
 
     def test_service_parser_hostconfig_devices(self):
         devices_API = [
@@ -122,7 +122,7 @@ class ComposeTest(unittest.TestCase):
             }
         ]
         devices_list = ["/dev/random:/dev/mapped-random:rwm"]
-        assert devices_list == iotedgehubdev.compose_parser.service_parser_hostconfig_devices(devices_API)
+        assert devices_list == iotedgehubdev.compose_parser.service_parser_hostconfig_devices({'Devices': devices_API})
 
     def test_service_parser_hostconfig_restart(self):
         restart_API = [
@@ -135,16 +135,16 @@ class ComposeTest(unittest.TestCase):
         restart_list = ["no", "always", "unless-stopped", "on-failure:5"]
         ret = []
         for restart_policy in restart_API:
-            ret.append(iotedgehubdev.compose_parser.service_parser_hostconfig_restart(restart_policy))
+            ret.append(iotedgehubdev.compose_parser.service_parser_hostconfig_restart({'RestartPolicy': restart_policy}))
         assert ret == restart_list
 
     def test_invalid_service_parser_hostconfig_restart(self):
         restart_API_keyerr = {"Name": "on-failure"}
         restart_API_valerr = {"Name": "never"}
         with pytest.raises(KeyError):
-            iotedgehubdev.compose_parser.service_parser_hostconfig_restart(restart_API_keyerr)
+            iotedgehubdev.compose_parser.service_parser_hostconfig_restart({'RestartPolicy': restart_API_keyerr})
         with pytest.raises(ValueError):
-            iotedgehubdev.compose_parser.service_parser_hostconfig_restart(restart_API_valerr)
+            iotedgehubdev.compose_parser.service_parser_hostconfig_restart({'RestartPolicy': restart_API_valerr})
 
     def test_parser_hostconfig_ulimits(self):
         ulimits_API = [
@@ -154,7 +154,7 @@ class ComposeTest(unittest.TestCase):
         ulimits_dict = {
             "nofile": {"soft": 1024, "hard": 2048}
         }
-        assert ulimits_dict == iotedgehubdev.compose_parser.service_parser_hostconfig_ulimits(ulimits_API)
+        assert ulimits_dict == iotedgehubdev.compose_parser.service_parser_hostconfig_ulimits({'Ulimits': ulimits_API})
 
     def test_service_parser_hostconfig_logging(self):
         logconfig_API = {
@@ -172,7 +172,7 @@ class ComposeTest(unittest.TestCase):
                 'max-file': '10'
             }
         }
-        assert logging_dict == iotedgehubdev.compose_parser.service_parser_hostconfig_logging(logconfig_API)
+        assert logging_dict == iotedgehubdev.compose_parser.service_parser_hostconfig_logging({'LogConfig': logconfig_API})
 
     def test_service_parser_hostconfig_ports(self):
         portsbinding = {
@@ -184,7 +184,7 @@ class ComposeTest(unittest.TestCase):
             ]
         }
         ports_list = ["127.0.0.1:11022:22/tcp"]
-        assert ports_list == iotedgehubdev.compose_parser.service_parser_hostconfig_ports(portsbinding)
+        assert ports_list == iotedgehubdev.compose_parser.service_parser_hostconfig_ports({'PortBindings': portsbinding})
 
     def test_service_parser_networks(self):
         networkconfig = {
@@ -209,7 +209,7 @@ class ComposeTest(unittest.TestCase):
                 'ipv6_address': '2001:db8:abcd::3033'
             }
         }
-        assert network_dict == iotedgehubdev.compose_parser.service_parser_networks(networkconfig)
+        assert network_dict == iotedgehubdev.compose_parser.service_parser_networks({'NetworkingConfig': networkconfig})
 
     def test_service_parser_volumes(self):
         volumes_config = {

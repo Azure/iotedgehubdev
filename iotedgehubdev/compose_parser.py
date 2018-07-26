@@ -8,51 +8,46 @@ class CreateOptionParser(object):
     def parse_create_option(self):
         ret = {}
         for compose_key in COMPOSE_KEY_CREATE_OPTION_MAPPING:
-            create_option_value, notnull = self.get_create_option_value(compose_key)
-            if notnull:
+            create_option_value = self.get_create_option_value(compose_key)
+            if create_option_value:
                 parser_func = COMPOSE_KEY_CREATE_OPTION_MAPPING[compose_key]['parser_func']
                 ret[compose_key] = parser_func(create_option_value)
         return ret
 
     def get_create_option_value(self, compose_key):
         create_option_value_dict = {}
-        notnull = False
         for API_key, API_jsonpath in COMPOSE_KEY_CREATE_OPTION_MAPPING[compose_key]['API_Info'].items():
             jsonpath_expr = parse(API_jsonpath)
             value_list = jsonpath_expr.find(self.create_option)
-            create_option_value_dict[API_key] = {}
             if value_list:
                 create_option_value_dict[API_key] = value_list[0].value
-                notnull = True
-        # If there is only one API key mapping to the compose key,
-        # we don't need a dict to specify the create option and just return the value
-        if len(create_option_value_dict) == 1:
-            create_option_value_dict = list(create_option_value_dict.values())[0]
-        return create_option_value_dict, notnull
+        return create_option_value_dict
 
 
 def service_parser_naive(create_options_details):
-    return create_options_details
+    return list(create_options_details.values())[0]
 
 
 def service_parser_expose(create_options_details):
-    return list(create_options_details.keys())
+    return list(create_options_details['ExposedPorts'].keys())
 
 
 def service_parser_command(create_options_details):
-    if not isinstance(create_options_details, list):
-        return create_options_details
-    return ' '.join(create_options_details).strip()
+    cmd = create_options_details['Cmd']
+    if not isinstance(cmd, list):
+        return cmd
+    return ' '.join(cmd).strip()
 
 
 def service_parser_healthcheck(create_options_details):
+    healthcheck_config = create_options_details['Healthcheck']
     try:
         return {
-            'test': create_options_details['Test'],
-            'interval': time_ns_ms(create_options_details['Interval']),
-            'timeout': time_ns_ms(create_options_details['Timeout']),
-            'retries': create_options_details['Retries'],
-            'start_period': time_ns_ms(create_options_details['StartPeriod'])
+            'test': healthcheck_config['Test'],
+            'interval': time_ns_ms(healthcheck_config['Interval']),
+            'timeout': time_ns_ms(healthcheck_config['Timeout']),
+            'retries': healthcheck_config['Retries'],
+            'start_period': time_ns_ms(healthcheck_config['StartPeriod'])
         }
     except KeyError as err:
         raise KeyError('Missing key : {0} in Healthcheck'.format(err))
@@ -60,14 +55,14 @@ def service_parser_healthcheck(create_options_details):
 
 def service_parser_stop_timeout(create_options_details):
     try:
-        return str(int(create_options_details)) + 's'
+        return str(int(create_options_details['StopTimeout'])) + 's'
     except TypeError:
         raise TypeError('StopTimeout should be an integer.')
 
 
 def service_parser_hostconfig_devices(create_options_details):
     devices_list = []
-    for device in create_options_details:
+    for device in create_options_details['Devices']:
         try:
             devices_list.append("{0}:{1}:{2}".format(device['PathOnHost'],
                                                      device['PathInContainer'], device['CgroupPermissions']))
@@ -77,16 +72,17 @@ def service_parser_hostconfig_devices(create_options_details):
 
 
 def service_parser_hostconfig_restart(create_options_details):
+    restart_config = create_options_details['RestartPolicy']
     ret = ""
-    if create_options_details['Name'] == "":
+    if restart_config['Name'] == "":
         ret = "no"
-    elif create_options_details['Name'] == "on-failure":
+    elif restart_config['Name'] == "on-failure":
         try:
-            ret = "on-failure:{0}".format(create_options_details['MaximumRetryCount'])
+            ret = "on-failure:{0}".format(restart_config['MaximumRetryCount'])
         except KeyError as err:
             raise KeyError('Missing key : {0} in HostConfig.RestartPolicy.'.format(err))
-    elif create_options_details['Name'] == "always" or create_options_details['Name'] == "unless-stopped":
-        ret = create_options_details['Name']
+    elif restart_config['Name'] == "always" or restart_config['Name'] == "unless-stopped":
+        ret = restart_config['Name']
     else:
         raise ValueError("RestartPolicy Name should be one of '', 'always', 'unless-stopped', 'on-failure'")
     return ret
@@ -94,7 +90,7 @@ def service_parser_hostconfig_restart(create_options_details):
 
 def service_parser_hostconfig_ulimits(create_options_details):
     ulimits_dict = {}
-    for ulimit in create_options_details:
+    for ulimit in create_options_details['Ulimits']:
         try:
             ulimits_dict[ulimit['Name']] = {
                 'soft': ulimit['Soft'],
@@ -108,8 +104,8 @@ def service_parser_hostconfig_ulimits(create_options_details):
 def service_parser_hostconfig_logging(create_options_details):
     try:
         logging_dict = {
-            'driver': create_options_details['Type'],
-            'options': create_options_details['Config']
+            'driver': create_options_details['LogConfig']['Type'],
+            'options': create_options_details['LogConfig']['Config']
         }
     except KeyError as err:
         raise KeyError('Missing key : {0} in HostConfig.LogConfig'.format(err))
@@ -118,7 +114,7 @@ def service_parser_hostconfig_logging(create_options_details):
 
 def service_parser_hostconfig_ports(create_options_details):
     ports_list = []
-    for container_port, host_ports in create_options_details.items():
+    for container_port, host_ports in create_options_details['PortBindings'].items():
         for host_port_info in host_ports:
             host_port = ""
             if 'HostIp' in host_port_info and 'HostPort' in host_port_info:
@@ -133,7 +129,7 @@ def service_parser_hostconfig_ports(create_options_details):
 
 def service_parser_networks(create_options_details):
     networks_dict = {}
-    for nw, nw_config in create_options_details.items():
+    for nw, nw_config in create_options_details['NetworkingConfig'].items():
         networks_dict[nw] = {}
         if 'Aliases' in nw_config:
             networks_dict[nw]['aliases'] = nw_config['Aliases']
@@ -149,32 +145,33 @@ def service_parser_volumes(create_options_details):
     volumes_list = []
     for mount in create_options_details['Mounts']:
         try:
-            volumes_list.append({
+            volume_info = {
                 'target': mount['Target'],
                 'type': mount['Type']
-            })
+            }
             if mount['Type'] == 'volume' or mount['Type'] == 'bind':
-                volumes_list[-1]['source'] = mount['Source']
+                volume_info['source'] = mount['Source']
             if 'ReadOnly' in mount:
-                volumes_list[-1]['read_only'] = mount['ReadOnly']
+                volume_info['read_only'] = mount['ReadOnly']
 
             if mount['Type'] == 'volume' and 'VolumeOptions' in mount:
                 if 'NoCopy' in mount['VolumeOptions']:
-                    volumes_list[-1]['volume'] = {
+                    volume_info['volume'] = {
                         'nocopy': mount['VolumeOptions']['NoCopy']
                     }
             if mount['Type'] == 'bind' and 'BindOptions' in mount:
                 if 'Propagation' in mount['BindOptions']:
-                    volumes_list[-1]['bind'] = {
+                    volume_info['bind'] = {
                         'propagation': mount['BindOptions']['Propagation']
                     }
             if mount['Type'] == 'tmpfs' and 'TmpfsOptions' in mount:
                 if 'SizeBytes' in mount['TmpfsOptions']:
-                    volumes_list[-1]['tmpfs'] = {
+                    volume_info['tmpfs'] = {
                         'size': mount['TmpfsOptions']['SizeBytes']
                     }
         except KeyError as e:
             raise KeyError('Missing key {0} in create option HostConfig Mounts.'.format(e))
+        volumes_list.append(volume_info)
     return volumes_list
 
 
@@ -234,7 +231,7 @@ COMPOSE_KEY_CREATE_OPTION_MAPPING = {
 
     # Volumes
     'volumes': {
-        'API_Info': {'Volumes': "$['Volumes']", 'Mounts': "$['HostConfig']['Mounts']"},
+        'API_Info': {'Mounts': "$['HostConfig']['Mounts']"},
         'parser_func': service_parser_volumes
     },
 
