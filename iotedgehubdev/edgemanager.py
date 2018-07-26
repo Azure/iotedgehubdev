@@ -52,7 +52,7 @@ class EdgeManager(object):
             edgedockerclient = EdgeDockerClient()
 
         compose_err = None
-        single_err = None
+        label_err = None
         try:
             if os.path.exists(EdgeManager.COMPOSE_FILE):
                 cmd = "docker-compose -f {0} down".format(EdgeManager.COMPOSE_FILE)
@@ -63,12 +63,12 @@ class EdgeManager(object):
         try:
             edgedockerclient.stop_remove_by_label(EdgeManager.LABEL)
         except Exception as e:
-            single_err = e
+            label_err = e
 
-        if compose_err or single_err:
+        if compose_err or label_err:
             raise Exception('{0}{1}'.format(
                 '' if compose_err is None else str(compose_err),
-                '' if single_err is None else str(single_err)))
+                '' if label_err is None else str(label_err)))
 
     def start_singlemodule(self, inputs, port):
         edgedockerclient = EdgeDockerClient()
