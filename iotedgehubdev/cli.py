@@ -47,6 +47,7 @@ def _with_telemetry(func):
             output.error('Error: {0}'.format(str(e)))
             telemetry.fail(str(e), 'Command failed')
             telemetry.flush()
+            sys.exit(1)
 
     return _wrapper
 
@@ -95,12 +96,14 @@ def setup(connection_string, gateway_host):
 
         dataDir = HostPlatform.get_share_data_path()
         Utils.mkdir_if_needed(dataDir)
-        os.chmod(dataDir, 0o777)
-        Utils.create_file(EdgeManager.COMPOSE_FILE, '', 'docker-compose.yml', 0o777)
+        os.chmod(dataDir, 0o755)
+
+        with open(EdgeManager.COMPOSE_FILE, 'w') as f:
+            f.write('version: \'3.6\'')
+        os.chmod(EdgeManager.COMPOSE_FILE, 0o777)
         output.info('Setup EdgeHub runtime successfully.')
     except Exception as e:
-        output.error('Error: {0}.'.format(str(e)))
-        sys.exit(1)
+        raise e
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
@@ -140,8 +143,7 @@ def modulecred(local, output_file):
             output.error('Missing keys in config file. Please run `iotedgehubdev setup` again.')
             sys.exit(1)
     except Exception as e:
-        output.error('Error: {0}.'.format(str(e)))
-        sys.exit(1)
+        raise e
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
@@ -183,8 +185,7 @@ def start(inputs, port, deployment, verbose):
                 output.error('Missing keys in config file. Please run `iotedgehubdev setup` again.')
                 sys.exit(1)
     except Exception as e:
-        output.error('Error: {0}.'.format(str(e)))
-        sys.exit(1)
+        raise e
 
     if inputs is None and deployment is not None:
         try:
@@ -194,8 +195,7 @@ def start(inputs, port, deployment, verbose):
             if not verbose:
                 output.info('EdgeHub runtime has been started in solution mode.')
         except Exception as e:
-            output.error('Error: {0}.'.format(str(e)))
-            sys.exit(1)
+            raise e
     else:
         if deployment is not None:
             output.info('Deployment manifest is ignored when inputs are present.')
@@ -228,8 +228,7 @@ def stop():
         EdgeManager.stop()
         output.info('EdgeHub runtime has been stopped successfully.')
     except Exception as e:
-        output.error('Error: {0}.'.format(str(e)))
-        sys.exit(1)
+        raise e
 
 
 main.add_command(setup)
