@@ -123,8 +123,10 @@ class ComposeProject(object):
     def parse_routes(self):
         routes = self.deployment_config['moduleContent']['$edgeHub']['properties.desired']['routes']
         routes_env = []
-        for name, path in routes.items():
-            routes_env.append(('routes__' + name + '=' + path))
+        route_id = 1
+        for path in routes.values():
+            routes_env.append('routes__r{0}={1}'.format(route_id, path))
+            route_id = route_id + 1
         return routes_env
 
     def dump(self, target):

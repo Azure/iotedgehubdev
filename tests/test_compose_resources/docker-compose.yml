@@ -3,10 +3,9 @@ services:
   edgeHubDev:
     container_name: edgeHubDev
     environment:
-    - routes__sensorToSampleModule=FROM /messages/modules/tempSensor/outputs/temperatureOutput
-      INTO BrokeredEndpoint("/modules/SampleModule/inputs/input1")
-    - routes__SampleModuleToIoTHub=FROM /messages/modules/SampleModule/outputs/output1
-      INTO $$upstream
+    - routes__r1=FROM /messages/modules/tempSensor/outputs/temperatureOutput INTO
+      BrokeredEndpoint("/modules/SampleModule/inputs/input1")
+    - routes__r2=FROM /messages/modules/SampleModule/outputs/output1 INTO $$upstream
     - IotHubConnectionString=HostName=HostName;DeviceId=DeviceId;ModuleId=$$edgeHub;SharedAccessKey=SharedAccessKey
     - EdgeModuleHubServerCAChainCertificateFile=/mnt/edgehub/edge-chain-ca.cert.pem
     - EdgeModuleHubServerCertificateFile=/mnt/edgehub/edge-hub-server.cert.pfx
