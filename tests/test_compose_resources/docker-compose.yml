@@ -1,28 +1,29 @@
 version: '3.6'
 services:
-  edgeHub:
+  edgeHubDev:
     container_name: edgeHubDev
     environment:
-    - EdgeModuleHubServerCAChainCertificateFile=/mnt/edgehub/edge-chain-ca.cert.pem
-    - EdgeModuleHubServerCertificateFile=/mnt/edgehub/edge-hub-server.cert.pfx
-    - configSource=local
-    - SSL_CERTIFICATE_PATH=/mnt/edgehub/
-    - SSL_CERTIFICATE_NAME=edge-hub-server.cert.pfx
     - routes__sensorToSampleModule=FROM /messages/modules/tempSensor/outputs/temperatureOutput
       INTO BrokeredEndpoint("/modules/SampleModule/inputs/input1")
     - routes__SampleModuleToIoTHub=FROM /messages/modules/SampleModule/outputs/output1
       INTO $$upstream
     - IotHubConnectionString=HostName=HostName;DeviceId=DeviceId;ModuleId=$$edgeHub;SharedAccessKey=SharedAccessKey
+    - EdgeModuleHubServerCAChainCertificateFile=/mnt/edgehub/edge-chain-ca.cert.pem
+    - EdgeModuleHubServerCertificateFile=/mnt/edgehub/edge-hub-server.cert.pfx
+    - configSource=local
+    - SSL_CERTIFICATE_PATH=/mnt/edgehub/
+    - SSL_CERTIFICATE_NAME=edge-hub-server.cert.pfx
     image: mcr.microsoft.com/azureiotedge-hub:1.0
     labels:
       iotedgehubdev: ''
     networks:
-      azure-iot-edge:
+      azure-iot-edge-dev:
         aliases:
         - gatewayhost
     ports:
     - 8883:8883/tcp
     - 443:443/tcp
+    restart: always
     volumes:
     - source: edgehubdev
       target: /mnt/edgehub
@@ -30,7 +31,7 @@ services:
   tempSensor:
     container_name: tempSensor
     depends_on:
-    - edgeHub
+    - edgeHubDev
     environment:
     - EdgeModuleCACertificateFile=/mnt/edgemodule/edge-device-ca.cert.pem
     - EdgeHubConnectionString=HostName=HostName;DeviceId=DeviceId;ModuleId=tempSensor;SharedAccessKey=SharedAccessKey
@@ -38,7 +39,7 @@ services:
     labels:
       iotedgehubdev: ''
     networks:
-      azure-iot-edge: null
+      azure-iot-edge-dev: null
     restart: always
     volumes:
     - source: edgemoduledev
@@ -47,7 +48,7 @@ services:
   SampleModule:
     container_name: SampleModule
     depends_on:
-    - edgeHub
+    - edgeHubDev
     environment:
     - EdgeModuleCACertificateFile=/mnt/edgemodule/edge-device-ca.cert.pem
     - EdgeHubConnectionString=HostName=HostName;DeviceId=DeviceId;ModuleId=SampleModule;SharedAccessKey=SharedAccessKey
@@ -55,18 +56,17 @@ services:
     labels:
       iotedgehubdev: ''
     networks:
-      azure-iot-edge: null
+      azure-iot-edge-dev: null
     restart: always
     volumes:
     - source: edgemoduledev
       target: /mnt/edgemodule
       type: volume
 networks:
-  azure-iot-edge:
+  azure-iot-edge-dev:
     external: true
-    name: azure-iot-edge-dev
 volumes:
   edgehubdev:
-    external: true
+    name: edgehubdev
   edgemoduledev:
-    external: true
+    name: edgemoduledev

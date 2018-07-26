@@ -3,6 +3,7 @@ import unittest
 from iotedgehubdev.edgemanager import EdgeManager
 from iotedgehubdev.composeproject import ComposeProject
 import json
+import pytest
 
 OUTPUT_PATH = 'tests/output'
 
@@ -68,12 +69,12 @@ class ComposeTest(unittest.TestCase):
             "22/tcp": {}
         }
         expose_list = ["22/tcp"]
-        assert expose_list == iotedgehubdev.compose_parser.service_parser_expose(expose_API)
+        assert expose_list == iotedgehubdev.compose_parser.service_parser_expose({'ExposedPorts': expose_API})
 
     def test_service_parser_command(self):
         cmd_list = ["bundle", "exec", "thin", "-p", "3000"]
         cmd_str = "bundle exec thin -p 3000"
-        assert cmd_str == iotedgehubdev.compose_parser.service_parser_command(cmd_list)
+        assert cmd_str == iotedgehubdev.compose_parser.service_parser_command({'Cmd': cmd_list})
 
     def test_service_parser_healthcheck(self):
         healthcheck_API = {
@@ -91,7 +92,26 @@ class ComposeTest(unittest.TestCase):
             "retries": 5,
             "start_period": '1ms'
         }
-        assert healthcheck_dict == iotedgehubdev.compose_parser.service_parser_healthcheck(healthcheck_API)
+        assert healthcheck_dict == iotedgehubdev.compose_parser.service_parser_healthcheck({'Healthcheck': healthcheck_API})
+
+    def test_invalid_service_parser_healthcheck(self):
+        healthcheck_API_keyerr = {
+            "Test": ["CMD", "curl", "-f", "http://localhost"],
+            "Interval": 1000000,
+            "Timeout": 1000000,
+            "Retries": 5,
+        }
+        healthcheck_API_valerr = {
+            "Test": ["CMD", "curl", "-f", "http://localhost"],
+            "Interval": 10,
+            "Timeout": 1000000,
+            "Retries": 5,
+            "StartPeriod": 1000000
+        }
+        with pytest.raises(KeyError):
+            iotedgehubdev.compose_parser.service_parser_healthcheck({'Healthcheck': healthcheck_API_keyerr})
+        with pytest.raises(ValueError):
+            iotedgehubdev.compose_parser.service_parser_healthcheck({'Healthcheck': healthcheck_API_valerr})
 
     def test_service_parser_hostconfig_devices(self):
         devices_API = [
@@ -102,7 +122,7 @@ class ComposeTest(unittest.TestCase):
             }
         ]
         devices_list = ["/dev/random:/dev/mapped-random:rwm"]
-        assert devices_list == iotedgehubdev.compose_parser.service_parser_hostconfig_devices(devices_API)
+        assert devices_list == iotedgehubdev.compose_parser.service_parser_hostconfig_devices({'Devices': devices_API})
 
     def test_service_parser_hostconfig_restart(self):
         restart_API = [
@@ -115,8 +135,16 @@ class ComposeTest(unittest.TestCase):
         restart_list = ["no", "always", "unless-stopped", "on-failure:5"]
         ret = []
         for restart_policy in restart_API:
-            ret.append(iotedgehubdev.compose_parser.service_parser_hostconfig_restart(restart_policy))
+            ret.append(iotedgehubdev.compose_parser.service_parser_hostconfig_restart({'RestartPolicy': restart_policy}))
         assert ret == restart_list
+
+    def test_invalid_service_parser_hostconfig_restart(self):
+        restart_API_keyerr = {"Name": "on-failure"}
+        restart_API_valerr = {"Name": "never"}
+        with pytest.raises(KeyError):
+            iotedgehubdev.compose_parser.service_parser_hostconfig_restart({'RestartPolicy': restart_API_keyerr})
+        with pytest.raises(ValueError):
+            iotedgehubdev.compose_parser.service_parser_hostconfig_restart({'RestartPolicy': restart_API_valerr})
 
     def test_parser_hostconfig_ulimits(self):
         ulimits_API = [
@@ -126,7 +154,7 @@ class ComposeTest(unittest.TestCase):
         ulimits_dict = {
             "nofile": {"soft": 1024, "hard": 2048}
         }
-        assert ulimits_dict == iotedgehubdev.compose_parser.service_parser_hostconfig_ulimits(ulimits_API)
+        assert ulimits_dict == iotedgehubdev.compose_parser.service_parser_hostconfig_ulimits({'Ulimits': ulimits_API})
 
     def test_service_parser_hostconfig_logging(self):
         logconfig_API = {
@@ -144,7 +172,7 @@ class ComposeTest(unittest.TestCase):
                 'max-file': '10'
             }
         }
-        assert logging_dict == iotedgehubdev.compose_parser.service_parser_hostconfig_logging(logconfig_API)
+        assert logging_dict == iotedgehubdev.compose_parser.service_parser_hostconfig_logging({'LogConfig': logconfig_API})
 
     def test_service_parser_hostconfig_ports(self):
         portsbinding = {
@@ -156,4 +184,108 @@ class ComposeTest(unittest.TestCase):
             ]
         }
         ports_list = ["127.0.0.1:11022:22/tcp"]
-        assert ports_list == iotedgehubdev.compose_parser.service_parser_hostconfig_ports(portsbinding)
+        assert ports_list == iotedgehubdev.compose_parser.service_parser_hostconfig_ports({'PortBindings': portsbinding})
+
+    def test_service_parser_networks(self):
+        networkconfig = {
+            "isolated_nw": {
+                "IPAMConfig": {
+                    "IPv4Address": "172.20.30.33",
+                    "IPv6Address": "2001:db8:abcd::3033",
+                },
+                "Aliases": [
+                    "server_x",
+                    "server_y"
+                ]
+            }
+        }
+        network_dict = {
+            'isolated_nw': {
+                'aliases': [
+                    'server_x',
+                    'server_y'
+                ],
+                'ipv4_address': '172.20.30.33',
+                'ipv6_address': '2001:db8:abcd::3033'
+            }
+        }
+        assert network_dict == iotedgehubdev.compose_parser.service_parser_networks({'NetworkingConfig': networkconfig})
+
+    def test_service_parser_volumes(self):
+        volumes_config = {
+            'Mounts': [
+                {
+                    "Type": "volume",
+                    "Source": "edgehubdev",
+                    "Target": "/mnt/edgehub",
+                    "VolumeOptions": {
+                        "NoCopy": False
+                    },
+                    "ReadOnly": True
+                },
+                {
+                    "Type": "bind",
+                    "Source": "/mnt/edgehubdev",
+                    "Target": "/mnt/edgehub",
+                    "BindOptions": {
+                        "Propagation": "shared"
+                    }
+                },
+                {
+                    "Type": "tmpfs",
+                    "Target": "/mnt/edgehub",
+                    "TmpfsOptions": {
+                        "SizeBytes": 65536
+                    }
+                }
+            ],
+            'Volumes': {
+                "/mnt/edgehub": {}
+            }
+        }
+
+        volumes_list = [
+            {
+                'target': '/mnt/edgehub',
+                'type': 'volume',
+                'source': 'edgehubdev',
+                'read_only': True,
+                'volume': {
+                    'nocopy': False
+                }
+            },
+            {
+                'target': '/mnt/edgehub',
+                'type': 'bind',
+                'source': '/mnt/edgehubdev',
+                'bind': {
+                    'propagation': "shared"
+                }
+            },
+            {
+                'target': '/mnt/edgehub',
+                'type': 'tmpfs',
+                'tmpfs': {
+                    'size': 65536
+                }
+            }
+        ]
+
+        assert volumes_list == iotedgehubdev.compose_parser.service_parser_volumes(volumes_config)
+
+    def test_invalid_service_parser_volumes(self):
+        volumes_config = {
+            'Mounts': [
+                {
+                    "Type": "volume",
+                    "Source": "edgehubdev",
+                    "VolumeOptions": {
+                        "NoCopy": False
+                    },
+                    "ReadOnly": True
+                }
+            ],
+            'Volumes': {}
+        }
+        with pytest.raises(KeyError):
+            iotedgehubdev.compose_parser.service_parser_volumes(volumes_config)
