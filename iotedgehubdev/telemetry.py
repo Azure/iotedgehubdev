@@ -41,7 +41,8 @@ class TelemetrySession(object):
             'OS.Version': platform.version().lower(),
             'Result': self.result,
             'StartTime': str(self.start_time),
-            'EndTime': str(self.end_time)
+            'EndTime': str(self.end_time),
+            'Parameters': ','.join(self.parameters)
         }
 
         if self.result_summary:
@@ -85,9 +86,11 @@ def _user_agrees_to_telemetry(func):
 
 
 @decorators.suppress_all_exceptions()
-def start(cmdname):
+def start(cmdname, params=[]):
     _session.command = cmdname
     _session.start_time = datetime.datetime.utcnow()
+    if params is not None:
+        _session.parameters.extend(params)
 
 
 @decorators.suppress_all_exceptions()

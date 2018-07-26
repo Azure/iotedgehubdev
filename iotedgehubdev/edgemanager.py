@@ -33,7 +33,7 @@ class EdgeManager(object):
     HUB_SSLCRT_ENV = 'SSL_CERTIFICATE_NAME=edge-hub-server.cert.pfx'
     CERT_HELPER = 'cert_helper'
     HELPER_IMG = 'hello-world:latest'
-    COMPOSE_FILE = os.path.join(HostPlatform.get_config_path(), 'docker-compose.yml')
+    COMPOSE_FILE = os.path.join(HostPlatform.get_share_data_path(), 'docker-compose.yml')
 
     def __init__(self, connection_str, gatewayhost, cert_path):
         connection_str_dict = Utils.parse_device_connection_str(connection_str)
@@ -51,10 +51,24 @@ class EdgeManager(object):
         if edgedockerclient is None:
             edgedockerclient = EdgeDockerClient()
 
-        if os.path.exists(EdgeManager.COMPOSE_FILE):
-            cmd = "docker-compose -f {0} down".format(EdgeManager.COMPOSE_FILE)
-            Utils.exe_proc(cmd.split())
-        edgedockerclient.stop_remove_by_label(EdgeManager.LABEL)
+        compose_err = None
+        label_err = None
+        try:
+            if os.path.exists(EdgeManager.COMPOSE_FILE):
+                cmd = "docker-compose -f {0} down".format(EdgeManager.COMPOSE_FILE)
+                Utils.exe_proc(cmd.split())
+        except Exception as e:
+            compose_err = e
+
+        try:
+            edgedockerclient.stop_remove_by_label(EdgeManager.LABEL)
+        except Exception as e:
+            label_err = e
+
+        if compose_err or label_err:
+            raise Exception('{0}{1}'.format(
+                '' if compose_err is None else str(compose_err),
+                '' if label_err is None else str(label_err)))
 
     def start_singlemodule(self, inputs, port):
         edgedockerclient = EdgeDockerClient()

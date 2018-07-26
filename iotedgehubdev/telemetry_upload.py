@@ -34,7 +34,7 @@ class LimitedRetrySender(SynchronousSender):
 @decorators.suppress_all_exceptions()
 def upload(data_to_save):
     try:
-        data_to_save = json.loads(data_to_save.replace("'", '"'))
+        data_to_save = json.loads(data_to_save)
     except Exception:
         pass
 

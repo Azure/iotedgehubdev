@@ -3,7 +3,7 @@ Azure IoT EdgeHub Dev Tool
 """
 from setuptools import find_packages, setup
 
-VERSION = '0.1.0rc5'
+VERSION = '0.1.1'
 # If we have source, validate that our version numbers match
 # This should prevent uploading releases with mismatched versions.
 try:
@@ -40,7 +40,7 @@ setup(
     name='iotedgehubdev',
     version=VERSION,
     url='https://github.com/Azure/iotedgehubdev',
-    license='BSD',
+    license='MIT',
     author='iotedgehubdev',
     author_email='vsciet@microsoft.com',
     description='Azure IoT EdgeHub Dev Tool',
@@ -67,7 +67,7 @@ setup(
         # 'Development Status :: 7 - Inactive',
         'Environment :: Console',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: BSD License',
+        'License :: OSI Approved :: MIT License',
         'Operating System :: POSIX',
         'Operating System :: MacOS',
         'Operating System :: Unix',
