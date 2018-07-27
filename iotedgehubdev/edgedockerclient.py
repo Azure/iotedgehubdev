@@ -20,10 +20,6 @@ class EdgeDockerClient(object):
                 msg = 'Could not connect to Docker daemon. Please make sure Docker is running'
                 raise EdgeDeploymentError(msg, ex)
 
-            # if self.get_os_type() == 'windows':
-            #     msg = 'iotedgehubdev does not support Windows mode yet'
-            #     raise EdgeDeploymentError(msg)
-
     def __enter__(self):
         return self
 
