@@ -63,6 +63,7 @@ class TestEdgeDockerClientSmoke(unittest.TestCase):
             volumes=[volume_path],
             environment=env_dict)
         client.copy_file_to_volume(self.CONTAINER_NAME,
+                                   self.VOLUME_NAME,
                                    'test_file_name.txt',
                                    volume_path,
                                    __file__)

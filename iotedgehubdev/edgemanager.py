@@ -21,15 +21,16 @@ class EdgeManager(object):
     EDGEHUB = 'edgeHubDev'
     INPUT = 'input'
     NW_NAME = 'azure-iot-edge-dev'
+    MOUNT_BASE = 'mnt'
     HUB_VOLUME = 'edgehubdev'
-    HUB_MOUNT = '/mnt/edgehub'
+    HUB_MOUNT = '{0}/edgehub'
     MODULE_VOLUME = 'edgemoduledev'
-    MODULE_MOUNT = '/mnt/edgemodule'
-    HUB_CA_ENV = 'EdgeModuleHubServerCAChainCertificateFile=/mnt/edgehub/edge-chain-ca.cert.pem'
-    HUB_CERT_ENV = 'EdgeModuleHubServerCertificateFile=/mnt/edgehub/edge-hub-server.cert.pfx'
+    MODULE_MOUNT = '{0}/edgemodule'
+    HUB_CA_ENV = 'EdgeModuleHubServerCAChainCertificateFile={0}/edgehub/edge-chain-ca.cert.pem'
+    HUB_CERT_ENV = 'EdgeModuleHubServerCertificateFile={0}/edgehub/edge-hub-server.cert.pfx'
     HUB_SRC_ENV = 'configSource=local'
-    MODULE_CA_ENV = "EdgeModuleCACertificateFile=/mnt/edgemodule/edge-device-ca.cert.pem"
-    HUB_SSLPATH_ENV = 'SSL_CERTIFICATE_PATH=/mnt/edgehub/'
+    MODULE_CA_ENV = "EdgeModuleCACertificateFile={0}/edgemodule/edge-device-ca.cert.pem"
+    HUB_SSLPATH_ENV = 'SSL_CERTIFICATE_PATH={0}/edgehub/'
     HUB_SSLCRT_ENV = 'SSL_CERTIFICATE_NAME=edge-hub-server.cert.pfx'
     CERT_HELPER = 'cert_helper'
     HELPER_IMG = 'hello-world:latest'
@@ -72,19 +73,24 @@ class EdgeManager(object):
 
     def start_singlemodule(self, inputs, port):
         edgedockerclient = EdgeDockerClient()
+        mount_base = self._obtain_mount_path(edgedockerclient)
+        if mount_base is None:
+            raise Exception("OS Type is not supported")
+
         EdgeManager.stop(edgedockerclient)
         self._prepare(edgedockerclient)
 
         edgeHubConnStr = self.getOrAddModule(EdgeManager.EDGEHUB_MODULE, False)
         inputConnStr = self.getOrAddModule(EdgeManager.INPUT, False)
         routes = self._generateRoutesEnvFromInputs(inputs)
-        self._start_edge_hub(edgedockerclient, edgeHubConnStr, routes)
+        self._start_edge_hub(edgedockerclient, edgeHubConnStr, routes, mount_base)
 
+        module_mount = EdgeManager.MODULE_MOUNT.format(mount_base)
         edgedockerclient.pullIfNotExist(EdgeManager.TESTUTILITY_IMG, None, None)
         network_config = edgedockerclient.create_config_for_network(EdgeManager.NW_NAME)
-        inputEnv = [EdgeManager.MODULE_CA_ENV, "EdgeHubConnectionString={0}".format(inputConnStr)]
+        inputEnv = [EdgeManager.MODULE_CA_ENV.format(mount_base), "EdgeHubConnectionString={0}".format(inputConnStr)]
         input_host_config = edgedockerclient.create_host_config(
-            mounts=[docker.types.Mount(EdgeManager.MODULE_MOUNT, EdgeManager.MODULE_VOLUME)],
+            mounts=[docker.types.Mount(module_mount, EdgeManager.MODULE_VOLUME)],
             port_bindings={
                 '3000': port
             },
@@ -96,7 +102,7 @@ class EdgeManager(object):
         inputContainer = edgedockerclient.create_container(
             EdgeManager.TESTUTILITY_IMG,
             name=EdgeManager.INPUT,
-            volumes=[EdgeManager.MODULE_MOUNT],
+            volumes=[module_mount],
             host_config=input_host_config,
             networking_config=network_config,
             environment=inputEnv,
@@ -105,12 +111,12 @@ class EdgeManager(object):
         )
 
         edgedockerclient.copy_file_to_volume(
-            EdgeManager.INPUT, self._device_cert(),
-            EdgeManager.MODULE_MOUNT,
+            EdgeManager.INPUT, EdgeManager.MODULE_VOLUME, self._device_cert(),
+            module_mount,
             self.edge_cert.get_cert_file_path(EC.EDGE_DEVICE_CA))
         edgedockerclient.start(inputContainer.get('Id'))
 
-    def config_solution(self, deployment_config, target):
+    def config_solution(self, deployment_config, target, mount_base):
         module_names = [EdgeManager.EDGEHUB_MODULE]
         custom_modules = deployment_config['moduleContent']['$edgeAgent']['properties.desired']['modules']
         for module_name in custom_modules:
@@ -122,22 +128,22 @@ class EdgeManager(object):
 
         env_info = {
             'hub_env': [
-                EdgeManager.HUB_CA_ENV,
-                EdgeManager.HUB_CERT_ENV,
+                EdgeManager.HUB_CA_ENV.format(mount_base),
+                EdgeManager.HUB_CERT_ENV.format(mount_base),
                 EdgeManager.HUB_SRC_ENV,
-                EdgeManager.HUB_SSLPATH_ENV,
+                EdgeManager.HUB_SSLPATH_ENV.format(mount_base),
                 EdgeManager.HUB_SSLCRT_ENV
             ],
             'module_env': [
-                EdgeManager.MODULE_CA_ENV
+                EdgeManager.MODULE_CA_ENV.format(mount_base)
             ]
         }
 
         volume_info = {
-            'HUB_MOUNT': EdgeManager.HUB_MOUNT,
+            'HUB_MOUNT': EdgeManager.HUB_MOUNT.format(mount_base),
             'HUB_VOLUME': EdgeManager.HUB_VOLUME,
             'MODULE_VOLUME': EdgeManager.MODULE_VOLUME,
-            'MODULE_MOUNT': EdgeManager.MODULE_MOUNT
+            'MODULE_MOUNT': EdgeManager.MODULE_MOUNT.format(mount_base)
         }
 
         network_info = {
@@ -160,11 +166,15 @@ class EdgeManager(object):
 
     def start_solution(self, deployment_config, verbose):
         edgedockerclient = EdgeDockerClient()
+        mount_base = self._obtain_mount_path(edgedockerclient)
+        if not mount_base:
+            raise Exception("OS Type is not supported")
+
         EdgeManager.stop(edgedockerclient)
         self._prepare(edgedockerclient)
-        self._prepare_cert(edgedockerclient)
+        self._prepare_cert(edgedockerclient, mount_base)
 
-        self.config_solution(deployment_config, EdgeManager.COMPOSE_FILE)
+        self.config_solution(deployment_config, EdgeManager.COMPOSE_FILE, mount_base)
 
         if verbose:
             cmd = "docker-compose -f {0} up".format(EdgeManager.COMPOSE_FILE)
@@ -172,15 +182,18 @@ class EdgeManager(object):
             cmd = "docker-compose -f {0} up -d".format(EdgeManager.COMPOSE_FILE)
         Utils.exe_proc(cmd.split())
 
-    def _prepare_cert(self, edgedockerclient):
+    def _prepare_cert(self, edgedockerclient, mount_base):
         status = edgedockerclient.status(EdgeManager.CERT_HELPER)
         if status is not None:
             edgedockerclient.stop(EdgeManager.CERT_HELPER)
             edgedockerclient.remove(EdgeManager.CERT_HELPER)
 
+        hub_mount = EdgeManager.HUB_MOUNT.format(mount_base)
+        module_mount = EdgeManager.MODULE_MOUNT.format(mount_base)
+
         helper_host_config = edgedockerclient.create_host_config(
-            mounts=[docker.types.Mount(EdgeManager.HUB_MOUNT, EdgeManager.HUB_VOLUME),
-                    docker.types.Mount(EdgeManager.MODULE_MOUNT, EdgeManager.MODULE_VOLUME)]
+            mounts=[docker.types.Mount(hub_mount, EdgeManager.HUB_VOLUME),
+                    docker.types.Mount(module_mount, EdgeManager.MODULE_VOLUME)]
         )
 
         edgedockerclient.pull(EdgeManager.HELPER_IMG, None, None)
@@ -188,20 +201,20 @@ class EdgeManager(object):
         edgedockerclient.create_container(
             EdgeManager.HELPER_IMG,
             name=EdgeManager.CERT_HELPER,
-            volumes=[EdgeManager.HUB_MOUNT, EdgeManager.MODULE_MOUNT],
+            volumes=[hub_mount, module_mount],
             host_config=helper_host_config,
             labels=[EdgeManager.LABEL]
         )
 
         edgedockerclient.copy_file_to_volume(
-            EdgeManager.CERT_HELPER, EdgeManager._chain_cert(),
-            EdgeManager.HUB_MOUNT, self.edge_cert.get_cert_file_path(EC.EDGE_CHAIN_CA))
+            EdgeManager.CERT_HELPER, EdgeManager.HUB_VOLUME, EdgeManager._chain_cert(),
+            hub_mount, self.edge_cert.get_cert_file_path(EC.EDGE_CHAIN_CA))
         edgedockerclient.copy_file_to_volume(
-            EdgeManager.CERT_HELPER, EdgeManager._hubserver_pfx(),
-            EdgeManager.HUB_MOUNT, self.edge_cert.get_pfx_file_path(EC.EDGE_HUB_SERVER))
+            EdgeManager.CERT_HELPER, EdgeManager.HUB_VOLUME, EdgeManager._hubserver_pfx(),
+            hub_mount, self.edge_cert.get_pfx_file_path(EC.EDGE_HUB_SERVER))
         edgedockerclient.copy_file_to_volume(
-            EdgeManager.CERT_HELPER, self._device_cert(),
-            EdgeManager.MODULE_MOUNT, self.edge_cert.get_cert_file_path(EC.EDGE_DEVICE_CA))
+            EdgeManager.CERT_HELPER, EdgeManager.MODULE_VOLUME, self._device_cert(),
+            module_mount, self.edge_cert.get_cert_file_path(EC.EDGE_DEVICE_CA))
 
     def start(self, modulesDict, routes):
         return
@@ -296,11 +309,12 @@ class EdgeManager(object):
         edgedockerclient.create_volume(EdgeManager.HUB_VOLUME)
         edgedockerclient.create_volume(EdgeManager.MODULE_VOLUME)
 
-    def _start_edge_hub(self, edgedockerclient, edgeHubConnStr, routes):
+    def _start_edge_hub(self, edgedockerclient, edgeHubConnStr, routes, mount_base):
         edgedockerclient.pullIfNotExist(EdgeManager.EDGEHUB_IMG, None, None)
         network_config = edgedockerclient.create_config_for_network(EdgeManager.NW_NAME, aliases=[self.gatewayhost])
+        hub_mount = EdgeManager.HUB_MOUNT.format(mount_base)
         hub_host_config = edgedockerclient.create_host_config(
-            mounts=[docker.types.Mount(EdgeManager.HUB_MOUNT, EdgeManager.HUB_VOLUME)],
+            mounts=[docker.types.Mount(hub_mount, EdgeManager.HUB_VOLUME)],
             port_bindings={
                 '8883': 8883,
                 '443': 443,
@@ -308,17 +322,17 @@ class EdgeManager(object):
             }
         )
         hubEnv = [
-            EdgeManager.HUB_CA_ENV,
-            EdgeManager.HUB_CERT_ENV,
+            EdgeManager.HUB_CA_ENV.format(mount_base),
+            EdgeManager.HUB_CERT_ENV.format(mount_base),
             EdgeManager.HUB_SRC_ENV,
-            EdgeManager.HUB_SSLPATH_ENV,
+            EdgeManager.HUB_SSLPATH_ENV.format(mount_base),
             EdgeManager.HUB_SSLCRT_ENV,
             'IotHubConnectionString={0}'.format(edgeHubConnStr)]
         hubEnv.extend(routes)
         hubContainer = edgedockerclient.create_container(
             EdgeManager.EDGEHUB_IMG,
             name=EdgeManager.EDGEHUB,
-            volumes=[EdgeManager.HUB_MOUNT],
+            volumes=[hub_mount],
             host_config=hub_host_config,
             networking_config=network_config,
             environment=hubEnv,
@@ -327,12 +341,19 @@ class EdgeManager(object):
         )
 
         edgedockerclient.copy_file_to_volume(
-            EdgeManager.EDGEHUB, EdgeManager._chain_cert(),
-            EdgeManager.HUB_MOUNT, self.edge_cert.get_cert_file_path(EC.EDGE_CHAIN_CA))
+            EdgeManager.EDGEHUB, EdgeManager.HUB_VOLUME, EdgeManager._chain_cert(),
+            hub_mount, self.edge_cert.get_cert_file_path(EC.EDGE_CHAIN_CA))
         edgedockerclient.copy_file_to_volume(
-            EdgeManager.EDGEHUB, EdgeManager._hubserver_pfx(),
-            EdgeManager.HUB_MOUNT, self.edge_cert.get_pfx_file_path(EC.EDGE_HUB_SERVER))
+            EdgeManager.EDGEHUB, EdgeManager.HUB_VOLUME, EdgeManager._hubserver_pfx(),
+            hub_mount, self.edge_cert.get_pfx_file_path(EC.EDGE_HUB_SERVER))
         edgedockerclient.start(hubContainer.get('Id'))
+
+    def _obtain_mount_path(self, edgedockerclient):
+        os_type = edgedockerclient.get_os_type().lower()
+        if os_type == 'linux':
+            return '/{0}'.format(EdgeManager.MOUNT_BASE)
+        elif os_type == 'windows':
+            return 'c:/{0}'.format(EdgeManager.MOUNT_BASE)
 
     @staticmethod
     def _chain_cert():

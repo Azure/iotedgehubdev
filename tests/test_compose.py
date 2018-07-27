@@ -23,24 +23,25 @@ class ComposeTest(unittest.TestCase):
                 ConnStr_info[module_name] = \
                     "HostName=HostName;DeviceId=DeviceId;ModuleId={};SharedAccessKey=SharedAccessKey".format(module_name)
 
+            mount_base = '/mnt'
             env_info = {
                 'hub_env': [
-                    EdgeManager.HUB_CA_ENV,
-                    EdgeManager.HUB_CERT_ENV,
+                    EdgeManager.HUB_CA_ENV.format(mount_base),
+                    EdgeManager.HUB_CERT_ENV.format(mount_base),
                     EdgeManager.HUB_SRC_ENV,
-                    EdgeManager.HUB_SSLPATH_ENV,
+                    EdgeManager.HUB_SSLPATH_ENV.format(mount_base),
                     EdgeManager.HUB_SSLCRT_ENV
                 ],
                 'module_env': [
-                    EdgeManager.MODULE_CA_ENV
+                    EdgeManager.MODULE_CA_ENV.format(mount_base)
                 ]
             }
 
             volume_info = {
-                'HUB_MOUNT': EdgeManager.HUB_MOUNT,
+                'HUB_MOUNT': EdgeManager.HUB_MOUNT.format(mount_base),
                 'HUB_VOLUME': EdgeManager.HUB_VOLUME,
                 'MODULE_VOLUME': EdgeManager.MODULE_VOLUME,
-                'MODULE_MOUNT': EdgeManager.MODULE_MOUNT
+                'MODULE_MOUNT': EdgeManager.MODULE_MOUNT.format(mount_base)
             }
 
             network_info = {
