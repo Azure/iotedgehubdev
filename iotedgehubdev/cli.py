@@ -36,7 +36,7 @@ def _with_telemetry(func):
     @wraps(func)
     def _wrapper(*args, **kwargs):
         configs.check_firsttime()
-        params = _parse_params(args, kwargs)
+        params = _parse_params(*args, **kwargs)
         telemetry.start(func.__name__, params)
         try:
             value = func(*args, **kwargs)
