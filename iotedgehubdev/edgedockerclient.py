@@ -20,9 +20,9 @@ class EdgeDockerClient(object):
                 msg = 'Could not connect to Docker daemon. Please make sure Docker is running'
                 raise EdgeDeploymentError(msg, ex)
 
-            if self.get_os_type() == 'windows':
-                msg = 'iotedgehubdev does not support Windows mode yet'
-                raise EdgeDeploymentError(msg)
+            # if self.get_os_type() == 'windows':
+            #     msg = 'iotedgehubdev does not support Windows mode yet'
+            #     raise EdgeDeploymentError(msg)
 
     def __enter__(self):
         return self
@@ -151,11 +151,12 @@ class EdgeDockerClient(object):
 
     def copy_file_to_volume(self,
                             container_name,
+                            volume_name,
                             volume_dest_file_name,
                             volume_dest_dir_path,
                             host_src_file):
         if self.get_os_type() == 'windows':
-            self._insert_file_in_volume_mount(volume_dest_dir_path, host_src_file, volume_dest_file_name)
+            self._insert_file_in_volume_mount(volume_name, host_src_file, volume_dest_file_name)
         else:
             self._insert_file_in_container(container_name,
                                            volume_dest_file_name,
@@ -219,7 +220,6 @@ class EdgeDockerClient(object):
 
     def _insert_file_in_volume_mount(self, volume_name, host_src_file, volume_dest_file_name):
         try:
-            volume_name = (volume_name.split('/'))[-1]
             volume_info = self._client.api.inspect_volume(volume_name)
             Utils.copy_files(host_src_file.replace('\\\\', '\\'),
                              os.path.join(volume_info['Mountpoint'].replace('\\\\', '\\'), volume_dest_file_name))
