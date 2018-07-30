@@ -23,7 +23,10 @@ class ComposeProject(object):
         self.edge_info = {}
 
     def compose(self):
-        module_content = list(self.deployment_config.keys())[0]
+        if 'moduleContent' in self.deployment_config:
+            module_content = 'moduleContent'
+        if 'modulesContent' in self.deployment_config:
+            module_content = 'modulesContent'
         modules = {
             self.edge_info['hub_name']:
             self.deployment_config[module_content]['$edgeAgent']['properties.desired']['systemModules']['edgeHub']
