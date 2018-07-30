@@ -23,11 +23,12 @@ class ComposeProject(object):
         self.edge_info = {}
 
     def compose(self):
+        module_content = list(self.deployment_config.keys())[0]
         modules = {
             self.edge_info['hub_name']:
-            self.deployment_config['moduleContent']['$edgeAgent']['properties.desired']['systemModules']['edgeHub']
+            self.deployment_config[module_content]['$edgeAgent']['properties.desired']['systemModules']['edgeHub']
         }
-        modules.update(self.deployment_config['moduleContent']['$edgeAgent']['properties.desired']['modules'])
+        modules.update(self.deployment_config[module_content]['$edgeAgent']['properties.desired']['modules'])
         for service_name, config in modules.items():
             self.Services[service_name] = {}
             create_option_str = config['settings']['createOptions']
