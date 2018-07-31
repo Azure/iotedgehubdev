@@ -14,8 +14,8 @@ COMPOSE_VERSION = 3.6
 
 class ComposeProject(object):
 
-    def __init__(self, deployment_config):
-        self.deployment_config = deployment_config
+    def __init__(self, module_content):
+        self.module_content = module_content
         self.yaml_dict = OrderedDict()
         self.Services = OrderedDict()
         self.Networks = {}
@@ -23,15 +23,11 @@ class ComposeProject(object):
         self.edge_info = {}
 
     def compose(self):
-        if 'modulesContent' in self.deployment_config:
-            module_content = 'modulesContent'
-        elif 'moduleContent' in self.deployment_config:
-            module_content = 'moduleContent'
         modules = {
             self.edge_info['hub_name']:
-            self.deployment_config[module_content]['$edgeAgent']['properties.desired']['systemModules']['edgeHub']
+            self.module_content['$edgeAgent']['properties.desired']['systemModules']['edgeHub']
         }
-        modules.update(self.deployment_config[module_content]['$edgeAgent']['properties.desired']['modules'])
+        modules.update(self.module_content['$edgeAgent']['properties.desired']['modules'])
         for service_name, config in modules.items():
             self.Services[service_name] = {}
             create_option_str = config['settings']['createOptions']
@@ -125,7 +121,7 @@ class ComposeProject(object):
         config['environment'].extend(self.edge_info['env_info']['hub_env'])
 
     def parse_routes(self):
-        routes = self.deployment_config['moduleContent']['$edgeHub']['properties.desired']['routes']
+        routes = self.module_content['$edgeHub']['properties.desired']['routes']
         routes_env = []
         route_id = 1
         for path in routes.values():

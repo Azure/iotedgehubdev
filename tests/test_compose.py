@@ -12,9 +12,13 @@ class ComposeTest(unittest.TestCase):
     def test_compose(self):
         with open('tests/test_compose_resources/deployment.json') as json_file:
             deployment_config = json.load(json_file)
+            if 'modulesContent' in deployment_config:
+                module_content = deployment_config['modulesContent']
+            elif 'moduleContent' in deployment_config:
+                module_content = deployment_config['moduleContent']
 
             module_names = [EdgeManager.EDGEHUB_MODULE]
-            custom_modules = deployment_config['moduleContent']['$edgeAgent']['properties.desired']['modules']
+            custom_modules = module_content['$edgeAgent']['properties.desired']['modules']
             for module_name in custom_modules:
                 module_names.append(module_name)
 
@@ -49,7 +53,7 @@ class ComposeTest(unittest.TestCase):
                 'ALIASES': 'gatewayhost'
             }
 
-            compose_project = ComposeProject(deployment_config)
+            compose_project = ComposeProject(module_content)
             compose_project.set_edge_info({
                 'ConnStr_info': ConnStr_info,
                 'env_info': env_info,
