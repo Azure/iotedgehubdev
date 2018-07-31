@@ -13,10 +13,9 @@ class ComposeTest(unittest.TestCase):
         with open('tests/test_compose_resources/deployment.json') as json_file:
             deployment_config = json.load(json_file)
             if 'modulesContent' in deployment_config:
-                module_content_name = 'modulesContent'
+                module_content = deployment_config['modulesContent']
             elif 'moduleContent' in deployment_config:
-                module_content_name = 'moduleContent'
-            module_content = deployment_config[module_content_name]
+                module_content = deployment_config['moduleContent']
 
             module_names = [EdgeManager.EDGEHUB_MODULE]
             custom_modules = module_content['$edgeAgent']['properties.desired']['modules']
