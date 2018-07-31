@@ -118,10 +118,9 @@ class EdgeManager(object):
 
     def config_solution(self, deployment_config, target, mount_base):
         if 'modulesContent' in deployment_config:
-            module_content_name = 'modulesContent'
+            module_content = deployment_config['modulesContent']
         elif 'moduleContent' in deployment_config:
-            module_content_name = 'moduleContent'
-        module_content = deployment_config[module_content_name]
+            module_content = deployment_config['moduleContent']
 
         module_names = [EdgeManager.EDGEHUB_MODULE]
         custom_modules = module_content['$edgeAgent']['properties.desired']['modules']
