@@ -62,7 +62,7 @@ def main():
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
-               help='Setup the EdgeHub runtime. This must be done before starting.')
+               help='Setup the IoT Edge Simulator. This must be done before starting.')
 @click.option('--connection-string',
               '-c',
               required=True,
@@ -101,7 +101,7 @@ def setup(connection_string, gateway_host):
         with open(EdgeManager.COMPOSE_FILE, 'w') as f:
             f.write('version: \'3.6\'')
         os.chmod(EdgeManager.COMPOSE_FILE, 0o777)
-        output.info('Setup EdgeHub runtime successfully.')
+        output.info('Setup IoT Edge Simulator successfully.')
     except Exception as e:
         raise e
 
@@ -147,11 +147,11 @@ def modulecred(local, output_file):
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
-               help="Start the EdgeHub runtime.")
+               help="Start the IoT Edge Simulator.")
 @click.option('--inputs',
               '-i',
               required=False,
-              help='Start EdgeHub runtime in single module mode '
+              help='Start IoT Edge Simulator in single module mode '
                    'using the specified comma-separated inputs of the target module, e.g., `input1,input2`.')
 @click.option('--port',
               '-p',
@@ -162,7 +162,7 @@ def modulecred(local, output_file):
 @click.option('--deployment',
               '-d',
               required=False,
-              help='Start EdgeHub runtime in solution mode using the specified deployment manifest.')
+              help='Start IoT Edge Simulator in solution mode using the specified deployment manifest.')
 @click.option('--verbose',
               '-v',
               required=False,
@@ -193,7 +193,7 @@ def start(inputs, port, deployment, verbose):
                 json_data = json.load(json_file)
             edgeManager.start_solution(json_data, verbose)
             if not verbose:
-                output.info('EdgeHub runtime has been started in solution mode.')
+                output.info('IoT Edge Simulator has been started in solution mode.')
         except Exception as e:
             raise e
     else:
@@ -209,7 +209,7 @@ def start(inputs, port, deployment, verbose):
         data = '--data \'{{"inputName": "{0}","data":"hello world"}}\''.format(input_list[0])
         url = 'http://localhost:{0}/api/v1/messages'.format(port)
         curl_msg = '        curl --header "Content-Type: application/json" --request POST {0} {1}'.format(data, url)
-        output.info('EdgeHub runtime has been started in single module mode.')
+        output.info('IoT Edge Simulator has been started in single module mode.')
         output.info('Please run `iotedgehubdev modulecred` to get credential to connect your module.')
         output.info('And send message through:')
         output.line()
@@ -221,12 +221,12 @@ def start(inputs, port, deployment, verbose):
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
-               help="Stop the EdgeHub runtime.")
+               help="Stop the IoT Edge Simulator.")
 @_with_telemetry
 def stop():
     try:
         EdgeManager.stop()
-        output.info('EdgeHub runtime has been stopped successfully.')
+        output.info('IoT Edge Simulator has been stopped successfully.')
     except Exception as e:
         raise e
 
