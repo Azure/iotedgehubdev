@@ -2,7 +2,6 @@
 ### Added
 * Support networks and volumes in `createOptions`
 * Support Windows container
-* Support new schema of deployment manifest
 
 ### Changed
 * Remove requirement of `sudo` for `iotedgehubdev start` and `iotedgehubdev modulecred` command
