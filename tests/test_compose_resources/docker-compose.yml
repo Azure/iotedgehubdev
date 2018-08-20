@@ -49,6 +49,9 @@ services:
     depends_on:
     - edgeHubDev
     environment:
+    - FOO=rab
+    - BAZ=quux
+    - BAR=rua
     - EdgeModuleCACertificateFile=/mnt/edgemodule/edge-device-ca.cert.pem
     - EdgeHubConnectionString=HostName=HostName;DeviceId=DeviceId;ModuleId=SampleModule;SharedAccessKey=SharedAccessKey
     image: localhost:5000/samplemodule:0.0.1-amd64
