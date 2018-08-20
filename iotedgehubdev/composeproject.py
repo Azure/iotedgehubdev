@@ -130,10 +130,13 @@ class ComposeProject(object):
             if '=' in env:
                 k, v = env.split('=', 1)
             else:
-                k, v = env, None
+                k, v = env, ''
             env_dict[k] = v
         for k, v in env_section.items():
-            env_dict[k] = v['value']
+            if 'value' not in v:
+                env_dict[k] = ''
+            else:
+                env_dict[k] = v['value']
         ret = []
         for k, v in env_dict.items():
             ret.append("{0}={1}".format(k, v))

@@ -51,7 +51,9 @@ services:
     environment:
     - FOO=rab
     - BAZ=quux
+    - test1=
     - BAR=rua
+    - test2=
     - EdgeModuleCACertificateFile=/mnt/edgemodule/edge-device-ca.cert.pem
     - EdgeHubConnectionString=HostName=HostName;DeviceId=DeviceId;ModuleId=SampleModule;SharedAccessKey=SharedAccessKey
     image: localhost:5000/samplemodule:0.0.1-amd64
