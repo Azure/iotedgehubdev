@@ -47,7 +47,16 @@
             "restartPolicy": "always",
             "settings": {
               "image": "localhost:5000/samplemodule:0.0.1-amd64",
-              "createOptions": ""
+              "createOptions": "{\"Env\":[\"FOO=bar\",\"BAZ=quux\",\"test1\"]}"
+            },
+            "env":{
+              "FOO":{
+                "value":"rab"
+              },
+              "BAR":{
+                "value":"rua"
+              },
+              "test2":{}
             }
           }
         }

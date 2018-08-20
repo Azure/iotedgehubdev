@@ -56,6 +56,10 @@ class ComposeProject(object):
             except KeyError as e:
                 raise KeyError('Unsupported restart policy {0} in solution mode.'.format(e))
 
+            if 'env' in config:
+                self.Services[service_name]['environment'] = self.config_env(
+                    self.Services[service_name]['environment'], config['env'])
+
             if service_name == self.edge_info['hub_name']:
                 self.config_edge_hub(service_name)
             else:
@@ -119,6 +123,24 @@ class ComposeProject(object):
         config['environment'].append(
             'IotHubConnectionString=' + self.edge_info['ConnStr_info']['$edgeHub'])
         config['environment'].extend(self.edge_info['env_info']['hub_env'])
+
+    def config_env(self, env_list, env_section):
+        env_dict = {}
+        for env in env_list:
+            if '=' in env:
+                k, v = env.split('=', 1)
+            else:
+                k, v = env, ''
+            env_dict[k] = v
+        for k, v in env_section.items():
+            if 'value' not in v:
+                env_dict[k] = ''
+            else:
+                env_dict[k] = v['value']
+        ret = []
+        for k, v in env_dict.items():
+            ret.append("{0}={1}".format(k, v))
+        return ret
 
     def parse_routes(self):
         routes = self.module_content['$edgeHub']['properties.desired']['routes']
