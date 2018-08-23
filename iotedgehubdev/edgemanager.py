@@ -317,7 +317,7 @@ class EdgeManager(object):
         edgedockerclient.create_volume(EdgeManager.MODULE_VOLUME)
 
     def _start_edge_hub(self, edgedockerclient, edgeHubConnStr, routes, mount_base):
-        edgedockerclient.pullIfNotExist(EdgeManager.EDGEHUB_IMG, None, None)
+        edgedockerclient.pull(EdgeManager.EDGEHUB_IMG, None, None)
         network_config = edgedockerclient.create_config_for_network(EdgeManager.NW_NAME, aliases=[self.gatewayhost])
         hub_mount = EdgeManager.HUB_MOUNT.format(mount_base)
         hub_host_config = edgedockerclient.create_host_config(
