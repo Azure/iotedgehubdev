@@ -181,13 +181,13 @@ class EdgeManager(object):
 
         self.config_solution(deployment_config, EdgeManager.COMPOSE_FILE, mount_base)
 
-        cmd_pull = "docker-compose -f {0} pull {1}".format(EdgeManager.COMPOSE_FILE, EdgeManager.EDGEHUB)
-        Utils.exe_proc(cmd_pull.split())
+        cmd_pull = ['docker-compose', '-f', EdgeManager.COMPOSE_FILE, 'pull', EdgeManager.EDGEHUB]
+        Utils.exe_proc(cmd_pull)
         if verbose:
-            cmd_up = "docker-compose -f {0} up".format(EdgeManager.COMPOSE_FILE)
+            cmd_up = ['docker-compose', '-f', EdgeManager.COMPOSE_FILE, 'up']
         else:
-            cmd_up = "docker-compose -f {0} up -d".format(EdgeManager.COMPOSE_FILE)
-        Utils.exe_proc(cmd_up.split())
+            cmd_up = ['docker-compose', '-f', EdgeManager.COMPOSE_FILE, 'up', '-d']
+        Utils.exe_proc(cmd_up)
 
     def _prepare_cert(self, edgedockerclient, mount_base):
         status = edgedockerclient.status(EdgeManager.CERT_HELPER)
