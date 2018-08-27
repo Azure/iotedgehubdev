@@ -285,7 +285,7 @@ class EdgeManager(object):
         return self._generateModuleConnectionStr(res, islocal)
 
     def _generateModuleConnectionStr(self, response, islocal):
-        jsonObj = json.loads(response.content)
+        jsonObj = response.json()
         moduleId = jsonObj['moduleId']
         deviceId = jsonObj['deviceId']
         sasKey = jsonObj['authentication']['symmetricKey']['primaryKey']
