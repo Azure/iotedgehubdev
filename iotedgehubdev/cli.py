@@ -115,7 +115,8 @@ def setup(connection_string, gateway_host):
               required=False,
               default='target',
               show_default=True,
-              help='Specify the vertical-bar-separated ("|") module names to get credentials for, e.g., "module1|module2". Note: Use double quotes when supplying this input.')
+              help='Specify the vertical-bar-separated ("|") module names to get credentials for, e.g., "module1|module2". '
+                   'Note: Use double quotes when supplying this input.')
 @click.option('--local',
               '-l',
               required=False,
