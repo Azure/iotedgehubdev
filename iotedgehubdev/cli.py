@@ -108,8 +108,14 @@ def setup(connection_string, gateway_host):
 
 @click.command(context_settings=CONTEXT_SETTINGS,
                # short_help hack to prevent Click truncating help text (https://github.com/pallets/click/issues/486)
-               short_help='Get the credentials of target module such as connection string and certificate file path.',
-               help='Get the credentials of target module such as connection string and certificate file path.')
+               short_help='Get the module credentials such as connection string and certificate file path.',
+               help='Get the module credentials such as connection string and certificate file path.')
+@click.option('--modules',
+              '-m',
+              required=False,
+              default='target',
+              show_default=True,
+              help='Specify the vertical-bar-separated ("|") module names to get credentials for, e.g., "module1|module2". Note: Use double quotes when supplying this input.')
 @click.option('--local',
               '-l',
               required=False,
@@ -123,7 +129,7 @@ def setup(connection_string, gateway_host):
               show_default=True,
               help='Specify the output file to save the connection string. If the file exists, the content will be overwritten.')
 @_with_telemetry
-def modulecred(local, output_file):
+def modulecred(modules, local, output_file):
     configFile = HostPlatform.get_config_file_path()
     if Utils.check_if_file_exists(configFile) is not True:
         output.error('Cannot find config file. Please run `iotedgehubdev setup` first.')
@@ -136,7 +142,8 @@ def modulecred(local, output_file):
             cert_path = jsonObj[CERT_PATH]
             gatewayhost = jsonObj[GATEWAY_HOST]
             edgeManager = EdgeManager(connection_str, gatewayhost, cert_path)
-            credential = edgeManager.outputModuleCred('target', local, output_file)
+            modules = [module.strip() for module in modules.strip().split('|')]
+            credential = edgeManager.outputModuleCred(modules, local, output_file)
             output.info(credential[0])
             output.info(credential[1])
         else:

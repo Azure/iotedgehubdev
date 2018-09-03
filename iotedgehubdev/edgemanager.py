@@ -238,8 +238,8 @@ class EdgeManager(object):
             else:
                 raise geterr
 
-    def outputModuleCred(self, name, islocal, output_file):
-        connstrENV = 'EdgeHubConnectionString={0}'.format(self.getOrAddModule(name, islocal))
+    def outputModuleCred(self, names, islocal, output_file):
+        connstrENV = 'EdgeHubConnectionString={0}'.format('|'.join([self.getOrAddModule(name, islocal) for name in names]))
         deviceCAEnv = 'EdgeModuleCACertificateFile={0}'.format(self.edge_cert.get_cert_file_path(EC.EDGE_DEVICE_CA))
         cred = [connstrENV, deviceCAEnv]
 
