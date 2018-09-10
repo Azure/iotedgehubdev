@@ -1,3 +1,7 @@
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT License.
+
+
 import pytest
 from click.testing import CliRunner
 from iotedgehubdev import cli

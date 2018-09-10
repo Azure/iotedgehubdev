@@ -1,3 +1,7 @@
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT License.
+
+
 try:
     # Python 2.x
     import urllib2 as HTTPClient

@@ -1,3 +1,7 @@
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT License.
+
+
 import unittest
 from unittest import mock
 from iotedgehubdev.certutils import EdgeCertUtil
