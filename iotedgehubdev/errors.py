@@ -1,3 +1,7 @@
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT License.
+
+
 class EdgeError(Exception):
     def __init__(self, msg, ex=None):
         if ex:
