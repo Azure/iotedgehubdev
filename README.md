@@ -1,13 +1,13 @@
 # Azure IoT EdgeHub Dev Tool [![Build Status](https://travis-ci.com/Azure/iotedgehubdev.svg?token=KySEv4A21JkyzbCKjpFW&branch=master)](https://travis-ci.com/Azure/iotedgehubdev)
 The Azure IoT EdgeHub Dev Tool provide a local development experience with a simulator for creating, developing, testing, running, and debugging Azure IoT Edge modules and solutions.
-- The bits/code running on simulator and IoT Edge Production are **same**.
+- The bits/code of Edge module running on simulator and IoT Edge Runtime are **same**.
 - The Edge solution could be run with the simulator locally without **pushing image** and **creating IoT Edge deployment**.
-- The credential needed to run edge solution on simulator is IoT Edge Device Connectionstring. And IoT Hub Connectionstring is not needed.
+- The credential needed to run Edge solution on simulator is IoT Edge Device Connectionstring. And IoT Hub Connectionstring is not needed.
 - It helps to debug the module on the host (not in container) with the EdgeHub
 
-The following compares the steps needed to run the solution on the IoT Edge Production and iotedgehubdev tool.
+The following table compares the steps needed to run the solution on the IoT Edge Runtime and iotedgehubdev tool.
 
-  |                     | IoT Edge Production | iotedgehubdev |
+  |                     | IoT Edge Runtime | iotedgehubdev |
   | ------------------- |:----------------------------:|:-------------:|
   | Device Credential Needed | YES | YES |
   | IoT Hub Credential Needed | YES | **NO** |
