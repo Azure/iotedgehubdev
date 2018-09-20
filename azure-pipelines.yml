@@ -1,15 +1,15 @@
 jobs:
-- template: common-pipelines.yml
-  parameters:
-    name: macOS
-    vmImage: xcode9-macos10.13
+  - template: common-pipelines.yml
+    parameters:
+      name: Linux
+      vmImage: ubuntu-1604
 
-- template: common-pipelines.yml
-  parameters:
-    name: Linux
-    vmImage: ubuntu-1604
+  - template: common-pipelines.yml
+    parameters:
+      name: Windows
+      vmImage: vs2017-win2016
 
-- template: common-pipelines.yml
-  parameters:
-    name: Windows
-    vmImage: vs2017-win2016
+  - template: common-pipelines.yml
+    parameters:
+      name: macOS
+      vmImage: xcode9-macos10.13
