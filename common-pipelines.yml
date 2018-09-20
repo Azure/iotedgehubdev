@@ -1,0 +1,21 @@
+jobs:
+  - job: ${{ parameters.name }}
+    pool:
+      vmImage: ${{ parameters.vmImage }}
+
+    steps:
+      - task: UsePythonVersion@0
+        displayName: "Use Python 3.6"
+        inputs:
+          versionSpec: 3.6
+          addToPath: true
+          architecture: "x64"
+
+      - script: |
+          pip install --upgrade pip
+          pip install --upgrade tox-travis
+        displayName: "Install tox travis"
+
+      - script: |
+          tox
+        displayName: "Install IoTEdgeHubDev and run tests with tox travis"
