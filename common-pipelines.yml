@@ -13,6 +13,7 @@ jobs:
 
       - script: |
           pip install --upgrade pip
+          pip install --upgrade tox
         displayName: "Update pip cli"
 
       - script: |
