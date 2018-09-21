@@ -1,3 +1,12 @@
+## 0.3.0 - 2018-09-20
+### Added
+* Support environment variables set in the `env` section of a module
+* Support getting credentials of multiple modules
+
+### Changed
+* Always pull the EdgeHub image before starting
+* Fix "the JSON object must be str, not 'bytes'" when starting on Python 3.5
+
 ## 0.2.0 - 2018-08-03
 ### Added
 * Support networks and volumes in `createOptions`
