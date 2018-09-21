@@ -9,5 +9,6 @@ six
 applicationinsights
 prompt_toolkit
 rope
+tox
 pyyaml
 jsonpath_rw
