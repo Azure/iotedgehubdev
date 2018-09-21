@@ -1,4 +1,4 @@
-## 0.3.0 - 2018-09-20
+## 0.3.0 - 2018-09-21
 ### Added
 * Support environment variables set in the `env` section of a module
 * Support getting credentials of multiple modules
