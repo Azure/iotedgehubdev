@@ -13,9 +13,8 @@ jobs:
 
       - script: |
           pip install --upgrade pip
-          pip install --upgrade tox-travis
-        displayName: "Install tox travis"
+        displayName: "Update pip cli"
 
       - script: |
           tox
-        displayName: "Install IoTEdgeHubDev and run tests with tox travis"
+        displayName: "Install IoTEdgeHubDev and run tests with tox"
