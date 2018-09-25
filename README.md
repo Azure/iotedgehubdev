@@ -1,7 +1,20 @@
-# Azure IoT EdgeHub Dev Tool [![Build Status](https://travis-ci.com/Azure/iotedgehubdev.svg?token=KySEv4A21JkyzbCKjpFW&branch=master)](https://travis-ci.com/Azure/iotedgehubdev)
+# Azure IoT EdgeHub Dev Tool [![Build Status](https://travis-ci.org/Azure/iotedgehubdev.svg?branch=master)](https://travis-ci.org/Azure/iotedgehubdev)
 The Azure IoT EdgeHub Dev Tool provide a local development experience with a simulator for creating, developing, testing, running, and debugging Azure IoT Edge modules and solutions.
-- The Edge solution could be run with the simulator locally without pushing image and creating deployment
+- The bits/code of Edge module running on simulator and IoT Edge Runtime are **same**.
+- The Edge solution could be run with the simulator locally without **pushing image** and **creating IoT Edge deployment**.
+- The credential needed to run Edge solution on simulator is IoT Edge Device Connectionstring. And IoT Hub Connectionstring is not needed.
 - It helps to debug the module on the host (not in container) with the EdgeHub
+
+The following table compares the steps needed to run the solution on the IoT Edge Runtime and iotedgehubdev tool.
+
+  |                     | IoT Edge Runtime | iotedgehubdev |
+  | ------------------- |:----------------------------:|:-------------:|
+  | Device Credential Needed | YES | YES |
+  | IoT Hub Credential Needed | YES | **NO** |
+  | Build Image | YES | YES |
+  | Push Image | YES | **NO** |
+  | Create Deployment | YES | **NO** |
+  | Support native debug scenario| No | **YES** |
 
 ## Installing
 1. Install [Docker CE](https://www.docker.com/community-edition) on Windows, macOS or Linux.
