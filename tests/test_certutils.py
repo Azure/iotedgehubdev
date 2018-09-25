@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-
+import os
 import unittest
 from unittest import mock
 from iotedgehubdev.certutils import EdgeCertUtil
@@ -17,14 +17,16 @@ VALID_SUBJECT_DICT = {
     EC.SUBJECT_COMMON_NAME_KEY: 'Test CommonName'
 }
 
+WORKINGDIRECTORY = os.getcwd()
+
 
 class TestEdgeCertUtilAPICreateRootCACert(unittest.TestCase):
 
     def test_create_root_ca_cert_duplicate_ids_invalid(self):
-            cert_util = EdgeCertUtil()
+        cert_util = EdgeCertUtil()
+        cert_util.create_root_ca_cert('root', subject_dict=VALID_SUBJECT_DICT)
+        with self.assertRaises(EdgeValueError):
             cert_util.create_root_ca_cert('root', subject_dict=VALID_SUBJECT_DICT)
-            with self.assertRaises(EdgeValueError):
-                cert_util.create_root_ca_cert('root', subject_dict=VALID_SUBJECT_DICT)
 
     def test_create_root_ca_cert_validity_days_invalid(self):
         cert_util = EdgeCertUtil()
@@ -41,6 +43,13 @@ class TestEdgeCertUtilAPICreateRootCACert(unittest.TestCase):
             with self.assertRaises(EdgeValueError):
                 cert_util.create_root_ca_cert('root',
                                               subject_dict=VALID_SUBJECT_DICT)
+
+    def test_create_root_ca_cert_without_subject_dict(self):
+        cert_util = EdgeCertUtil()
+        with mock.patch('iotedgehubdev.certutils.EdgeCertUtil.is_valid_certificate_subject',
+                        mock.MagicMock(return_value=False)):
+            with self.assertRaises(EdgeValueError):
+                cert_util.create_root_ca_cert('root')
 
     def test_create_root_ca_cert_passphrase_invalid(self):
         cert_util = EdgeCertUtil()
@@ -106,6 +115,13 @@ class TestEdgeCertUtilAPICreateIntCACert(unittest.TestCase):
         with self.assertRaises(EdgeValueError):
             cert_util.create_intermediate_ca_cert('int', 'root', common_name=bad_common_name)
 
+    def test_create_intermediate_ca_cert_successfully(self):
+        cert_util = EdgeCertUtil()
+        cert_util.create_root_ca_cert('root', subject_dict=VALID_SUBJECT_DICT)
+
+        valid_common_name = 'testcommonname'
+        cert_util.create_intermediate_ca_cert('int', 'root', common_name=valid_common_name)
+
 
 class TestEdgeCertUtilAPICreateServerCert(unittest.TestCase):
     def test_create_server_cert_duplicate_ids_invalid(self):
@@ -151,6 +167,13 @@ class TestEdgeCertUtilAPICreateServerCert(unittest.TestCase):
         with self.assertRaises(EdgeValueError):
             cert_util.create_server_cert('int', 'root', host_name=bad_hostname)
 
+    def test_create_server_cert_successfully(self):
+        cert_util = EdgeCertUtil()
+        cert_util.create_root_ca_cert('root', subject_dict=VALID_SUBJECT_DICT)
+
+        valid_hostname = 'testhostname'
+        cert_util.create_server_cert('int', 'root', hostname=valid_hostname)
+
 
 class TestEdgeCertUtilAPIExportCertArtifacts(unittest.TestCase):
 
@@ -168,3 +191,21 @@ class TestEdgeCertUtilAPIExportCertArtifacts(unittest.TestCase):
         with self.assertRaises(EdgeValueError):
             mock_chk_dir.return_value = False
             cert_util.export_cert_artifacts_to_dir('root', 'some_dir')
+
+    def test_get_cert_artifacts_file_path(self):
+        cert_util = EdgeCertUtil()
+        cert_util.create_root_ca_cert('root', subject_dict=VALID_SUBJECT_DICT)
+        cert_util.export_cert_artifacts_to_dir('root', WORKINGDIRECTORY)
+        assert cert_util.get_cert_file_path('root', WORKINGDIRECTORY)
+
+    def test_get_chain_ca_certs(self):
+        cert_util = EdgeCertUtil()
+        cert_util.create_root_ca_cert('root', subject_dict=VALID_SUBJECT_DICT)
+        cert_util.chain_ca_certs('root', {'root'}, WORKINGDIRECTORY)
+        assert cert_util.get_cert_file_path('root', WORKINGDIRECTORY)
+
+    def test_get_pfx_cert_file_path(self):
+        cert_util = EdgeCertUtil()
+        cert_util.create_root_ca_cert('root', subject_dict=VALID_SUBJECT_DICT)
+        cert_util.export_pfx_cert('root', WORKINGDIRECTORY)
+        assert cert_util.get_cert_file_path('root', WORKINGDIRECTORY)
