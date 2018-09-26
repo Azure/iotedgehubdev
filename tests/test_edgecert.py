@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 import os
+import shutil
 import unittest
 from iotedgehubdev.edgecert import EdgeCert
 
@@ -9,6 +10,12 @@ WORKINGDIRECTORY = os.getcwd()
 
 
 class TestEdgeCertAPICreateSelfSignedCerts(unittest.TestCase):
+
+    def tearDown(self):
+        shutil.rmtree(os.path.join(WORKINGDIRECTORY, 'edge-agent-ca'))
+        shutil.rmtree(os.path.join(WORKINGDIRECTORY, 'edge-chain-ca'))
+        shutil.rmtree(os.path.join(WORKINGDIRECTORY, 'edge-device-ca'))
+        shutil.rmtree(os.path.join(WORKINGDIRECTORY, 'edge-hub-server'))
 
     def test_get_self_signed_certs(self):
         edge_cert = EdgeCert(WORKINGDIRECTORY, 'testhostname')

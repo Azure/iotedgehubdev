@@ -3,6 +3,8 @@
 
 import os
 import unittest
+import pytest
+import shutil
 from unittest import mock
 from iotedgehubdev.certutils import EdgeCertUtil
 from iotedgehubdev.constants import EdgeConstants as EC
@@ -46,10 +48,8 @@ class TestEdgeCertUtilAPICreateRootCACert(unittest.TestCase):
 
     def test_create_root_ca_cert_without_subject_dict(self):
         cert_util = EdgeCertUtil()
-        with mock.patch('iotedgehubdev.certutils.EdgeCertUtil.is_valid_certificate_subject',
-                        mock.MagicMock(return_value=False)):
-            with self.assertRaises(EdgeValueError):
-                cert_util.create_root_ca_cert('root')
+        with self.assertRaises(EdgeValueError):
+            cert_util.create_root_ca_cert('root')
 
     def test_create_root_ca_cert_passphrase_invalid(self):
         cert_util = EdgeCertUtil()
@@ -197,15 +197,19 @@ class TestEdgeCertUtilAPIExportCertArtifacts(unittest.TestCase):
         cert_util.create_root_ca_cert('root', subject_dict=VALID_SUBJECT_DICT)
         cert_util.export_cert_artifacts_to_dir('root', WORKINGDIRECTORY)
         assert cert_util.get_cert_file_path('root', WORKINGDIRECTORY)
+        shutil.rmtree(os.path.join(WORKINGDIRECTORY, 'root'))
 
     def test_get_chain_ca_certs(self):
         cert_util = EdgeCertUtil()
         cert_util.create_root_ca_cert('root', subject_dict=VALID_SUBJECT_DICT)
         cert_util.chain_ca_certs('root', {'root'}, WORKINGDIRECTORY)
         assert cert_util.get_cert_file_path('root', WORKINGDIRECTORY)
+        shutil.rmtree(os.path.join(WORKINGDIRECTORY, 'root'))
 
     def test_get_pfx_cert_file_path(self):
         cert_util = EdgeCertUtil()
         cert_util.create_root_ca_cert('root', subject_dict=VALID_SUBJECT_DICT)
+        cert_util.chain_ca_certs('root', {'root'}, WORKINGDIRECTORY)
         cert_util.export_pfx_cert('root', WORKINGDIRECTORY)
         assert cert_util.get_cert_file_path('root', WORKINGDIRECTORY)
+        shutil.rmtree(os.path.join(WORKINGDIRECTORY, 'root'))
