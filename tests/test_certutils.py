@@ -3,7 +3,6 @@
 
 import os
 import unittest
-import pytest
 import shutil
 from unittest import mock
 from iotedgehubdev.certutils import EdgeCertUtil
