@@ -46,6 +46,12 @@ coverage.xml
 *.cover
 .hypothesis/
 .pytest_cache/
+cov.xml
+root/
+edge-agent-ca/
+edge-chain-ca/
+edge-device-ca/
+edge-hub-server/
 
 # Translations
 *.mo

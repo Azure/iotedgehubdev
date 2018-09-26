@@ -120,7 +120,7 @@ class TestEdgeCertUtilAPICreateIntCACert(unittest.TestCase):
         cert_util.create_root_ca_cert('root', subject_dict=VALID_SUBJECT_DICT)
 
         valid_common_name = 'testcommonname'
-        cert_util.create_intermediate_ca_cert('int', 'root', common_name=valid_common_name)
+        assert not cert_util.create_intermediate_ca_cert('int', 'root', common_name=valid_common_name)
 
 
 class TestEdgeCertUtilAPICreateServerCert(unittest.TestCase):
@@ -172,7 +172,7 @@ class TestEdgeCertUtilAPICreateServerCert(unittest.TestCase):
         cert_util.create_root_ca_cert('root', subject_dict=VALID_SUBJECT_DICT)
 
         valid_hostname = 'testhostname'
-        cert_util.create_server_cert('int', 'root', hostname=valid_hostname)
+        assert not cert_util.create_server_cert('int', 'root', hostname=valid_hostname)
 
 
 class TestEdgeCertUtilAPIExportCertArtifacts(unittest.TestCase):
