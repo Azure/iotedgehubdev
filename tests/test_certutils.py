@@ -176,6 +176,11 @@ class TestEdgeCertUtilAPICreateServerCert(unittest.TestCase):
 
 class TestEdgeCertUtilAPIExportCertArtifacts(unittest.TestCase):
 
+    def tearDown(self):
+        test_data_folder = os.path.join(WORKINGDIRECTORY, 'root')
+        if os.path.exists(test_data_folder):
+            shutil.rmtree(test_data_folder)
+
     @mock.patch('iotedgehubdev.utils.Utils.check_if_directory_exists')
     def test_export_cert_artifacts_to_dir_incorrect_id_invalid(self, mock_chk_dir):
         cert_util = EdgeCertUtil()
@@ -196,14 +201,12 @@ class TestEdgeCertUtilAPIExportCertArtifacts(unittest.TestCase):
         cert_util.create_root_ca_cert('root', subject_dict=VALID_SUBJECT_DICT)
         cert_util.export_cert_artifacts_to_dir('root', WORKINGDIRECTORY)
         assert cert_util.get_cert_file_path('root', WORKINGDIRECTORY)
-        shutil.rmtree(os.path.join(WORKINGDIRECTORY, 'root'))
 
     def test_get_chain_ca_certs(self):
         cert_util = EdgeCertUtil()
         cert_util.create_root_ca_cert('root', subject_dict=VALID_SUBJECT_DICT)
         cert_util.chain_ca_certs('root', {'root'}, WORKINGDIRECTORY)
         assert cert_util.get_cert_file_path('root', WORKINGDIRECTORY)
-        shutil.rmtree(os.path.join(WORKINGDIRECTORY, 'root'))
 
     def test_get_pfx_cert_file_path(self):
         cert_util = EdgeCertUtil()
@@ -211,4 +214,3 @@ class TestEdgeCertUtilAPIExportCertArtifacts(unittest.TestCase):
         cert_util.chain_ca_certs('root', {'root'}, WORKINGDIRECTORY)
         cert_util.export_pfx_cert('root', WORKINGDIRECTORY)
         assert cert_util.get_cert_file_path('root', WORKINGDIRECTORY)
-        shutil.rmtree(os.path.join(WORKINGDIRECTORY, 'root'))
