@@ -11,7 +11,6 @@ WORKINGDIRECTORY = os.getcwd()
 
 class TestEdgeCertAPICreateSelfSignedCerts(unittest.TestCase):
 
-
     def tearDown(self):
         self._delete_directory(WORKINGDIRECTORY, 'edge-agent-ca')
         self._delete_directory(WORKINGDIRECTORY, 'edge-chain-ca')
