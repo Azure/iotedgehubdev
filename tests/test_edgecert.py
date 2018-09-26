@@ -11,11 +11,17 @@ WORKINGDIRECTORY = os.getcwd()
 
 class TestEdgeCertAPICreateSelfSignedCerts(unittest.TestCase):
 
+
     def tearDown(self):
-        shutil.rmtree(os.path.join(WORKINGDIRECTORY, 'edge-agent-ca'))
-        shutil.rmtree(os.path.join(WORKINGDIRECTORY, 'edge-chain-ca'))
-        shutil.rmtree(os.path.join(WORKINGDIRECTORY, 'edge-device-ca'))
-        shutil.rmtree(os.path.join(WORKINGDIRECTORY, 'edge-hub-server'))
+        self._delete_directory(WORKINGDIRECTORY, 'edge-agent-ca')
+        self._delete_directory(WORKINGDIRECTORY, 'edge-chain-ca')
+        self._delete_directory(WORKINGDIRECTORY, 'edge-device-ca')
+        self._delete_directory(WORKINGDIRECTORY, 'edge-hub-server')
+
+    def _delete_directory(self, folder_path, foldername):
+        data_path = os.path.join(folder_path, foldername)
+        if os.path.exists(data_path):
+            shutil.rmtree(data_path)
 
     def test_get_self_signed_certs(self):
         edge_cert = EdgeCert(WORKINGDIRECTORY, 'testhostname')
