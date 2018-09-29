@@ -12,5 +12,5 @@ steps:
     displayName: "Update and install required tools"
 
   - script: |
-      sudo `which tox`
+      sudo -E `which tox`
     displayName: "Run tests against iotedgehubdev source code with tox"
