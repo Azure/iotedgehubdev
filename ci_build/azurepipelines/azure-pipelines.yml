@@ -1,0 +1,17 @@
+jobs:
+  - job: Linux
+    pool: ubuntu-1604
+    steps:
+      - template: linux/continuous-build-linux.yml
+
+  - job: Windows
+    pool:
+      vmImage: vs2017-win2016
+    steps:
+      - template: win32/continuous-build-win32.yml
+
+  - job: macOS
+    pool:
+      vmImage: xcode9-macos10.13
+    steps:
+      - template: darwin/continuous-build-darwin.yml

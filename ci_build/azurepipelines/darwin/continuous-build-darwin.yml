@@ -1,0 +1,17 @@
+steps:
+  - task: UsePythonVersion@0
+    displayName: "Use Python 3.6"
+    inputs:
+      versionSpec: 3.6
+      addToPath: true
+      architecture: "x64"
+
+  - script: |
+      pip install --upgrade pip
+      pip install --upgrade docker-compose
+      pip install --upgrade tox
+    displayName: "Update and install required tools"
+
+  - script: |
+      sudo `which tox`
+    displayName: "Install IoTEdgeHubDev and run tests with tox"
