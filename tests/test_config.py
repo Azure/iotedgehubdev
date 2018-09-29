@@ -2,8 +2,9 @@
 # Licensed under the MIT License.
 
 
-import unittest
 import os
+import unittest
+from iotedgehubdev import configs
 from iotedgehubdev.hostplatform import HostPlatform
 
 
@@ -15,7 +16,14 @@ class TestGetIniConfig(unittest.TestCase):
             os.remove(iniFile)
 
     @classmethod
+    def update_setting_ini_as_firsttime(cls):
+        config = configs._prod_config.config
+        config.set('DEFAULT', 'firsttime', 'yes')
+        configs._prod_config.update_config()
+
+    @classmethod
     def setUpClass(cls):
+        cls.update_setting_ini_as_firsttime()
         cls.cleanup()
 
     @classmethod
