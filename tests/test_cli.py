@@ -10,7 +10,7 @@ from iotedgehubdev import configs
 VALID_DEVICECONNECTIONSTRING = os.environ['DEVICE_CONNECTION_STRING']
 
 
-def teardown_module():
+def teardown_module(module):
     config = configs._prod_config.config
     config.set('DEFAULT', 'firsttime', 'yes')
     configs._prod_config.update_config()

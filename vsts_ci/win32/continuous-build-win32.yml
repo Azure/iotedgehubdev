@@ -13,4 +13,4 @@ steps:
 
   - script: |
       tox
-    displayName: "Install IoTEdgeHubDev and run tests with tox"
+    displayName: "Run tests against iotedgehubdev source code with tox"

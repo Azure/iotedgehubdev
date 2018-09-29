@@ -8,10 +8,9 @@ steps:
 
   - script: |
       pip install --upgrade pip
-      sudo pip install --upgrade docker-compose
       pip install --upgrade tox
     displayName: "Update and install required tools"
 
   - script: |
       sudo `which tox`
-    displayName: "Install IoTEdgeHubDev and run tests with tox"
+    displayName: "Run tests against iotedgehubdev source code with tox"
