@@ -8,7 +8,7 @@ steps:
 
   - script: |
       pip install --upgrade pip
-      pip install --upgrade docker-compose
+      sudo pip install --upgrade docker-compose
       pip install --upgrade tox
     displayName: "Update and install required tools"
 

@@ -1,6 +1,7 @@
 jobs:
   - job: Linux
-    pool: ubuntu-1604
+    pool:
+      vmImage: ubuntu-1604
     steps:
       - template: linux/continuous-build-linux.yml
 
