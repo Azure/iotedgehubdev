@@ -2,19 +2,18 @@
 # Licensed under the MIT License.
 
 
-import os
-import uuid
 import datetime
+import json
+import os
 import platform
 import subprocess
 import sys
-import json
-
+import uuid
 from collections import defaultdict
 from functools import wraps
-from . import decorators
+
+from . import configs, decorators
 from . import telemetry_upload as telemetry_core
-from . import configs
 
 PRODUCT_NAME = 'iotedgehubdev'
 
@@ -54,6 +53,8 @@ class TelemetrySession(object):
 
         if self.exception:
             props['Exception'] = self.exception
+
+        props.update(self.extra_props)
 
         self.events[_get_AI_key()].append({
             'name': '{}/command'.format(PRODUCT_NAME),
@@ -107,6 +108,12 @@ def fail(exception, summary):
     _session.exception = exception
     _session.result = 'Fail'
     _session.result_summary = summary
+
+
+@decorators.suppress_all_exceptions()
+def add_extra_props(props):
+    if props is not None:
+        _session.extra_props.update(props)
 
 
 @_user_agrees_to_telemetry
