@@ -262,12 +262,13 @@ class TestUtilAPIs(unittest.TestCase):
             Utils.get_hostname()
 
     def test_get_sha256_hash(self):
-        val = 'foo'
-
-        assert Utils.get_sha256_hash(val) == '2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae'
+        assert Utils.get_sha256_hash("foo") == "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"
 
     def test_hash_connection_str_hostname(self):
         connection_str = "HostName=ChaoyiTestIoT.azure-devices.net;DeviceId=edge-device;SharedAccessKey=foobarbazqux="
 
         assert Utils.hash_connection_str_hostname(connection_str) == (
             '6b8fcfea09003d5f104771e83bd9ff54c592ec2277ec1815df91dd64d1633778', 'azure-devices.net')
+
+        assert Utils.hash_connection_str_hostname("") == ("", "")
+        assert Utils.hash_connection_str_hostname(None) == ("", "")
