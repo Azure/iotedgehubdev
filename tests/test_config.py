@@ -24,7 +24,6 @@ class TestGetIniConfig(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.update_setting_ini_as_firsttime()
-        cls.cleanup()
 
     @classmethod
     def tearDownClass(cls):

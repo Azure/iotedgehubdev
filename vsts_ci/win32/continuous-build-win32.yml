@@ -1,16 +1,9 @@
 steps:
   - script: |
       choco install python2
-      set PATH=%PATH%;C:\Python27;C:\Python27\Scripts
-      python -m pip install --upgrade pip
-      pip install tox
-      tox -e py27
-    displayName: "Run tests against iotedgehubdev source code with py27"
-
-  - script: |
       choco install python --version 3.6.6
       set PATH=%PATH%;C:\Python36;C:\Python36\Scripts
       python -m pip install --upgrade pip
       pip install tox
-      tox -e py36
-    displayName: "Run tests against iotedgehubdev source code with py36"
+      tox
+    displayName: "Run tests against iotedgehubdev source code"
