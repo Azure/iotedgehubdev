@@ -1,16 +1,16 @@
 steps:
-  - task: UsePythonVersion@0
-    displayName: "Use Python 3.6"
-    inputs:
-      versionSpec: 3.6
-      addToPath: true
-      architecture: "x64"
+  - script: |
+      choco install python2
+      set PATH=%PATH%;C:\Python27;C:\Python27\Scripts
+      python -m pip install --upgrade pip
+      pip install tox
+      tox -e py27
+    displayName: "Run tests against iotedgehubdev source code with py27"
 
   - script: |
-      pip install --upgrade pip
-      pip install --upgrade tox
-    displayName: "Install tox"
-
-  - script: |
-      tox
-    displayName: "Run tests against iotedgehubdev source code with tox"
+      choco install python --version 3.6.6
+      set PATH=%PATH%;C:\Python36;C:\Python36\Scripts
+      python -m pip install --upgrade pip
+      pip install tox
+      tox -e py36
+    displayName: "Run tests against iotedgehubdev source code with py36"

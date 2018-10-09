@@ -7,7 +7,7 @@ jobs:
 
   - job: Windows
     pool:
-      vmImage: vs2017-win2016
+      vmImage: win1803
     steps:
       - template: win32/continuous-build-win32.yml
 
