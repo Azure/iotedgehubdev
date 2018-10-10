@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-
+import subprocess
 import time
 import unittest
 import docker
@@ -82,10 +82,17 @@ class TestEdgeDockerClientSmoke(unittest.TestCase):
         client.remove_volume(self.VOLUME_NAME)
         client.destroy_network(self.NETWORK_NAME)
 
+    def _reset_host_network(self, client):
+        os_type = client.get_os_type().lower()
+        if (os_type == 'windows'):
+            subprocess.Popen('powershell.exe Remove-NetNat -Confirm:$False')
+            subprocess.Popen('powershell.exe Restart-Service hns')
+
     def test_create(self):
         with EdgeDockerClient() as client:
             exception_raised = False
             try:
+                self._reset_host_network(client)
                 status = client.status(self.CONTAINER_NAME)
                 if status is not None:
                     self._destroy_container(client)
