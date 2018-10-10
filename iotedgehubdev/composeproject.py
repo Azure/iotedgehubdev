@@ -61,7 +61,7 @@ class ComposeProject(object):
 
             if 'env' in config:
                 self.Services[service_name]['environment'] = self.config_env(
-                    self.Services[service_name]['environment'], config['env'])
+                    self.Services[service_name].get('environment', []), config['env'])
 
             if service_name == self.edge_info['hub_name']:
                 self.config_edge_hub(service_name)
