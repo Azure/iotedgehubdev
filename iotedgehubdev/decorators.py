@@ -2,7 +2,6 @@
 # Licensed under the MIT License.
 
 
-import hashlib
 from functools import wraps
 
 
@@ -33,6 +32,8 @@ def hash256_result(func):
             raise ValueError('Return value is None')
         elif not isinstance(val, str):
             raise ValueError('Return value is not string')
-        hash_object = hashlib.sha256(val.encode('utf-8'))
-        return str(hash_object.hexdigest())
+
+        from .utils import Utils
+        return Utils.get_sha256_hash(val)
+
     return _decorator
