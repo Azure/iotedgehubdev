@@ -1,4 +1,4 @@
-## 0.4.0 - 2018-10-15
+## 0.4.0 - 2018-10-12
 ### Changed
 * Fix "Error: 'environment'" when starting ([#87](https://github.com/Azure/iotedgehubdev/issues/87))
 
