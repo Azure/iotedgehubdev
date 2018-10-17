@@ -18,7 +18,7 @@ The following table compares the steps needed to run the solution on the IoT Edg
 
 ## Installing
 1. Install [Docker CE](https://www.docker.com/community-edition) on Windows, macOS or Linux.
-2. Install [Python (2.7/3.6) and Pip](https://www.python.org/)
+2. Install [Python (2.7/3.5+) and Pip](https://www.python.org/)
 3. Install iotedgehubdev by running below command in your terminal
     ```
     pip install --upgrade iotedgehubdev

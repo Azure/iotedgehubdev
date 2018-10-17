@@ -3,6 +3,7 @@ services:
   edgeHubDev:
     container_name: edgeHubDev
     environment:
+    - OptimizeForPerformance=false
     - routes__r1=FROM /messages/modules/tempSensor/outputs/temperatureOutput INTO
       BrokeredEndpoint("/modules/SampleModule/inputs/input1")
     - routes__r2=FROM /messages/modules/SampleModule/outputs/output1 INTO $$upstream

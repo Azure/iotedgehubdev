@@ -9,8 +9,7 @@ from functools import wraps
 
 import click
 
-from . import configs, telemetry
-from . import decorators
+from . import configs, decorators, telemetry
 from .edgecert import EdgeCert
 from .edgemanager import EdgeManager
 from .hostplatform import HostPlatform
@@ -198,6 +197,9 @@ def start(inputs, port, deployment, verbose):
                 sys.exit(1)
     except Exception as e:
         raise e
+
+    hostname_hash, suffix = Utils.hash_connection_str_hostname(connection_str)
+    telemetry.add_extra_props({'iothubhostname': hostname_hash, 'iothubhostnamesuffix': suffix})
 
     if inputs is None and deployment is not None:
         try:

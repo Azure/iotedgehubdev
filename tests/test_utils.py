@@ -2,10 +2,11 @@
 # Licensed under the MIT License.
 
 
-import stat
 import errno
+import stat
 import unittest
 from unittest import mock
+
 from iotedgehubdev.utils import Utils
 
 
@@ -259,3 +260,15 @@ class TestUtilAPIs(unittest.TestCase):
         # act, assert
         with self.assertRaises(IOError):
             Utils.get_hostname()
+
+    def test_get_sha256_hash(self):
+        assert Utils.get_sha256_hash("foo") == "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"
+
+    def test_hash_connection_str_hostname(self):
+        connection_str = "HostName=ChaoyiTestIoT.azure-devices.net;DeviceId=edge-device;SharedAccessKey=foobarbazqux="
+
+        assert Utils.hash_connection_str_hostname(connection_str) == (
+            '6b8fcfea09003d5f104771e83bd9ff54c592ec2277ec1815df91dd64d1633778', 'azure-devices.net')
+
+        assert Utils.hash_connection_str_hostname("") == ("", "")
+        assert Utils.hash_connection_str_hostname(None) == ("", "")

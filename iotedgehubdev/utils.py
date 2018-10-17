@@ -8,19 +8,16 @@ import shutil
 import socket
 import stat
 import subprocess
-import sys
 from base64 import b64decode, b64encode
 from hashlib import sha256
 from hmac import HMAC
 from time import time
 
-from .constants import EdgeConstants as EC
-from .errors import EdgeFileAccessError
+from six.moves.urllib.parse import quote_plus, urlencode
 
-if sys.version_info.major >= 3:
-    from urllib.parse import quote_plus, urlencode
-else:
-    from urllib import quote_plus, urlencode
+from .constants import EdgeConstants as EC
+from .decorators import suppress_all_exceptions
+from .errors import EdgeFileAccessError
 
 
 class Utils(object):
@@ -149,3 +146,30 @@ class Utils(object):
             raise
         except Exception as e:
             raise Exception("Error while executing command: {0}. {1}".format(' '.join(params), str(e)))
+
+    @staticmethod
+    @suppress_all_exceptions()
+    def hash_connection_str_hostname(connection_str):
+        """Hash connection string hostname to count distint IoT Hub number"""
+        try:
+            connection_str_dict = Utils.parse_device_connection_str(connection_str)
+            hostname = connection_str_dict[EC.HOSTNAME_KEY]
+        except Exception:
+            hostname = None
+
+        if not hostname:
+            return ("", "")
+
+        # get hostname suffix (e.g., azure-devices.net) to distinguish national clouds
+        if "." in hostname:
+            hostname_suffix = hostname[hostname.index(".") + 1:]
+        else:
+            hostname_suffix = ""
+
+        return (Utils.get_sha256_hash(hostname), hostname_suffix)
+
+    @staticmethod
+    def get_sha256_hash(val):
+        hash_object = sha256(val.encode('utf-8'))
+
+        return str(hash_object.hexdigest()).lower()
