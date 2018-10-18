@@ -4,8 +4,12 @@
 import os
 import pytest
 from click.testing import CliRunner
+from dotenv import load_dotenv
 from iotedgehubdev import cli
 
+filename = os.path.join(os.getcwd(), '.env')
+if os.path.exists(filename):
+    load_dotenv(filename)
 VALID_DEVICECONNECTIONSTRING = os.environ['DEVICE_CONNECTION_STRING']
 
 
