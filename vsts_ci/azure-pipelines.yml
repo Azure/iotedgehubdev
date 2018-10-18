@@ -11,14 +11,8 @@ jobs:
     steps:
       - template: win32/continuous-build-win32.yml
 
-  - job: macOS_Py27
+  - job: macOS
     pool:
       vmImage: xcode9-macos10.13
     steps:
-      - template: darwin/continuous-build-darwin-py27.yml
-
-  - job: macOS_Py36
-    pool:
-      vmImage: xcode9-macos10.13
-    steps:
-      - template: darwin/continuous-build-darwin-py36.yml
+      - template: darwin/continuous-build-darwin.yml

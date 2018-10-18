@@ -24,5 +24,5 @@ steps:
       eval $(docker-machine env default)
       brew services start docker-machine
       brew install docker-compose
-      sudo -E `which tox` -e py36
-    displayName: "Py36 - Install docker and run tests against iotedgehubdev source code with tox"
+      sudo -E `which tox`
+    displayName: "Install docker and run tests against iotedgehubdev source code with tox"

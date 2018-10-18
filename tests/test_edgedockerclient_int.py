@@ -65,7 +65,8 @@ class TestEdgeDockerClientSmoke(unittest.TestCase):
             networking_config=network_config,
             host_config=host_config,
             volumes=[volume_path],
-            environment=env_dict)
+            environment=env_dict,
+            command="sleep 20s")
         client.copy_file_to_volume(self.CONTAINER_NAME,
                                    self.VOLUME_NAME,
                                    'test_file_name.txt',
