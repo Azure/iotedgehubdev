@@ -1,8 +1,8 @@
 steps:
   - task: UsePythonVersion@0
-    displayName: "Use Python $(PYTHON_VERSION_SPEC)"
+    displayName: "Use Python 3.6"
     inputs:
-      versionSpec: $(PYTHON_VERSION_SPEC)
+      versionSpec: 3.6
       addToPath: true
       architecture: "x64"
 
@@ -14,6 +14,8 @@ steps:
   - script: |
       brew install docker
       brew install docker-machine
+      brew link --overwrite docker-machine
+      brew unlink docker-machine-driver-xhyve
       brew install docker-machine-driver-xhyve
       sudo chown root:wheel $(brew --prefix)/opt/docker-machine-driver-xhyve/bin/docker-machine-driver-xhyve
       sudo chmod u+s $(brew --prefix)/opt/docker-machine-driver-xhyve/bin/docker-machine-driver-xhyve
@@ -22,5 +24,5 @@ steps:
       eval $(docker-machine env default)
       brew services start docker-machine
       brew install docker-compose
-      sudo -E `which tox` -e $(PYTHON_VERSION)
-    displayName: "$(PYTHON_VERSION) - Install docker and run tests against iotedgehubdev source code with tox"
+      sudo -E `which tox` -e py36
+    displayName: "Py36 - Install docker and run tests against iotedgehubdev source code with tox"

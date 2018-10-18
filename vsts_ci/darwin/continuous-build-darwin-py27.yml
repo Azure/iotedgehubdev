@@ -1,0 +1,28 @@
+steps:
+  - task: UsePythonVersion@0
+    displayName: "Use Python 2.7"
+    inputs:
+      versionSpec: 2.7
+      addToPath: true
+      architecture: "x64"
+
+  - script: |
+      pip install --upgrade pip
+      pip install --upgrade tox
+    displayName: "Update and install required tools"
+
+  - script: |
+      brew install docker
+      brew install docker-machine
+      brew link --overwrite docker-machine
+      brew unlink docker-machine-driver-xhyve
+      brew install docker-machine-driver-xhyve
+      sudo chown root:wheel $(brew --prefix)/opt/docker-machine-driver-xhyve/bin/docker-machine-driver-xhyve
+      sudo chmod u+s $(brew --prefix)/opt/docker-machine-driver-xhyve/bin/docker-machine-driver-xhyve
+      docker-machine create --driver xhyve default
+      docker-machine env default
+      eval $(docker-machine env default)
+      brew services start docker-machine
+      brew install docker-compose
+      sudo -E `which tox` -e py27
+    displayName: "Py27 - Install docker and run tests against iotedgehubdev source code with tox"
