@@ -257,8 +257,7 @@ class EdgeManager(object):
         return cred
 
     def getModule(self, name, islocal):
-        moduleUri = "https://{0}/devices/{1}/modules/{2}?api-version=2017-11-08-preview".format(
-            self.hostname, self.device_id, name)
+        moduleUri = self._getModuleReqUri(name)
         sas = Utils.get_iot_hub_sas_token(self.device_uri, self.access_key, None)
         res = requests.get(
             moduleUri,
@@ -269,11 +268,40 @@ class EdgeManager(object):
         )
         if res.ok is not True:
             raise ResponseError(res.status_code, res.text)
+        else:
+            jsonObj = res.json()
+            auth = jsonObj['authentication']
+            if auth is not None:
+                authType = auth['type']
+                authKey = auth['symmetricKey']
+                if authType == 'sas' and authKey is not None and authKey['primaryKey'] is not None:
+                    return self._generateModuleConnectionStr(res, islocal)
+            return self.updateModule(name, jsonObj['etag'], islocal)
+
+    def updateModule(self, name, etag, islocal):
+        moduleUri = self._getModuleReqUri(name)
+        sas = Utils.get_iot_hub_sas_token(self.device_uri, self.access_key, None)
+        res = requests.put(
+            moduleUri,
+            headers={
+                'Authorization': sas,
+                'Content-Type': "application/json",
+                'If-Match': '"*"'
+            },
+            data=json.dumps({
+                'moduleId': name,
+                'deviceId': self.device_id,
+                'authentication': {
+                    'type': 'sas'
+                }
+            })
+        )
+        if res.ok is not True:
+            raise ResponseError(res.status_code, res.text)
         return self._generateModuleConnectionStr(res, islocal)
 
     def addModule(self, name, islocal):
-        moduleUri = "https://{0}/devices/{1}/modules/{2}?api-version=2017-11-08-preview".format(
-            self.hostname, self.device_id, name)
+        moduleUri = self._getModuleReqUri(name)
         sas = Utils.get_iot_hub_sas_token(self.device_uri, self.access_key, None)
         res = requests.put(
             moduleUri,
@@ -289,6 +317,10 @@ class EdgeManager(object):
         if res.ok is not True:
             raise ResponseError(res.status_code, res.text)
         return self._generateModuleConnectionStr(res, islocal)
+
+    def _getModuleReqUri(self, name):
+        return "https://{0}/devices/{1}/modules/{2}?api-version=2018-06-30".format(
+            self.hostname, self.device_id, name)
 
     def _generateModuleConnectionStr(self, response, islocal):
         jsonObj = response.json()
