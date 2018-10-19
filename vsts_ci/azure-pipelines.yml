@@ -1,4 +1,10 @@
 jobs:
+  - job: macOS
+    pool:
+      vmImage: xcode9-macos10.13
+    steps:
+      - template: darwin/continuous-build-darwin.yml
+
   - job: Linux
     pool:
       vmImage: ubuntu-16.04
@@ -10,9 +16,3 @@ jobs:
       vmImage: win1803
     steps:
       - template: win32/continuous-build-win32.yml
-
-  - job: macOS
-    pool:
-      vmImage: xcode9-macos10.13
-    steps:
-      - template: darwin/continuous-build-darwin.yml
