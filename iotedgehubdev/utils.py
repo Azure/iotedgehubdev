@@ -31,9 +31,7 @@ class Utils(object):
                     subparts = [s.strip() for s in part.split("=", 1)]
                     data[subparts[0]] = subparts[1]
 
-            if (EC.HOSTNAME_KEY not in data or
-                EC.DEVICE_ID_KEY not in data or
-                    EC.ACCESS_KEY_KEY not in data):
+            if EC.HOSTNAME_KEY not in data or EC.DEVICE_ID_KEY not in data or EC.ACCESS_KEY_KEY not in data:
                 if "SharedAccessKeyName" in data:
                     raise KeyError('Please make sure you are using a device connection string '
                                    'instead of an IoT Hub connection string')

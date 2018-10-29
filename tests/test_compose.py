@@ -2,76 +2,30 @@
 # Licensed under the MIT License.
 
 
-import iotedgehubdev.compose_parser
-import unittest
-from iotedgehubdev.edgemanager import EdgeManager
-from iotedgehubdev.composeproject import ComposeProject
 import json
+import os
+import shutil
+import unittest
+
 import pytest
 
-OUTPUT_PATH = 'tests/output'
+import iotedgehubdev.compose_parser
+from iotedgehubdev.composeproject import ComposeProject
+from iotedgehubdev.edgemanager import EdgeManager
+
+OUTPUT_PATH = os.path.join('tests', 'output')
 
 
 class ComposeTest(unittest.TestCase):
+    def tearDown(self):
+        if os.path.exists(OUTPUT_PATH):
+            shutil.rmtree(OUTPUT_PATH)
+
     def test_compose(self):
-        with open('tests/test_compose_resources/deployment.json') as json_file:
-            deployment_config = json.load(json_file)
-            if 'modulesContent' in deployment_config:
-                module_content = deployment_config['modulesContent']
-            elif 'moduleContent' in deployment_config:
-                module_content = deployment_config['moduleContent']
-
-            module_names = [EdgeManager.EDGEHUB_MODULE]
-            custom_modules = module_content['$edgeAgent']['properties.desired']['modules']
-            for module_name in custom_modules:
-                module_names.append(module_name)
-
-            ConnStr_info = {}
-            for module_name in module_names:
-                ConnStr_info[module_name] = \
-                    "HostName=HostName;DeviceId=DeviceId;ModuleId={};SharedAccessKey=SharedAccessKey".format(module_name)
-
-            mount_base = '/mnt'
-            env_info = {
-                'hub_env': [
-                    EdgeManager.HUB_CA_ENV.format(mount_base),
-                    EdgeManager.HUB_CERT_ENV.format(mount_base),
-                    EdgeManager.HUB_SRC_ENV,
-                    EdgeManager.HUB_SSLPATH_ENV.format(mount_base),
-                    EdgeManager.HUB_SSLCRT_ENV
-                ],
-                'module_env': [
-                    EdgeManager.MODULE_CA_ENV.format(mount_base)
-                ]
-            }
-
-            volume_info = {
-                'HUB_MOUNT': EdgeManager.HUB_MOUNT.format(mount_base),
-                'HUB_VOLUME': EdgeManager.HUB_VOLUME,
-                'MODULE_VOLUME': EdgeManager.MODULE_VOLUME,
-                'MODULE_MOUNT': EdgeManager.MODULE_MOUNT.format(mount_base)
-            }
-
-            network_info = {
-                'NW_NAME': EdgeManager.NW_NAME,
-                'ALIASES': 'gatewayhost'
-            }
-
-            compose_project = ComposeProject(module_content)
-            compose_project.set_edge_info({
-                'ConnStr_info': ConnStr_info,
-                'env_info': env_info,
-                'volume_info': volume_info,
-                'network_info': network_info,
-                'hub_name': EdgeManager.EDGEHUB,
-                'labels': EdgeManager.LABEL
-            })
-            compose_project.compose()
-            compose_project.dump('{}/docker-compose_test.yml'.format(OUTPUT_PATH))
-
-            expected_output = open('tests/test_compose_resources/docker-compose.yml', 'r').read()
-            actual_output = open('{}/docker-compose_test.yml'.format(OUTPUT_PATH), 'r').read()
-            assert ''.join(sorted(expected_output)) == ''.join(sorted(actual_output))
+        self._run_compose_and_verify('deployment.json', 'docker-compose_test.yml', 'docker-compose.yml')
+        self._run_compose_and_verify('deployment_with_chunked_create_options.json',
+                                     'docker-compose_test_with_chunked_create_options.yml',
+                                     'docker-compose_with_chunked_create_options.yml')
 
     def test_service_parser_expose(self):
         expose_API = {
@@ -298,3 +252,140 @@ class ComposeTest(unittest.TestCase):
         }
         with pytest.raises(KeyError):
             iotedgehubdev.compose_parser.service_parser_volumes(volumes_config)
+
+    def test_join_create_options(self):
+        valid_settings = json.loads('''{
+            "createOptions": "{'Env': ['k1=v1', 'k2=v2', 'k3=v3'], 'HostConfig'",
+            "createOptions01": ": {'PortBindings': {'43/udp': [{'HostPort': '4",
+            "createOptions02": "3'}], '42/tcp': [{'HostPort': '42'}]}}}"
+        }''')
+        assert ComposeProject._join_create_options(valid_settings) == """{'Env': ['k1=v1', 'k2=v2', 'k3=v3'], 'HostConfig': {'PortBindings'\
+: {'43/udp': [{'HostPort': '43'}], '42/tcp': \
+[{'HostPort': '42'}]}}}"""
+
+        valid_settings_unsorted = json.loads('''{
+            "createOptions01": ": {'PortBindings': {'43/udp': [{'HostPort': '4",
+            "createOptions02": "3'}], '42/tcp': [{'HostPort': '42'}]}}}",
+            "createOptions": "{'Env': ['k1=v1', 'k2=v2', 'k3=v3'], 'HostConfig'"
+            }''')
+        assert ComposeProject._join_create_options(valid_settings_unsorted) == """{'Env': ['k1=v1', 'k2=v2', 'k3=v3'], 'HostConfig': {'PortBindings'\
+: {'43/udp': [{'HostPort': '43'}], '42/tcp': \
+[{'HostPort': '42'}]}}}"""
+
+        valid_settings_full = json.loads('''{
+            "createOptions": "{'Env': ['k1=v1', 'k2=v2', 'k3=v3'], 'HostConfig'",
+            "createOptions01": ": {'PortBindings': {'43/udp': [{'HostPort': '4",
+            "createOptions02": "3'}], '42/tcp': [{'HostPort': '42'",
+            "createOptions03": "}",
+            "createOptions04": "]",
+            "createOptions05": "}",
+            "createOptions06": "}",
+            "createOptions07": "}"
+        }''')
+        assert ComposeProject._join_create_options(valid_settings_full) == """{'Env': ['k1=v1', 'k2=v2', 'k3=v3'], 'HostConfig': {'PortBindings'\
+: {'43/udp': [{'HostPort': '43'}], '42/tcp': \
+[{'HostPort': '42'}]}}}"""
+
+        invalid_settings_1 = json.loads('''{
+            "createOptions": "{'Env': ['k1=v1', 'k2=v2', 'k3=v3'], 'HostConfig'",
+            "createOptions02": ": {'PortBindings': {'43/udp': [{'HostPort': '4",
+            "createOptions03": "3'}], '42/tcp': [{'HostPort': '42'}]}}}"
+            }''')
+        assert ComposeProject._join_create_options(invalid_settings_1) == """{'Env': ['k1=v1', 'k2=v2', 'k3=v3'], 'HostConfig'"""
+
+        invalid_settings_2 = json.loads('''{
+            "createOptions01": "{'Env': ['k1=v1', 'k2=v2', 'k3=v3'], 'HostConfig'",
+            "createOptions02": ": {'PortBindings': {'43/udp': [{'HostPort': '4",
+            "createOptions03": "3'}], '42/tcp': [{'HostPort': '42'}]}}}"
+            }''')
+        assert ComposeProject._join_create_options(invalid_settings_2) == ''
+
+        invalid_settings_3 = json.loads('''{
+            "createOptions00": "{'Env': ['k1=v1', 'k2=v2', 'k3=v3'], 'HostConfig'",
+            "createOptions01": ": {'PortBindings': {'43/udp': [{'HostPort': '4",
+            "createOptions02": "3'}], '42/tcp': [{'HostPort': '42'}]}}}"
+            }''')
+        assert ComposeProject._join_create_options(invalid_settings_3) == ''
+
+        invalid_settings_out_of_range = json.loads('''{
+            "createOptions": "{'Env': ['k1=v1', 'k2=v2', 'k3=v3'], 'HostConfig'",
+            "createOptions01": ": {'PortBindings': {'43/udp': [{'HostPort': '4",
+            "createOptions02": "3'}], '42/tcp': [{'HostPort': '42'",
+            "createOptions03": "}",
+            "createOptions04": "]",
+            "createOptions05": "}",
+            "createOptions06": "}",
+            "createOptions07": "}",
+            "createOptions08": "}"
+        }''')
+        assert ComposeProject._join_create_options(invalid_settings_out_of_range) == """{'Env': ['k1=v1', 'k2=v2', 'k3=v3'], 'HostConfig': {'PortBindings'\
+: {'43/udp': [{'HostPort': '43'}], '42/tcp': \
+[{'HostPort': '42'}]}}}"""
+
+    def _run_compose_and_verify(self, deployment_json_file, actual_output_filename, expected_output_filename):
+        test_resources_dir = os.path.join('tests', 'test_compose_resources')
+        with open(os.path.join(test_resources_dir, deployment_json_file)) as json_file:
+            compose_project = self._create_test_compose_project(json_file)
+            compose_project.compose()
+
+            actual_output_path = os.path.join(OUTPUT_PATH, actual_output_filename)
+            compose_project.dump(actual_output_path)
+
+            actual_output = open(actual_output_path, 'r').read()
+            expected_output = open(os.path.join(test_resources_dir, expected_output_filename), 'r').read()
+            assert ''.join(sorted(expected_output)) == ''.join(sorted(actual_output))
+
+    def _create_test_compose_project(self, json_file):
+        deployment_config = json.load(json_file)
+        if 'modulesContent' in deployment_config:
+            module_content = deployment_config['modulesContent']
+        elif 'moduleContent' in deployment_config:
+            module_content = deployment_config['moduleContent']
+
+        module_names = [EdgeManager.EDGEHUB_MODULE]
+        custom_modules = module_content['$edgeAgent']['properties.desired']['modules']
+        for module_name in custom_modules:
+            module_names.append(module_name)
+
+        ConnStr_info = {}
+        for module_name in module_names:
+            ConnStr_info[module_name] = \
+                "HostName=HostName;DeviceId=DeviceId;ModuleId={};SharedAccessKey=SharedAccessKey".format(module_name)
+
+        mount_base = '/mnt'
+        env_info = {
+            'hub_env': [
+                EdgeManager.HUB_CA_ENV.format(mount_base),
+                EdgeManager.HUB_CERT_ENV.format(mount_base),
+                EdgeManager.HUB_SRC_ENV,
+                EdgeManager.HUB_SSLPATH_ENV.format(mount_base),
+                EdgeManager.HUB_SSLCRT_ENV
+            ],
+            'module_env': [
+                EdgeManager.MODULE_CA_ENV.format(mount_base)
+            ]
+        }
+
+        volume_info = {
+            'HUB_MOUNT': EdgeManager.HUB_MOUNT.format(mount_base),
+            'HUB_VOLUME': EdgeManager.HUB_VOLUME,
+            'MODULE_VOLUME': EdgeManager.MODULE_VOLUME,
+            'MODULE_MOUNT': EdgeManager.MODULE_MOUNT.format(mount_base)
+        }
+
+        network_info = {
+            'NW_NAME': EdgeManager.NW_NAME,
+            'ALIASES': 'gatewayhost'
+        }
+
+        compose_project = ComposeProject(module_content)
+        compose_project.set_edge_info({
+            'ConnStr_info': ConnStr_info,
+            'env_info': env_info,
+            'volume_info': volume_info,
+            'network_info': network_info,
+            'hub_name': EdgeManager.EDGEHUB,
+            'labels': EdgeManager.LABEL
+        })
+
+        return compose_project
