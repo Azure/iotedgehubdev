@@ -1,0 +1,123 @@
+version: '3.6'
+services:
+  tempSensor:
+    cap_add:
+    - NET_ADMIN
+    cap_drop:
+    - MKNOD
+    cgroup_parent: ''
+    command: date
+    container_name: tempSensor
+    depends_on:
+    - edgeHubDev
+    devices: []
+    dns:
+    - 8.8.8.8
+    dns_search:
+    - ''
+    domainname: ''
+    entrypoint: ''
+    environment:
+    - FOO=bar
+    - BAZ=quux
+    - EdgeModuleCACertificateFile=/mnt/edgemodule/edge-device-ca.cert.pem
+    - EdgeHubConnectionString=HostName=HostName;DeviceId=DeviceId;ModuleId=tempSensor;SharedAccessKey=SharedAccessKey
+    expose:
+    - 22/tcp
+    healthcheck:
+      interval: 0ms
+      retries: 0
+      start_period: 0ms
+      test:
+      - string
+      timeout: 0ms
+    hostname: ''
+    image: mcr.microsoft.com/azureiotedge-simulated-temperature-sensor:1.0
+    labels:
+      com.example.license: GPL
+      com.example.vendor: Acme
+      com.example.version: '1.0'
+      iotedgehubdev: ''
+    logging:
+      driver: json-file
+      options: {}
+    mac_address: 12:34:56:78:9a:bc
+    network_mode: bridge
+    networks:
+      azure-iot-edge-dev: null
+      isolated_nw:
+        aliases:
+        - server_x
+        - server_y
+        ipv4_address: 172.20.30.33
+        ipv6_address: 2001:db8:abcd::3033
+    pid: ''
+    ports:
+    - 11022:22/tcp
+    privileged: false
+    read_only: false
+    restart: always
+    security_opt: []
+    stop_grace_period: 10s
+    stop_signal: SIGTERM
+    tty: false
+    user: ''
+    volumes:
+    - source: edgemoduledev
+      target: /mnt/edgemodule
+      type: volume
+    working_dir: ''
+  edgeHubDev:
+    container_name: edgeHubDev
+    environment:
+    - routes__r1=FROM /messages/modules/SampleModule/outputs/output1 INTO $$upstream
+    - routes__r2=FROM /messages/modules/tempSensor/outputs/temperatureOutput INTO
+      BrokeredEndpoint("/modules/SampleModule/inputs/input1")
+    - IotHubConnectionString=HostName=HostName;DeviceId=DeviceId;ModuleId=$$edgeHub;SharedAccessKey=SharedAccessKey
+    - EdgeModuleHubServerCAChainCertificateFile=/mnt/edgehub/edge-chain-ca.cert.pem
+    - EdgeModuleHubServerCertificateFile=/mnt/edgehub/edge-hub-server.cert.pfx
+    - configSource=local
+    - SSL_CERTIFICATE_PATH=/mnt/edgehub/
+    - SSL_CERTIFICATE_NAME=edge-hub-server.cert.pfx
+    image: mcr.microsoft.com/azureiotedge-hub:1.0
+    labels:
+      iotedgehubdev: ''
+    networks:
+      azure-iot-edge-dev:
+        aliases:
+        - gatewayhost
+    ports:
+    - 8883:8883/tcp
+    - 443:443/tcp
+    restart: always
+    volumes:
+    - source: edgehubdev
+      target: /mnt/edgehub
+      type: volume
+  SampleModule:
+    container_name: SampleModule
+    depends_on:
+    - edgeHubDev
+    environment:
+    - EdgeModuleCACertificateFile=/mnt/edgemodule/edge-device-ca.cert.pem
+    - EdgeHubConnectionString=HostName=HostName;DeviceId=DeviceId;ModuleId=SampleModule;SharedAccessKey=SharedAccessKey
+    image: localhost:5000/samplemodule:0.0.1-amd64
+    labels:
+      iotedgehubdev: ''
+    networks:
+      azure-iot-edge-dev: null
+    restart: always
+    volumes:
+    - source: edgemoduledev
+      target: /mnt/edgemodule
+      type: volume
+networks:
+  azure-iot-edge-dev:
+    external: true
+  isolated_nw:
+    external: true
+volumes:
+  edgehubdev:
+    name: edgehubdev
+  edgemoduledev:
+    name: edgemoduledev

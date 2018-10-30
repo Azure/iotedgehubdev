@@ -1,0 +1,77 @@
+{
+  "moduleContent": {
+    "$edgeAgent": {
+      "properties.desired": {
+        "schemaVersion": "1.0",
+        "runtime": {
+          "type": "docker",
+          "settings": {
+            "minDockerVersion": "v1.25",
+            "loggingOptions": "",
+            "registryCredentials": {}
+          }
+        },
+        "systemModules": {
+          "edgeAgent": {
+            "type": "docker",
+            "settings": {
+              "image": "mcr.microsoft.com/azureiotedge-agent:1.0",
+              "createOptions": ""
+            }
+          },
+          "edgeHub": {
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "mcr.microsoft.com/azureiotedge-hub:1.0",
+              "createOptions": "{\"HostConfig\":{\"PortBindings\":",
+              "createOptions01": "{\"8883/tcp\":[{\"HostPort\":\"8883\"}],\"443/tcp\":[{\"HostPort\":\"443\"}]}}}"
+            }
+          }
+        },
+        "modules": {
+          "tempSensor": {
+            "version": "1.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "mcr.microsoft.com/azureiotedge-simulated-temperature-sensor:1.0",
+              "createOptions": "{\r\n  \"Hostname\": \"\",\r\n  \"Domainname\": \"\",\r\n  \"User\": \"\",\r\n  \"AttachStdin\": false,\r\n  \"AttachStdout\"",
+              "createOptions01": ": true,\r\n  \"AttachStderr\": true,\r\n  \"Tty\": false,\r\n  \"OpenStdin\": false,\r\n  \"StdinOnce\": false,\r\n  \"Env\"",
+              "createOptions02": ": [\r\n    \"FOO=bar\",\r\n    \"BAZ=quux\"\r\n  ],\r\n  \"Cmd\": [\r\n    \"date\"\r\n  ],\r\n  \"Entrypoint\": \"\",\r\n  ",
+              "createOptions03": "\"Image\": \"ubuntu\",\r\n  \"Labels\": {\r\n    \"com.example.vendor\": \"Acme\",\r\n    \"com.example.license\": \"GPL\",\r",
+              "createOptions04": "\n    \"com.example.version\": \"1.0\"\r\n  },\r\n  \"Volumes\": {\r\n    \"/volumes/data\": {}\r\n  },\r\n  \"WorkingDir\": \"",
+              "createOptions05": "\",\r\n  \"NetworkDisabled\": false,\r\n  \"MacAddress\": \"12:34:56:78:9a:bc\",\r\n  \"ExposedPorts\": {\r\n    \"22/tcp\": {}\r",
+              "createOptions06": "\n  },\r\n\t\"Healthcheck\": {\r\n\t\"Test\": [\r\n\t\"string\"\r\n\t],\r\n\t\"Interval\": 0,\r\n\t\"Timeout\": 0,\r\n\t\"Retries\"",
+              "createOptions07": ": 0,\r\n\t\"StartPeriod\": 0\r\n\t},\r\n  \"StopSignal\": \"SIGTERM\",\r\n  \"StopTimeout\": 10,\r\n  \"HostConfig\": {\r\n    \"Binds\": [\r\n      \"/tmp:/tmp\"\r\n    ],\r\n    \"Links\": [\r\n      \"redis3:redis\"\r\n    ],\r\n    \"Memory\": 0,\r\n    \"MemorySwap\": 0,\r\n    \"MemoryReservation\": 0,\r\n    \"KernelMemory\": 0,\r\n    \"NanoCPUs\": 500000,\r\n    \"CpuPercent\": 80,\r\n    \"CpuShares\": 512,\r\n    \"CpuPeriod\": 100000,\r\n    \"CpuRealtimePeriod\": 1000000,\r\n    \"CpuRealtimeRuntime\": 10000,\r\n    \"CpuQuota\": 50000,\r\n    \"CpusetCpus\": \"0,1\",\r\n    \"CpusetMems\": \"0,1\",\r\n    \"MaximumIOps\": 0,\r\n    \"MaximumIOBps\": 0,\r\n    \"BlkioWeight\": 300,\r\n    \"BlkioWeightDevice\": [\r\n      {}\r\n    ],\r\n    \"BlkioDeviceReadBps\": [\r\n      {}\r\n    ],\r\n    \"BlkioDeviceReadIOps\": [\r\n      {}\r\n    ],\r\n    \"BlkioDeviceWriteBps\": [\r\n      {}\r\n    ],\r\n    \"BlkioDeviceWriteIOps\": [\r\n      {}\r\n    ],\r\n    \"MemorySwappiness\": 60,\r\n    \"OomKillDisable\": false,\r\n    \"OomScoreAdj\": 500,\r\n    \"PidMode\": \"\",\r\n    \"PidsLimit\": -1,\r\n    \"PortBindings\": {\r\n      \"22/tcp\": [\r\n        {\r\n          \"HostPort\": \"11022\"\r\n        }\r\n      ]\r\n    },\r\n    \"PublishAllPorts\": false,\r\n    \"Privileged\": false,\r\n    \"ReadonlyRootfs\": false,\r\n    \"Dns\": [\r\n      \"8.8.8.8\"\r\n    ],\r\n    \"DnsOptions\": [\r\n      \"\"\r\n    ],\r\n    \"DnsSearch\": [\r\n      \"\"\r\n    ],\r\n    \"VolumesFrom\": [\r\n      \"parent\",\r\n      \"other:ro\"\r\n    ],\r\n    \"CapAdd\": [\r\n      \"NET_ADMIN\"\r\n    ],\r\n    \"CapDrop\": [\r\n      \"MKNOD\"\r\n    ],\r\n    \"GroupAdd\": [\r\n      \"newgroup\"\r\n    ],\r\n    \"RestartPolicy\": {\r\n      \"Name\": \"\",\r\n      \"MaximumRetryCount\": 0\r\n    },\r\n    \"AutoRemove\": true,\r\n    \"NetworkMode\": \"bridge\",\r\n    \"Devices\": [],\r\n    \"LogConfig\": {\r\n      \"Type\": \"json-file\",\r\n      \"Config\": {}\r\n    },\r\n    \"SecurityOpt\": [],\r\n    \"StorageOpt\": {},\r\n    \"CgroupParent\": \"\",\r\n    \"VolumeDriver\": \"\",\r\n    \"ShmSize\": 67108864\r\n  },\r\n  \"NetworkingConfig\": {\r\n    \"EndpointsConfig\": {\r\n      \"isolated_nw\": {\r\n        \"IPAMConfig\": {\r\n          \"IPv4Address\": \"172.20.30.33\",\r\n          \"IPv6Address\": \"2001:db8:abcd::3033\",\r\n          \"LinkLocalIPs\": [\r\n            \"169.254.34.68\",\r\n            \"fe80::3468\"\r\n          ]\r\n        },\r\n        \"Links\": [\r\n          \"container_1\",\r\n          \"container_2\"\r\n        ],\r\n        \"Aliases\": [\r\n          \"server_x\",\r\n          \"server_y\"\r\n        ]\r\n      }\r\n    }\r\n  }\r\n}"
+            }
+          },
+          "SampleModule": {
+            "version": "1.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "localhost:5000/samplemodule:0.0.1-amd64",
+              "createOptions": ""
+            }
+          }
+        }
+      }
+    },
+    "$edgeHub": {
+      "properties.desired": {
+        "schemaVersion": "1.0",
+        "routes": {
+          "sensorToSampleModule": "FROM /messages/modules/tempSensor/outputs/temperatureOutput INTO BrokeredEndpoint(\"/modules/SampleModule/inputs/input1\")",
+          "SampleModuleToIoTHub": "FROM /messages/modules/SampleModule/outputs/output1 INTO $upstream"
+        },
+        "storeAndForwardConfiguration": {
+          "timeToLiveSecs": 7200
+        }
+      }
+    }
+  }
+}

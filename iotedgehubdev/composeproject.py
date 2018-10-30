@@ -14,6 +14,8 @@ from .compose_parser import CreateOptionParser
 
 COMPOSE_VERSION = 3.6
 
+CREATE_OPTIONS_MAX_CHUNKS = 100
+
 
 class ComposeProject(object):
 
@@ -33,7 +35,7 @@ class ComposeProject(object):
         modules.update(self.module_content['$edgeAgent']['properties.desired']['modules'])
         for service_name, config in modules.items():
             self.Services[service_name] = {}
-            create_option_str = config['settings']['createOptions']
+            create_option_str = ComposeProject._join_create_options(config['settings'])
             if create_option_str:
                 create_option = json.loads(create_option_str)
                 create_option_parser = CreateOptionParser(create_option)
@@ -182,3 +184,21 @@ class ComposeProject(object):
 
         with open(target, 'w') as f:
             f.write(yml_str)
+
+    @staticmethod
+    def _join_create_options(settings):
+        if 'createOptions' not in settings:
+            return ''
+
+        res = settings['createOptions']
+
+        i = 0
+        while True:
+            i += 1
+            key = 'createOptions{0:0=2d}'.format(i)
+            if i < CREATE_OPTIONS_MAX_CHUNKS and key in settings:
+                res += settings[key]
+            else:
+                break
+
+        return res
