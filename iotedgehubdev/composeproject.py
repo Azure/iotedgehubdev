@@ -14,7 +14,7 @@ from .compose_parser import CreateOptionParser
 
 COMPOSE_VERSION = 3.6
 
-CREATE_OPTIONS_MAX_CHUNKS = 7
+CREATE_OPTIONS_MAX_CHUNKS = 100
 
 
 class ComposeProject(object):
@@ -196,7 +196,7 @@ class ComposeProject(object):
         while True:
             i += 1
             key = 'createOptions{0:0=2d}'.format(i)
-            if i <= CREATE_OPTIONS_MAX_CHUNKS and key in settings:
+            if i < CREATE_OPTIONS_MAX_CHUNKS and key in settings:
                 res += settings[key]
             else:
                 break

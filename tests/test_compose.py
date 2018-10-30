@@ -307,21 +307,6 @@ class ComposeTest(unittest.TestCase):
             }''')
         assert ComposeProject._join_create_options(invalid_settings_3) == ''
 
-        invalid_settings_out_of_range = json.loads('''{
-            "createOptions": "{'Env': ['k1=v1', 'k2=v2', 'k3=v3'], 'HostConfig'",
-            "createOptions01": ": {'PortBindings': {'43/udp': [{'HostPort': '4",
-            "createOptions02": "3'}], '42/tcp': [{'HostPort': '42'",
-            "createOptions03": "}",
-            "createOptions04": "]",
-            "createOptions05": "}",
-            "createOptions06": "}",
-            "createOptions07": "}",
-            "createOptions08": "}"
-        }''')
-        assert ComposeProject._join_create_options(invalid_settings_out_of_range) == """{'Env': ['k1=v1', 'k2=v2', 'k3=v3'], 'HostConfig': {'PortBindings'\
-: {'43/udp': [{'HostPort': '43'}], '42/tcp': \
-[{'HostPort': '42'}]}}}"""
-
     def _run_compose_and_verify(self, deployment_json_file, actual_output_filename, expected_output_filename):
         test_resources_dir = os.path.join('tests', 'test_compose_resources')
         with open(os.path.join(test_resources_dir, deployment_json_file)) as json_file:
