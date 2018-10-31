@@ -4,7 +4,7 @@
 
 ### Changed
 * Update REST API version
-* Fix null key issue of EdgeHubDev
+* Fix "Error getting device scope result from IoTHub, HttpStatusCode: Unauthorized" issue after starting ([#95](https://github.com/Azure/iotedgehubdev/issues/95))
 
 ## 0.4.0 - 2018-10-12
 ### Changed
