@@ -5,14 +5,14 @@ jobs:
     steps:
       - template: darwin/continuous-build-darwin.yml
 
-  - job: Linux
-    pool:
-      vmImage: ubuntu-16.04
-    steps:
-      - template: linux/continuous-build-linux.yml
-
   - job: Windows
     pool:
       vmImage: win1803
     steps:
       - template: win32/continuous-build-win32.yml
+
+  - job: Linux
+    pool:
+      vmImage: ubuntu-16.04
+    steps:
+      - template: linux/continuous-build-linux.yml

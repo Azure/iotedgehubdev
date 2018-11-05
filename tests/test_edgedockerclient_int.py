@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-import platform
 import subprocess
 import time
 import unittest
@@ -49,8 +48,10 @@ class TestEdgeDockerClientSmoke(unittest.TestCase):
         os_type = client.get_os_type().lower()
         if os_type == 'linux':
             volume_path = '/{0}'.format(self.VOLUME_NAME)
+            script = 'sleep 20s'
         elif os_type == 'windows':
             volume_path = 'c:/{0}'.format(self.VOLUME_NAME)
+            script = 'ping -n 20 127.0.0.1 > nul'
         env_dict = {}
         env_dict['TEST_VOLUME_NAME'] = self.VOLUME_NAME
         client.pull(image_name, None, None)
@@ -60,24 +61,14 @@ class TestEdgeDockerClientSmoke(unittest.TestCase):
             mounts=[docker.types.Mount(volume_path, self.VOLUME_NAME)]
         )
         network_config = client.create_config_for_network(self.NETWORK_NAME)
-        vm_os_type = platform.system().lower()
-        if (vm_os_type == 'darwin') or (vm_os_type == 'linux'):
-            client.create_container(
-                image_name,
-                name=self.CONTAINER_NAME,
-                networking_config=network_config,
-                host_config=host_config,
-                volumes=[volume_path],
-                environment=env_dict,
-                command='sleep 20s')
-        elif (vm_os_type == 'windows'):
-            client.create_container(
-                image_name,
-                name=self.CONTAINER_NAME,
-                networking_config=network_config,
-                host_config=host_config,
-                volumes=[volume_path],
-                environment=env_dict)
+        client.create_container(
+            image_name,
+            name=self.CONTAINER_NAME,
+            networking_config=network_config,
+            host_config=host_config,
+            volumes=[volume_path],
+            environment=env_dict,
+            command=script)
         client.copy_file_to_volume(self.CONTAINER_NAME,
                                    self.VOLUME_NAME,
                                    'test_file_name.txt',
@@ -86,6 +77,7 @@ class TestEdgeDockerClientSmoke(unittest.TestCase):
 
     def _destroy_container(self, client):
         client.stop(self.CONTAINER_NAME)
+        time.sleep(5)
         status = client.status(self.CONTAINER_NAME)
         self.assertEqual('exited', status)
         client.remove(self.CONTAINER_NAME)
