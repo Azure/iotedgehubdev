@@ -13,6 +13,6 @@ jobs:
 
   # - job: macOS
   #   pool:
-  #     vmImage: xcode9-macos10.13
+  #     vmImage: macos10.13
   #   steps:
   #     - template: darwin/continuous-build-darwin.yml
