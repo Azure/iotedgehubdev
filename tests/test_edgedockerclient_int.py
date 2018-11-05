@@ -48,8 +48,10 @@ class TestEdgeDockerClientSmoke(unittest.TestCase):
         os_type = client.get_os_type().lower()
         if os_type == 'linux':
             volume_path = '/{0}'.format(self.VOLUME_NAME)
+            script = 'sleep 20s'
         elif os_type == 'windows':
             volume_path = 'c:/{0}'.format(self.VOLUME_NAME)
+            script = 'ping -n 20 127.0.0.1 > nul'
         env_dict = {}
         env_dict['TEST_VOLUME_NAME'] = self.VOLUME_NAME
         client.pull(image_name, None, None)
@@ -65,7 +67,8 @@ class TestEdgeDockerClientSmoke(unittest.TestCase):
             networking_config=network_config,
             host_config=host_config,
             volumes=[volume_path],
-            environment=env_dict)
+            environment=env_dict,
+            command=script)
         client.copy_file_to_volume(self.CONTAINER_NAME,
                                    self.VOLUME_NAME,
                                    'test_file_name.txt',
@@ -74,6 +77,7 @@ class TestEdgeDockerClientSmoke(unittest.TestCase):
 
     def _destroy_container(self, client):
         client.stop(self.CONTAINER_NAME)
+        time.sleep(5)
         status = client.status(self.CONTAINER_NAME)
         self.assertEqual('exited', status)
         client.remove(self.CONTAINER_NAME)
