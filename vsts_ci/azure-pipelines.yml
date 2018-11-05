@@ -1,7 +1,7 @@
 jobs:
   - job: MacOS
     pool:
-      vmImage: 'macos10.13'
+      vmImage: 'macOS-10.13'
     steps:
       - template: darwin/continuous-build-darwin.yml
 
