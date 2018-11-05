@@ -11,7 +11,7 @@ jobs:
     steps:
       - template: win32/continuous-build-win32.yml
 
-  # - job: macOS
+  # - job: MacOS
   #   pool:
   #     vmImage: xcode9-macos10.13
   #   steps:
