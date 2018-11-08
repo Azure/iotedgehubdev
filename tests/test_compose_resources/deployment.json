@@ -1,5 +1,5 @@
 {
-  "moduleContent": {
+  "modulesContent": {
     "$edgeAgent": {
       "properties.desired": {
         "schemaVersion": "1.0",
@@ -11,29 +11,27 @@
             "registryCredentials": {}
           }
         },
+
         "systemModules": {
           "edgeAgent": {
             "type": "docker",
             "settings": {
               "image": "mcr.microsoft.com/azureiotedge-agent:1.0",
-              "createOptions": ""
+              "createOptions": "{}"
             }
           },
+
           "edgeHub": {
             "type": "docker",
             "status": "running",
             "restartPolicy": "always",
             "settings": {
               "image": "mcr.microsoft.com/azureiotedge-hub:1.0",
-              "createOptions": "{\"HostConfig\":{\"PortBindings\":{\"8883/tcp\":[{\"HostPort\":\"8883\"}],\"443/tcp\":[{\"HostPort\":\"443\"}]}}}"
-            },
-            "env": {
-              "OptimizeForPerformance": {
-                "value": "false"
-              }
+              "createOptions": "{\"HostConfig\":{\"PortBindings\":{\"5671/tcp\":[{\"HostPort\":\"5671\"}], \"8883/tcp\":[{\"HostPort\":\"8883\"}],\"443/tcp\":[{\"HostPort\":\"443\"}]}}}"
             }
           }
         },
+
         "modules": {
           "tempSensor": {
             "version": "1.0",
@@ -42,38 +40,20 @@
             "restartPolicy": "always",
             "settings": {
               "image": "mcr.microsoft.com/azureiotedge-simulated-temperature-sensor:1.0",
-              "createOptions": ""
-            }
-          },
-          "SampleModule": {
-            "version": "1.0",
-            "type": "docker",
-            "status": "running",
-            "restartPolicy": "always",
-            "settings": {
-              "image": "localhost:5000/samplemodule:0.0.1-amd64",
-              "createOptions": "{\"Env\":[\"FOO=bar\",\"BAZ=quux\",\"test1\"]}"
-            },
-            "env":{
-              "FOO":{
-                "value":"rab"
-              },
-              "BAR":{
-                "value":"rua"
-              },
-              "test2":{}
+              "createOptions": "{}"
             }
           }
         }
       }
     },
+
     "$edgeHub": {
       "properties.desired": {
         "schemaVersion": "1.0",
         "routes": {
-          "sensorToSampleModule": "FROM /messages/modules/tempSensor/outputs/temperatureOutput INTO BrokeredEndpoint(\"/modules/SampleModule/inputs/input1\")",
-          "SampleModuleToIoTHub": "FROM /messages/modules/SampleModule/outputs/output1 INTO $upstream"
+          "tempSensorToIoTHub": "FROM /messages/modules/tempSensor/outputs/* INTO $upstream"
         },
+
         "storeAndForwardConfiguration": {
           "timeToLiveSecs": 7200
         }

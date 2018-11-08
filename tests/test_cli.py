@@ -10,7 +10,9 @@ from iotedgehubdev import cli
 filename = os.path.join(os.getcwd(), '.env')
 if os.path.exists(filename):
     load_dotenv(filename)
-VALID_DEVICECONNECTIONSTRING = os.environ['DEVICE_CONNECTION_STRING']
+VALID_DEVICECONNECTIONSTRING = ('HostName=iotedgehubdev-test.azure-devices.net;'
+                                'DeviceId=iotedgehubdevdevice-test;'
+                                'SharedAccessKey=arZR/OCz9r8/VE/ETKPrQ7uZZX9lLkpY7hYxKbg92H0=')
 
 
 @pytest.fixture
