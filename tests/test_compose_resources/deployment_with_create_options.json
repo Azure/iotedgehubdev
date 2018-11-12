@@ -1,0 +1,70 @@
+{
+  "moduleContent": {
+    "$edgeAgent": {
+      "properties.desired": {
+        "schemaVersion": "1.0",
+        "runtime": {
+          "type": "docker",
+          "settings": {
+            "minDockerVersion": "v1.25",
+            "loggingOptions": "",
+            "registryCredentials": {}
+          }
+        },
+
+        "systemModules": {
+          "edgeAgent": {
+            "type": "docker",
+            "settings": {
+              "image": "mcr.microsoft.com/azureiotedge-agent:1.0",
+              "createOptions": ""
+            }
+          },
+
+          "edgeHub": {
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "mcr.microsoft.com/azureiotedge-hub:1.0",
+              "createOptions": "{\"HostConfig\":{\"PortBindings\":",
+              "createOptions01": "{\"8883/tcp\":[{\"HostPort\":\"8883\"}],\"443/tcp\":[{\"HostPort\":\"443\"}]}}}"
+            }
+          }
+        },
+
+        "modules": {
+          "tempSensor": {
+            "version": "1.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "mcr.microsoft.com/azureiotedge-simulated-temperature-sensor:1.0",
+              "createOptions": "{\"Env\"",
+              "createOptions01": ": [\r\n    \"FOO1=bar1\",",
+              "createOptions02": "\"FOO2=bar2\",\r\n",
+              "createOptions03": "\"FOO3=bar3\",\r\n",
+              "createOptions04": "\"FOO4=bar4\",\r\n",
+              "createOptions05": "\"FOO5=bar5\",\r\n",
+              "createOptions06": "\"FOO6=bar6\",\r\n",
+              "createOptions07": "\"FOO7=bar7\"\r\n]}"
+            }
+          }
+        }
+      }
+    },
+
+    "$edgeHub": {
+      "properties.desired": {
+        "schemaVersion": "1.0",
+        "routes": {
+          "sensorToIoTHub": "FROM /messages/modules/tempSensor/outputs/output1 INTO $upstream"
+        },
+        "storeAndForwardConfiguration": {
+          "timeToLiveSecs": 7200
+        }
+      }
+    }
+  }
+}
