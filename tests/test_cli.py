@@ -72,6 +72,15 @@ def invoke_module_method():
         raise "Failed to invoke module method."
 
 
+def monitor_d2c_message():
+    device_id = get_device_id_from_device_connection_string()
+    iothub_name = get_iothub_name_from_device_connection_string()
+    invoke_monitor_events_cmd = 'az iot hub monitor-events -n "' + iothub_name + \
+        '" -d "' + device_id + '" --login "' + VALID_IOTHUBCONNECTIONSTRING + '" -y -t 5'
+    output = start_process(invoke_monitor_events_cmd, True)
+    return output
+
+
 def cli_stop(runner):
     result = runner.invoke(cli.stop)
     assert not result.exception
@@ -89,14 +98,13 @@ def reset_docker_environment():
 def verify_docker_output(docker_cmd, expect_values):
     result = start_process(docker_cmd, False)
     print('Process result is: \n %s \n' % (result))
-    expect_value_list = expect_values.split('|')
-    for expect_value in expect_value_list:
+    for expect_value in expect_values:
         if expect_value in result:
             print('%s is in process result.\n' % (expect_value))
-            return True
         else:
             print('%s is not in process result.\n' % (expect_value))
             return False
+    return True
 
 
 def wait_verify_docker_output(docker_cmd, expect_values):
@@ -131,10 +139,14 @@ def test_cli_start_with_deployment(runner):
     try:
         cli_setup(runner)
         cli_start_with_deployment(runner, 'deployment_without_custom_module.json')
-        wait_verify_docker_output(['docker', 'logs', 'edgeHubDev'], 'Opened link')
-        wait_verify_docker_output(['docker', 'logs', 'tempSensor'], 'Sending message')
+        wait_verify_docker_output(['docker', 'logs', 'edgeHubDev'], ['Opened link'])
+        wait_verify_docker_output(['docker', 'logs', 'tempSensor'], ['Sending message'])
         invoke_module_method()
-        wait_verify_docker_output(['docker', 'logs', 'tempSensor'], 'Received direct method')
+        wait_verify_docker_output(['docker', 'logs', 'tempSensor'], ['Received direct method'])
+        output = monitor_d2c_message()
+        device_id = get_device_id_from_device_connection_string()
+        assert 'origin: ' + device_id in str(output)
+        assert '{"machine":{"temperature":' in str(output)
     finally:
         cli_stop(runner)
         reset_docker_environment()
@@ -190,11 +202,11 @@ def test_cli_create_options_for_custom_volume(runner):
         cli_setup(runner)
         remove_docker_volume('testVolume')
         cli_start_with_deployment(runner, 'deployment_with_custom_volume.json')
-        wait_verify_docker_output(['docker', 'volume', 'ls'], 'testVolume')
-        expected_volumes = ('"Source": "testVolume"'
-                            '|"Destination": "/mnt_test"'
-                            '|"Source": "edgemoduledev"'
-                            '|"Destination": "/mnt/edgemodule"')
+        wait_verify_docker_output(['docker', 'volume', 'ls'], ['testVolume'])
+        expected_volumes = (['"Source": "testVolume"',
+                             '"Destination": "/mnt_test"',
+                             '"Source": "edgemoduledev"',
+                             '"Destination": "/mnt/edgemodule"'])
         wait_verify_docker_output(['docker', 'inspect', 'tempSensor'], expected_volumes)
     finally:
         cli_stop(runner)
@@ -215,10 +227,10 @@ def test_cli_start_with_chunked_create_options(runner):
     try:
         cli_setup(runner)
         cli_start_with_deployment(runner, 'deployment_with_create_options.json')
-        wait_verify_docker_output(['docker', 'logs', 'edgeHubDev'], 'Opened link')
-        wait_verify_docker_output(['docker', 'logs', 'tempSensor'], 'Sending message')
-        wait_verify_docker_output(['docker', 'inspect', 'tempSensor'],
-                                  'FOO1=bar1|FOO2=bar2|FOO3=bar3|FOO4=bar4|FOO5=bar5|FOO6=bar6|FOO7=bar7')
+        wait_verify_docker_output(['docker', 'logs', 'edgeHubDev'], ['Opened link'])
+        wait_verify_docker_output(['docker', 'logs', 'tempSensor'], ['Sending message'])
+        expect_createoptions = ['FOO1=bar1', 'FOO2=bar2', 'FOO3=bar3', 'FOO4=bar4', 'FOO5=bar5', 'FOO6=bar6', 'FOO7=bar7']
+        wait_verify_docker_output(['docker', 'inspect', 'tempSensor'], expect_createoptions)
     finally:
         cli_stop(runner)
         reset_docker_environment()
