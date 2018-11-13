@@ -39,7 +39,7 @@ def update_setting_ini_as_firsttime():
 def cli_setup(runner):
     result = runner.invoke(cli.setup, ['-c', VALID_DEVICECONNECTIONSTRING, '-g', 'iotedgetestingnow'])
     if 'Setup IoT Edge Simulator successfully' not in result.output.strip():
-        raise 'It failed to setup iotedgehubdev.'
+        raise Exception(result.stdout)
 
 
 def start_process(command, is_shell):
@@ -47,9 +47,9 @@ def start_process(command, is_shell):
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output, error = process.communicate()
     if process.returncode == 0:
-        print('Process Output Message:\n' + str(output))
+        print('Process Output Message:\n' + str(output) + '\n')
     else:
-        raise 'Process Error Message:\n' + str(error)
+        raise Exception(error)
     return str(output)
 
 
@@ -58,7 +58,7 @@ def cli_start_with_deployment(runner, deployment_file):
     deployment_json_file_path = os.path.join(test_resources_dir, deployment_file)
     result = runner.invoke(cli.start, ['-d', deployment_json_file_path])
     if 'IoT Edge Simulator has been started in solution mode' not in result.output.strip():
-        raise 'It failed to start with deployment file.'
+        raise Exception(result.stdout)
 
 
 def invoke_module_method():
@@ -67,7 +67,7 @@ def invoke_module_method():
         iothub_name + '" --login "' + VALID_IOTHUBCONNECTIONSTRING + '"'
     output = start_process(invoke_module_method_cmd, True)
     if '"status": 200' not in str(output):
-        raise "Failed to invoke module method."
+        raise Exception('Failed to invoke module method.\n')
 
 
 def monitor_d2c_message():
@@ -82,7 +82,7 @@ def cli_stop(runner):
     if result.exit_code == 0:
         return result
     else:
-        raise 'Failed to stop iotedgehubdev. Error Message: \n' + result.exception + '\n'
+        raise Exception(result.stdout)
 
 
 def verify_docker_output(docker_cmd, expect_values):
@@ -104,7 +104,8 @@ def wait_verify_docker_output(docker_cmd, expect_values):
         time.sleep(10)
         times += 1
         if times > 360:
-            raise "timeout to wait until it appears expected value " + expect_values + "... ...\n"
+            raise Exception('Timeout to wait until it appears expected value ' +
+                            str(expect_values) + '... ...\n')
 
 
 def remove_docker_volumes(volumes):
@@ -198,7 +199,8 @@ def test_cli_create_options_for_custom_volume(runner):
         cli_setup(runner)
         remove_docker_volumes(['testVolume'])
         cli_start_with_deployment(runner, 'deployment_with_custom_volume.json')
-        wait_verify_docker_output(['docker', 'volume', 'ls'], ['testVolume', 'edgemoduledev', 'edgehubdev'])
+        wait_verify_docker_output(['docker', 'volume', 'ls'],
+                                  ['testVolume', 'edgemoduledev', 'edgehubdev'])
         expected_volumes = (['"Source": "testVolume"',
                              '"Destination": "/mnt_test"',
                              '"Source": "edgemoduledev"',
@@ -231,7 +233,8 @@ def test_cli_start_with_chunked_create_options(runner):
         cli_start_with_deployment(runner, 'deployment_with_create_options.json')
         wait_verify_docker_output(['docker', 'logs', 'edgeHubDev'], ['Opened link'])
         wait_verify_docker_output(['docker', 'logs', 'tempSensor'], ['Sending message'])
-        expect_createoptions = ['FOO1=bar1', 'FOO2=bar2', 'FOO3=bar3', 'FOO4=bar4', 'FOO5=bar5', 'FOO6=bar6', 'FOO7=bar7']
+        expect_createoptions = ['FOO1=bar1', 'FOO2=bar2', 'FOO3=bar3',
+                                'FOO4=bar4', 'FOO5=bar5', 'FOO6=bar6', 'FOO7=bar7']
         wait_verify_docker_output(['docker', 'inspect', 'tempSensor'], expect_createoptions)
     finally:
         result = cli_stop(runner)
