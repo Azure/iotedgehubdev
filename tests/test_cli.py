@@ -67,7 +67,7 @@ def invoke_module_method():
         iothub_name + '" --login "' + VALID_IOTHUBCONNECTIONSTRING + '"'
     output = start_process(invoke_module_method_cmd, True)
     if '"status": 200' not in str(output):
-        raise Exception('Failed to invoke module method.\n')
+        raise Exception('Failed to invoke module method.')
 
 
 def monitor_d2c_message():
@@ -104,8 +104,7 @@ def wait_verify_docker_output(docker_cmd, expect_values):
         time.sleep(10)
         times += 1
         if times > 360:
-            raise Exception('Timeout to wait until it appears expected value ' +
-                            str(expect_values) + '... ...\n')
+            raise Exception('Timeout to wait until it appears expected value ' + str(expect_values))
 
 
 def remove_docker_volumes(volumes):
