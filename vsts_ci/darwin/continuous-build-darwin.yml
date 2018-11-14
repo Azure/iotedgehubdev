@@ -7,6 +7,11 @@ steps:
       architecture: "x64"
 
   - script: |
+      az extension add --name azure-cli-iot-ext
+      az --version
+    displayName: "Install Azure Cli iot extension"
+
+  - script: |
       pip install --upgrade pip
       pip install --upgrade tox
     displayName: "Update and install required tools"
@@ -21,10 +26,12 @@ steps:
       sudo chmod u+s $(brew --prefix)/opt/docker-machine-driver-xhyve/bin/docker-machine-driver-xhyve
       mkdir -p /Users/vsts/.docker/machine/cache
       curl -Lo /Users/vsts/.docker/machine/cache/boot2docker.iso https://github.com/boot2docker/boot2docker/releases/download/v18.06.1-ce/boot2docker.iso
-      docker-machine create --driver xhyve default
+      docker-machine create default --driver xhyve --xhyve-boot2docker-url /Users/vsts/.docker/machine/cache/boot2docker.iso
       docker-machine env default
       eval $(docker-machine env default)
       brew services start docker-machine
       brew install docker-compose
+      docker version
       sudo -E tox
+      docker-machine rm default -f -y
     displayName: "Install docker and run tests against iotedgehubdev source code with tox"

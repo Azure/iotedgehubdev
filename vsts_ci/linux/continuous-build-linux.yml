@@ -9,6 +9,8 @@ steps:
   - script: |
       pip install --upgrade pip
       pip install --upgrade tox
+      az extension add --name azure-cli-iot-ext
+      az --version
     displayName: "Update and install required tools"
 
   - script: |

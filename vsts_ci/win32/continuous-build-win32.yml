@@ -1,8 +1,16 @@
 steps:
-  - script: |
+  - powershell: |
+      choco install azure-cli
+      $env:Path += ";C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin"
+      az extension add --name azure-cli-iot-ext
+      az --version
+    displayName: "Install Azure Cli And Azure Cli Extension"
+
+  - powershell: |
+      $env:Path += ";C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin"
       choco install python2
       choco install python --version 3.6.6
-      set PATH=%PATH%;C:\Python36;C:\Python36\Scripts
+      $env:Path += ";C:\Python36;C:\Python36\Scripts"
       python -m pip install --upgrade pip
       pip install tox
       tox
