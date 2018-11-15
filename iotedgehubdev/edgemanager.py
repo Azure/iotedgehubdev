@@ -12,7 +12,7 @@ from .composeproject import ComposeProject
 from .constants import EdgeConstants as EC
 from .edgecert import EdgeCert
 from .edgedockerclient import EdgeDockerClient
-from .errors import ResponseError
+from .errors import ResponseError, RegistriesLoginError
 from .hostplatform import HostPlatform
 from .utils import Utils
 
@@ -120,12 +120,7 @@ class EdgeManager(object):
             self.edge_cert.get_cert_file_path(EC.EDGE_DEVICE_CA))
         edgedockerclient.start(inputContainer.get('Id'))
 
-    def config_solution(self, deployment_config, target, mount_base):
-        if 'modulesContent' in deployment_config:
-            module_content = deployment_config['modulesContent']
-        elif 'moduleContent' in deployment_config:
-            module_content = deployment_config['moduleContent']
-
+    def config_solution(self, module_content, target, mount_base):
         module_names = [EdgeManager.EDGEHUB_MODULE]
         custom_modules = module_content['$edgeAgent']['properties.desired']['modules']
         for module_name in custom_modules:
@@ -173,7 +168,7 @@ class EdgeManager(object):
         compose_project.compose()
         compose_project.dump(target)
 
-    def start_solution(self, deployment_config, verbose):
+    def start_solution(self, module_content, verbose):
         edgedockerclient = EdgeDockerClient()
         mount_base = self._obtain_mount_path(edgedockerclient)
         if not mount_base:
@@ -183,7 +178,7 @@ class EdgeManager(object):
         self._prepare(edgedockerclient)
         self._prepare_cert(edgedockerclient, mount_base)
 
-        self.config_solution(deployment_config, EdgeManager.COMPOSE_FILE, mount_base)
+        self.config_solution(module_content, EdgeManager.COMPOSE_FILE, mount_base)
 
         cmd_pull = ['docker-compose', '-f', EdgeManager.COMPOSE_FILE, 'pull', EdgeManager.EDGEHUB]
         Utils.exe_proc(cmd_pull)
@@ -192,6 +187,23 @@ class EdgeManager(object):
         else:
             cmd_up = ['docker-compose', '-f', EdgeManager.COMPOSE_FILE, 'up', '-d']
         Utils.exe_proc(cmd_up)
+
+    def loginRegistries(self, module_content):
+        registryCredentials = module_content['$edgeAgent']['properties.desired']['runtime']['settings']['registryCredentials']
+        if not registryCredentials:
+            return
+        failLogin = []
+        errMsg = ''
+        for key in registryCredentials:
+            value = registryCredentials[key]
+            try:
+                cmd_login = ['docker', 'login', '-u', value['username'], '-p', value['password'], value['address']]
+                Utils.exe_proc(cmd_login)
+            except Exception as e:
+                failLogin.append(key)
+                errMsg += '{0}\n'.format(str(e))
+        if failLogin:
+            raise RegistriesLoginError(failLogin, errMsg)
 
     def _prepare_cert(self, edgedockerclient, mount_base):
         status = edgedockerclient.status(EdgeManager.CERT_HELPER)
