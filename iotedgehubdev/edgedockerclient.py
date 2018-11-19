@@ -51,14 +51,6 @@ class EdgeDockerClient(object):
             local_id = None
         return local_id
 
-    def login(self, address, username, password):
-        try:
-            res = self._client.login(username, password, None, address, True, None)
-            self.pull('shenweiotregistry.azurecr.io/samplemodule:0.0.1-amd64', None, None)
-        except docker.errors.APIError as ex:
-            msg = 'Error during login {0}'.format(address)
-            raise EdgeDeploymentError(msg, ex)
-
     def pull(self, image, username, password):
         old_id = self.get_local_image_sha_id(image)
         try:

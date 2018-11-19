@@ -188,7 +188,8 @@ class EdgeManager(object):
             cmd_up = ['docker-compose', '-f', EdgeManager.COMPOSE_FILE, 'up', '-d']
         Utils.exe_proc(cmd_up)
 
-    def loginRegistries(self, module_content):
+    @staticmethod
+    def loginRegistries(module_content):
         registryCredentials = module_content['$edgeAgent']['properties.desired']['runtime']['settings']['registryCredentials']
         if not registryCredentials:
             return
