@@ -190,7 +190,11 @@ class EdgeManager(object):
 
     @staticmethod
     def loginRegistries(module_content):
-        registryCredentials = module_content['$edgeAgent']['properties.desired']['runtime']['settings']['registryCredentials']
+        registryCredentials = None
+        if module_content['$edgeAgent']['properties.desired']['runtime']:
+            settings = module_content['$edgeAgent']['properties.desired']['runtime']['settings']
+            if settings:
+                registryCredentials = settings['registryCredentials']
         if not registryCredentials:
             return
         failLogin = []

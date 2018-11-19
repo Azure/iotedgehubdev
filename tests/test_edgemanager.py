@@ -5,7 +5,7 @@ from iotedgehubdev.errors import RegistriesLoginError
 
 class TestEdgeManager(unittest.TestCase):
 
-    def test_LoginRegistries(self):
+    def test_LoginRegistriesFail(self):
         moduleContent = {
             "$edgeAgent": {
                 "properties.desired": {
@@ -45,3 +45,17 @@ class TestEdgeManager(unittest.TestCase):
             self.assertEqual(4, len(e.registries))
             return
         self.fail("No expception throws when registries login fail")
+
+    def test_noRegistries(self):
+        moduleContent = {
+            "$edgeAgent": {
+                "properties.desired": {
+                    "schemaVersion": "1.0",
+                    "runtime": {}
+                }
+            }
+        }
+        try:
+            EdgeManager.loginRegistries(moduleContent)
+        except Exception:
+            self.fail("No expception should be raised when there is no registry")
