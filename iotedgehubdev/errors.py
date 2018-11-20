@@ -45,7 +45,19 @@ class ResponseError(Exception):
         self.status_code = status_code
 
     def message(self):
-        return ("Code:{0}. Detail:{1}").format(self.status_code, self.value)
+        return ('Code:{0}. Detail:{1}').format(self.status_code, self.value)
 
     def status(self):
         return self.status_code
+
+
+class RegistriesLoginError(Exception):
+    def __init__(self, registries, errmsg):
+        self._registries = registries
+        self._errmsg = errmsg
+
+    def message(self):
+        return ('Fail to login {0}. Detail: {1}').format(self._registries, self._errmsg)
+
+    def registries(self):
+        return self._registries

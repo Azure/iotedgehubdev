@@ -13,16 +13,17 @@ from iotedgehubdev import configs
 from iotedgehubdev.edgedockerclient import EdgeDockerClient
 from iotedgehubdev.hostplatform import HostPlatform
 
-VALID_DEVICECONNECTIONSTRING = os.environ['DEVICE_CONNECTION_STRING']
-VALID_IOTHUBCONNECTIONSTRING = os.environ['IOTHUB_CONNECTION_STRING']
-
-device_id = re.findall(".*DeviceId=(.*);SharedAccessKey.*", VALID_DEVICECONNECTIONSTRING)[0]
-iothub_name = re.findall(".*HostName=(.*);DeviceId.*", VALID_DEVICECONNECTIONSTRING)[0].split('.')[0]
 workingdirectory = os.getcwd()
 filename = os.path.join(workingdirectory, '.env')
 if os.path.exists(filename):
     load_dotenv(filename)
 docker_client = EdgeDockerClient()
+
+VALID_DEVICECONNECTIONSTRING = os.environ['DEVICE_CONNECTION_STRING']
+VALID_IOTHUBCONNECTIONSTRING = os.environ['IOTHUB_CONNECTION_STRING']
+
+device_id = re.findall(".*DeviceId=(.*);SharedAccessKey.*", VALID_DEVICECONNECTIONSTRING)[0]
+iothub_name = re.findall(".*HostName=(.*);DeviceId.*", VALID_DEVICECONNECTIONSTRING)[0].split('.')[0]
 
 
 @pytest.fixture
