@@ -12,6 +12,7 @@ import click
 from . import configs, decorators, telemetry
 from .edgecert import EdgeCert
 from .edgemanager import EdgeManager
+from .errors import RegistriesLoginError
 from .hostplatform import HostPlatform
 from .output import Output
 from .utils import Utils
@@ -205,7 +206,16 @@ def start(inputs, port, deployment, verbose):
         try:
             with open(deployment) as json_file:
                 json_data = json.load(json_file)
-            edgeManager.start_solution(json_data, verbose)
+                if 'modulesContent' in json_data:
+                    module_content = json_data['modulesContent']
+                elif 'moduleContent' in json_data:
+                    module_content = json_data['moduleContent']
+            try:
+                EdgeManager.login_registries(module_content)
+            except RegistriesLoginError as e:
+                output.info('Warn: {0}'.format(e.message()))
+                telemetry.add_extra_props({'failloginregistries': len(e.registries())})
+            edgeManager.start_solution(module_content, verbose)
             if not verbose:
                 output.info('IoT Edge Simulator has been started in solution mode.')
         except Exception as e:
