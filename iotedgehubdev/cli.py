@@ -211,7 +211,7 @@ def start(inputs, port, deployment, verbose):
                 elif 'moduleContent' in json_data:
                     module_content = json_data['moduleContent']
             try:
-                EdgeManager.loginRegistries(module_content)
+                EdgeManager.login_registries(module_content)
             except RegistriesLoginError as e:
                 output.info('Warn: {0}'.format(e.message()))
                 telemetry.add_extra_props({'failloginregistries': len(e.getRegistries())})

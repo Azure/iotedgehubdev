@@ -189,12 +189,9 @@ class EdgeManager(object):
         Utils.exe_proc(cmd_up)
 
     @staticmethod
-    def loginRegistries(module_content):
-        registryCredentials = None
-        if module_content['$edgeAgent']['properties.desired']['runtime']:
-            settings = module_content['$edgeAgent']['properties.desired']['runtime']['settings']
-            if settings:
-                registryCredentials = settings['registryCredentials']
+    def login_registries(module_content):
+        registryCredentials = module_content.get('$edgeAgent', {}).get('properties.desired', {}).get(
+            'runtime', {}).get('settings', {}).get('registryCredentials')
         if not registryCredentials:
             return
         failLogin = []
