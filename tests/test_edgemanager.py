@@ -42,7 +42,7 @@ class TestEdgeManager(unittest.TestCase):
         try:
             EdgeManager.login_registries(moduleContent)
         except RegistriesLoginError as e:
-            self.assertEqual(4, len(e.registries))
+            self.assertEqual(4, len(e.registries()))
             return
         self.fail("No expception throws when registries login fail")
 

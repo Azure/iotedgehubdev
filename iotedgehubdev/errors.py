@@ -53,11 +53,11 @@ class ResponseError(Exception):
 
 class RegistriesLoginError(Exception):
     def __init__(self, registries, errmsg):
-        self.registries = registries
-        self.errmsg = errmsg
+        self._registries = registries
+        self._errmsg = errmsg
 
     def message(self):
-        return ('Fail to login {0}. Detail: {1}').format(self.registries, self.errmsg)
+        return ('Fail to login {0}. Detail: {1}').format(self._registries, self._errmsg)
 
-    def getRegistries(self):
-        return self.registries
+    def registries(self):
+        return self._registries

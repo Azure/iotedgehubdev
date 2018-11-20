@@ -214,7 +214,7 @@ def start(inputs, port, deployment, verbose):
                 EdgeManager.login_registries(module_content)
             except RegistriesLoginError as e:
                 output.info('Warn: {0}'.format(e.message()))
-                telemetry.add_extra_props({'failloginregistries': len(e.getRegistries())})
+                telemetry.add_extra_props({'failloginregistries': len(e.registries())})
             edgeManager.start_solution(module_content, verbose)
             if not verbose:
                 output.info('IoT Edge Simulator has been started in solution mode.')
