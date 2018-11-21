@@ -22,7 +22,7 @@ jobs:
       - MacOS
       - Windows
       - Linux
-    condition: and(succeeded('MacOS'), succeeded('Windows'), succeeded('Linux'))
+    condition: and(succeeded('MacOS'), succeeded('Windows'), succeeded('Linux'), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
     pool:
       vmImage: "ubuntu-16.04"
 
