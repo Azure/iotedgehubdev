@@ -153,12 +153,13 @@ class EdgeCertUtil(object):
 
         passphrase = self._get_kwargs_passphrase(**kwargs)
 
-        min_length = self._subject_validation_dict[EC.SUBJECT_COMMON_NAME_KEY]['MIN']
         max_length = self._subject_validation_dict[EC.SUBJECT_COMMON_NAME_KEY]['MAX']
-        hostname = self._get_kwargs_string('hostname', min_length, max_length, **kwargs)
+        hostname = kwargs.get('hostname', None)
         if hostname is None:
             msg = 'Invalid hostname: {0}'.format(hostname)
             raise EdgeValueError(msg)
+        # CN length is limited to 64. Since the certificate is used internally so just cut to 64.
+        common_name = hostname if len(hostname) <= max_length else hostname[:max_length]
 
         try:
             issuer_cert_dict = self._cert_chain[issuer_id_str]
@@ -171,7 +172,7 @@ class EdgeCertUtil(object):
                                        L=issuer_cert.get_subject().localityName,
                                        O=issuer_cert.get_subject().organizationName,
                                        OU=issuer_cert.get_subject().organizationalUnitName,
-                                       CN=hostname)
+                                       CN=common_name)
             not_after_ts = issuer_cert.get_notAfter()
             valid_days = self._get_maximum_validity_days(not_after_ts,
                                                          validity_days_from_now)
