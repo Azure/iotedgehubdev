@@ -15,3 +15,6 @@ steps:
       pip install tox
       tox
     displayName: "Run tests against iotedgehubdev source code"
+    env:
+      DEVICE_CONNECTION_STRING: $(DEVICE_CONNECTION_STRING)
+      IOTHUB_CONNECTION_STRING: $(IOTHUB_CONNECTION_STRING)
