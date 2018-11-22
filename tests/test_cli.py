@@ -41,7 +41,7 @@ def update_setting_ini_as_firsttime():
 def cli_setup(runner):
     result = runner.invoke(cli.setup, ['-c', VALID_DEVICECONNECTIONSTRING, '-g', 'iotedgetestingnow'])
     if 'Setup IoT Edge Simulator successfully' not in result.output.strip():
-        raise Exception(result.stdout)
+        raise Exception(result.stdout.replace(VALID_DEVICECONNECTIONSTRING, '******'))
 
 
 def start_process(command, is_shell):
@@ -51,6 +51,7 @@ def start_process(command, is_shell):
     if process.returncode == 0:
         print('Process Output Message:\n' + str(output) + '\n')
     else:
+        command = command.replace(VALID_IOTHUBCONNECTIONSTRING, '******')
         raise Exception(error)
     return str(output)
 
