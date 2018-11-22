@@ -20,7 +20,7 @@ if os.path.exists(filename):
     load_dotenv(filename)
 docker_client = EdgeDockerClient()
 
-VALID_DEVICECONNECTIONSTRING = os.environ[platform.system().upper() + 'DEVICE_CONNECTION_STRING']
+VALID_DEVICECONNECTIONSTRING = os.environ[platform.system().upper() + '_DEVICE_CONNECTION_STRING']
 VALID_IOTHUBCONNECTIONSTRING = os.environ['IOTHUB_CONNECTION_STRING']
 
 device_id = re.findall(".*DeviceId=(.*);SharedAccessKey.*", VALID_DEVICECONNECTIONSTRING)[0]
