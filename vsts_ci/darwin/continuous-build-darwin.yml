@@ -36,5 +36,5 @@ steps:
       docker-machine rm default -f -y
     displayName: "Install docker and run tests against iotedgehubdev source code with tox"
     env:
-      DEVICE_CONNECTION_STRING: $(DEVICE_CONNECTION_STRING)
+      DARWIN_DEVICE_CONNECTION_STRING: $(DARWIN_DEVICE_CONNECTION_STRING)
       IOTHUB_CONNECTION_STRING: $(IOTHUB_CONNECTION_STRING)

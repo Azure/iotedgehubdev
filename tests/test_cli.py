@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 import os
+import platform
 import pytest
 import re
 import subprocess
@@ -19,7 +20,7 @@ if os.path.exists(filename):
     load_dotenv(filename)
 docker_client = EdgeDockerClient()
 
-VALID_DEVICECONNECTIONSTRING = os.environ['DEVICE_CONNECTION_STRING']
+VALID_DEVICECONNECTIONSTRING = os.environ[platform.system().upper() + '_DEVICE_CONNECTION_STRING']
 VALID_IOTHUBCONNECTIONSTRING = os.environ['IOTHUB_CONNECTION_STRING']
 
 device_id = re.findall(".*DeviceId=(.*);SharedAccessKey.*", VALID_DEVICECONNECTIONSTRING)[0]
@@ -50,6 +51,7 @@ def start_process(command, is_shell):
     if process.returncode == 0:
         print('Process Output Message:\n' + str(output) + '\n')
     else:
+        command = command.replace(VALID_IOTHUBCONNECTIONSTRING, '******')
         raise Exception(error)
     return str(output)
 
