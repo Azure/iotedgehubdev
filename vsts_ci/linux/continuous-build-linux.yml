@@ -17,5 +17,5 @@ steps:
       sudo -E `which tox`
     displayName: "Run tests against iotedgehubdev source code with tox"
     env:
-      DEVICE_CONNECTION_STRING: $(DEVICE_CONNECTION_STRING)
+      LINUX_DEVICE_CONNECTION_STRING: $(LINUX_DEVICE_CONNECTION_STRING)
       IOTHUB_CONNECTION_STRING: $(IOTHUB_CONNECTION_STRING)
