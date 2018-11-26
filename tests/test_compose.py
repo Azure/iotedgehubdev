@@ -206,7 +206,7 @@ class ComposeTest(unittest.TestCase):
                 "/mnt/edgehub": {}
             },
             'Binds': {
-                '/tmp:/tmp:ro'
+                '/tmp:/tmp2:ro'
             }
         }
 
@@ -236,7 +236,7 @@ class ComposeTest(unittest.TestCase):
                 }
             },
             {
-                'target': '/tmp',
+                'target': '/tmp2',
                 'type': 'bind',
                 'source': '/tmp',
                 'read_only': True
@@ -247,7 +247,7 @@ class ComposeTest(unittest.TestCase):
 
         binds_config = {
             'Binds': {
-                '/tmp:/tmp'
+                'c:\\tmp:/tmp'
             }
         }
 
@@ -255,7 +255,7 @@ class ComposeTest(unittest.TestCase):
             {
                 'target': '/tmp',
                 'type': 'bind',
-                'source': '/tmp'
+                'source': 'c:\\tmp'
             }
         ]
 
