@@ -261,6 +261,24 @@ class ComposeTest(unittest.TestCase):
 
         assert volumes_list == iotedgehubdev.compose_parser.service_parser_volumes(binds_config)
 
+        invalid_binds_config = {
+            'Binds': {
+                'c:\\tmp:/tmp:r'
+            }
+        }
+
+        with pytest.raises(ValueError):
+            iotedgehubdev.compose_parser.service_parser_volumes(invalid_binds_config)
+
+        invalid_binds_config = {
+            'Binds': {
+                'c:\\tmp'
+            }
+        }
+
+        with pytest.raises(ValueError):
+            iotedgehubdev.compose_parser.service_parser_volumes(invalid_binds_config)
+
     def test_invalid_service_parser_volumes(self):
         volumes_config = {
             'Mounts': [
