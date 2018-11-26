@@ -204,6 +204,9 @@ class ComposeTest(unittest.TestCase):
             ],
             'Volumes': {
                 "/mnt/edgehub": {}
+            },
+            'Binds': {
+                '/tmp:/tmp:ro'
             }
         }
 
@@ -231,10 +234,32 @@ class ComposeTest(unittest.TestCase):
                 'tmpfs': {
                     'size': 65536
                 }
+            },
+            {
+                'target': '/tmp',
+                'type': 'bind',
+                'source': '/tmp',
+                'read_only': True
             }
         ]
 
         assert volumes_list == iotedgehubdev.compose_parser.service_parser_volumes(volumes_config)
+
+        binds_config = {
+            'Binds': {
+                '/tmp:/tmp'
+            }
+        }
+
+        volumes_list = [
+            {
+                'target': '/tmp',
+                'type': 'bind',
+                'source': '/tmp'
+            }
+        ]
+
+        assert volumes_list == iotedgehubdev.compose_parser.service_parser_volumes(binds_config)
 
     def test_invalid_service_parser_volumes(self):
         volumes_config = {
