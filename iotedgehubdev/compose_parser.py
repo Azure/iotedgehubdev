@@ -190,7 +190,7 @@ def service_parser_volumes(create_options_details):
 
             volumes_list.append(volume_info)
         else:
-            raise ValueError('Invalid create option Binds'.format(bind))
+            raise ValueError('Invalid create option Binds: {0}'.format(bind))
 
     return volumes_list
 
