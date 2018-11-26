@@ -66,6 +66,9 @@ services:
     - source: edgemoduledev
       target: /mnt/edgemodule
       type: volume
+    - source: /tmp
+      target: /tmp
+      type: bind
     working_dir: ''
   edgeHubDev:
     container_name: edgeHubDev

@@ -147,7 +147,7 @@ def service_parser_networks(create_options_details):
 
 def service_parser_volumes(create_options_details):
     volumes_list = []
-    for mount in create_options_details['Mounts']:
+    for mount in create_options_details.get('Mounts', []):
         try:
             volume_info = {
                 'target': mount['Target'],
@@ -176,6 +176,22 @@ def service_parser_volumes(create_options_details):
         except KeyError as e:
             raise KeyError('Missing key {0} in create option HostConfig Mounts.'.format(e))
         volumes_list.append(volume_info)
+
+    for bind in create_options_details.get('Binds', []):
+        parts = bind.split(':')
+        if len(parts) == 2 or (len(parts) == 3 and parts[2] == 'ro'):
+            volume_info = {
+                'type': 'bind',
+                'source': parts[0],
+                'target': parts[1]
+            }
+            if len(parts) == 3:
+                volume_info['read_only'] = True
+
+            volumes_list.append(volume_info)
+        else:
+            raise ValueError('Invalid create option Binds'.format(bind))
+
     return volumes_list
 
 
@@ -235,7 +251,10 @@ COMPOSE_KEY_CREATE_OPTION_MAPPING = {
 
     # Volumes
     'volumes': {
-        'API_Info': {'Mounts': "$['HostConfig']['Mounts']"},
+        'API_Info': {
+            'Mounts': "$['HostConfig']['Mounts']",
+            'Binds': "$['HostConfig']['Binds']"
+        },
         'parser_func': service_parser_volumes
     },
 
