@@ -179,10 +179,8 @@ def service_parser_volumes(create_options_details):
         volumes_list.append(volume_info)
 
     for bind in create_options_details.get('Binds', []):
-        # Replace colons, except those in front of backslashes, which can be a part of Windows paths, with semicolons
-        bind_semicolon = re.sub(r':([^\\])', r';\1', bind)
-
-        parts = bind_semicolon.split(';')
+        # Split bind by colons, except those followed by backslashes, which can be a part of Windows paths
+        parts = re.split(r':(?=[^\\])', bind)
         if len(parts) == 2 or (len(parts) == 3 and parts[2] == 'ro'):
             volume_info = {
                 'type': 'bind',
