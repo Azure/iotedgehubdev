@@ -37,7 +37,7 @@ jobs:
       - powershell: |
           echo $(BUILD.SOURCEBRANCH)
           if ("$(BUILD.SOURCEBRANCH)" -match "^refs/tags/v?[0-9]+\.[0-9]+\.[0-9]+$") { ((Get-Content -path "$(BUILD.REPOSITORY.LOCALPATH)\iotedgehubdev\__init__.py" -Raw) -replace "__AIkey__ = '.*'","__AIkey__ = '$(AI_KEY)'") | Set-Content -Path "$(BUILD.REPOSITORY.LOCALPATH)\iotedgehubdev\__init__.py" }
-        displayName: "Replace AI Key for PROD"
+        displayName: "Replace AI Key for PROD now"
 
       - script: |
           pip install setuptools
