@@ -205,9 +205,9 @@ class ComposeTest(unittest.TestCase):
             'Volumes': {
                 "/mnt/edgehub": {}
             },
-            'Binds': {
+            'Binds': [
                 '/tmp:/tmp2:ro'
-            }
+            ]
         }
 
         volumes_list = [
@@ -245,39 +245,20 @@ class ComposeTest(unittest.TestCase):
 
         assert volumes_list == iotedgehubdev.compose_parser.service_parser_volumes(volumes_config)
 
-        binds_config = {
-            'Binds': {
-                'c:\\tmp:/tmp'
-            }
-        }
+        sources_win = ['tmp', 'c:\\', 'c:\\foo bar\\tmp\\tmp', 'c:/foo bar/tmp/tmp', None]
+        targets_win = ['/tmp/tmp', 'c:\\', 'c:\\foo bar\\tmp', 'c:/foo bar/tmp']
 
-        volumes_list = [
-            {
-                'target': '/tmp',
-                'type': 'bind',
-                'source': 'c:\\tmp'
-            }
-        ]
+        sources_linux = ['tmp', '/foo bar/tmp/tmp', None]
+        targets_linux = ['/foo bar/tmp']
 
-        assert volumes_list == iotedgehubdev.compose_parser.service_parser_volumes(binds_config)
+        modes = ['ro', 'rw', None]
 
-        invalid_binds_config = {
-            'Binds': {
-                'c:\\tmp:/tmp:r'
-            }
-        }
+        combos_win = [(s, t, m) for s in sources_win for t in targets_win for m in modes]
+        combos_linux = [(s, t, m) for s in sources_linux for t in targets_linux for m in modes]
+        combos = combos_win + combos_linux
 
-        with pytest.raises(ValueError):
-            iotedgehubdev.compose_parser.service_parser_volumes(invalid_binds_config)
-
-        invalid_binds_config = {
-            'Binds': {
-                'c:\\tmp'
-            }
-        }
-
-        with pytest.raises(ValueError):
-            iotedgehubdev.compose_parser.service_parser_volumes(invalid_binds_config)
+        for source, target, mode in combos:
+            self._test_binds(source, target, mode)
 
     def test_invalid_service_parser_volumes(self):
         volumes_config = {
@@ -295,6 +276,46 @@ class ComposeTest(unittest.TestCase):
         }
         with pytest.raises(KeyError):
             iotedgehubdev.compose_parser.service_parser_volumes(volumes_config)
+
+        # Invalid path c://tmp
+        invalid_binds_config = {
+            'Binds': {
+                'c:\\tmp:c://tmp:ro:'
+            }
+        }
+
+        with pytest.raises(ValueError):
+            iotedgehubdev.compose_parser.service_parser_volumes(invalid_binds_config)
+
+        # Invalid mode r
+        invalid_binds_config = {
+            'Binds': {
+                'c:\\tmp:/tmp:r'
+            }
+        }
+
+        with pytest.raises(ValueError):
+            iotedgehubdev.compose_parser.service_parser_volumes(invalid_binds_config)
+
+        # Extra colon
+        invalid_binds_config = {
+            'Binds': {
+                'c:\\tmp:/tmp:ro:'
+            }
+        }
+
+        with pytest.raises(ValueError):
+            iotedgehubdev.compose_parser.service_parser_volumes(invalid_binds_config)
+
+        # Empty source
+        invalid_binds_config = {
+            'Binds': {
+                ':/tmp:ro:'
+            }
+        }
+
+        with pytest.raises(ValueError):
+            iotedgehubdev.compose_parser.service_parser_volumes(invalid_binds_config)
 
     def test_join_create_options(self):
         valid_settings = json.loads('''{
@@ -417,3 +438,20 @@ class ComposeTest(unittest.TestCase):
         })
 
         return compose_project
+
+    def _test_binds(self, source, target, mode):
+        bind = {
+            'Binds': [':'.join([i for i in (source, target, mode) if i is not None])]
+        }
+
+        source = source or ''
+        volume = {
+            'source': source,
+            'target': target,
+            'type': 'bind' if source is not None and os.path.isabs(source) else 'volume'
+        }
+
+        if mode is 'ro':
+            volume['read_only'] = True
+
+        assert [volume] == iotedgehubdev.compose_parser.service_parser_volumes(bind)

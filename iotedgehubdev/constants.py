@@ -29,3 +29,16 @@ class EdgeConstants():
         SUBJECT_ORGANIZATION_UNIT_KEY: 'Edge Unit',
         SUBJECT_COMMON_NAME_KEY: 'Edge Test Device CA'
     }
+
+    # Port of Docker daemon
+    # Reference https://github.com/docker/docker-ce/blob/f9756bfb29877236a83979170ef2c0aa35eb57c6/components/engine/volume/mounts/windows_parser.go#L19-L76
+    MOUNT_HOST_DIR_REGEX = r'(?:\\\\\?\\)?[a-z]:[\\/](?:[^\\/:*?"<>|\r\n]+[\\/]?)*'
+    MOUNT_NAME_REGEX = r'[^\\/:*?"<>|\r\n]+'
+    MOUNT_PIPE_REGEX = r'[/\\]{2}.[/\\]pipe[/\\][^:*?"<>|\r\n]+'
+    MOUNT_SOURCE_REGEX = r'((?P<source>((' + MOUNT_HOST_DIR_REGEX + r')|(' + \
+        MOUNT_NAME_REGEX + r')|(' + MOUNT_PIPE_REGEX + r'))):)?'
+    MOUNT_MODE_REGEX = r'(:(?P<mode>(?i)ro|rw))?'
+    MOUNT_WIN_DEST_REGEX = r'(?P<destination>((?:\\\\\?\\)?([a-z]):((?:[\\/][^\\/:*?"<>\r\n]+)*[\\/]?))|(' + MOUNT_PIPE_REGEX + r'))'
+    MOUNT_LCOW_DEST_REGEX = r'(?P<destination>/(?:[^\\/:*?"<>\r\n]+[/]?)*)'
+    MOUNT_WIN_REGEX = r'^' + MOUNT_SOURCE_REGEX + MOUNT_WIN_DEST_REGEX + MOUNT_MODE_REGEX + r'$'
+    MOUNT_LCOW_REGEX = r'^' + MOUNT_SOURCE_REGEX + MOUNT_LCOW_DEST_REGEX + MOUNT_MODE_REGEX + r'$'
