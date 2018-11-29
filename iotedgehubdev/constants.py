@@ -31,7 +31,7 @@ class EdgeConstants():
     }
 
     # Port of Docker daemon
-    # Reference https://github.com/docker/docker-ce/blob/f9756bfb29877236a83979170ef2c0aa35eb57c6/components/engine/volume/mounts/windows_parser.go#L19-L76
+    # https://github.com/docker/docker-ce/blob/f9756bfb29877236a83979170ef2c0aa35eb57c6/components/engine/volume/mounts/windows_parser.go#L19-L76
     MOUNT_HOST_DIR_REGEX = r'(?:\\\\\?\\)?[a-z]:[\\/](?:[^\\/:*?"<>|\r\n]+[\\/]?)*'
     MOUNT_NAME_REGEX = r'[^\\/:*?"<>|\r\n]+'
     MOUNT_PIPE_REGEX = r'[/\\]{2}.[/\\]pipe[/\\][^:*?"<>|\r\n]+'
