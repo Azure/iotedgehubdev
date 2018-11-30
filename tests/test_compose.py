@@ -276,20 +276,23 @@ def test_service_parser_volumes():
     assert volumes_list == iotedgehubdev.compose_parser.service_parser_volumes(volumes_config)
 
 
-sources_win = ['tmp', 'c:\\', 'c:\\foo bar\\tmp\\tmp', 'c:/foo bar/tmp/tmp', None]
-targets_win = ['/tmp/tmp', 'c:\\', 'c:\\foo bar\\tmp', 'c:/foo bar/tmp']
+def create_bind_combos():
+    sources_win = ['tmp', 'c:\\', 'c:\\foo bar\\tmp\\tmp', 'c:/foo bar/tmp/tmp', None]
+    targets_win = ['/tmp/tmp', 'c:\\', 'c:\\foo bar\\tmp', 'c:/foo bar/tmp']
 
-sources_linux = ['tmp', '/foo bar/tmp/tmp', None]
-targets_linux = ['/foo bar/tmp']
+    sources_linux = ['tmp', '/foo bar/tmp/tmp', None]
+    targets_linux = ['/foo bar/tmp']
 
-modes = ['ro', 'rw', None]
+    modes = ['ro', 'rw', None]
 
-combos_win = [(s, t, m) for s in sources_win for t in targets_win for m in modes]
-combos_linux = [(s, t, m) for s in sources_linux for t in targets_linux for m in modes]
-combos = combos_win + combos_linux
+    combos_win = [(s, t, m) for s in sources_win for t in targets_win for m in modes]
+    combos_linux = [(s, t, m) for s in sources_linux for t in targets_linux for m in modes]
+    combos = combos_win + combos_linux
+
+    return combos
 
 
-@pytest.mark.parametrize('source, target, mode', combos)
+@pytest.mark.parametrize('source, target, mode', create_bind_combos())
 def test_bind(source, target, mode):
     bind = {
         'Binds': [':'.join([i for i in (source, target, mode) if i is not None])]
