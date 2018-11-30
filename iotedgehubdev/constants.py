@@ -38,7 +38,8 @@ class EdgeConstants():
     MOUNT_SOURCE_REGEX = r'((?P<source>((' + MOUNT_HOST_DIR_REGEX + r')|(' + \
         MOUNT_NAME_REGEX + r')|(' + MOUNT_PIPE_REGEX + r'))):)?'
     MOUNT_MODE_REGEX = r'(:(?P<mode>(?i)ro|rw))?'
-    MOUNT_WIN_DEST_REGEX = r'(?P<destination>((?:\\\\\?\\)?([a-z]):((?:[\\/][^\\/:*?"<>\r\n]+)*[\\/]?))|(' + MOUNT_PIPE_REGEX + r'))'
+    MOUNT_WIN_DEST_REGEX = r'(?P<destination>((?:\\\\\?\\)?([a-z]):((?:[\\/][^\\/:*?"<>\r\n]+)*[\\/]?))|(' + \
+        MOUNT_PIPE_REGEX + r'))'
     MOUNT_LCOW_DEST_REGEX = r'(?P<destination>/(?:[^\\/:*?"<>\r\n]+[/]?)*)'
     MOUNT_WIN_REGEX = r'^' + MOUNT_SOURCE_REGEX + MOUNT_WIN_DEST_REGEX + MOUNT_MODE_REGEX + r'$'
     MOUNT_LCOW_REGEX = r'^' + MOUNT_SOURCE_REGEX + MOUNT_LCOW_DEST_REGEX + MOUNT_MODE_REGEX + r'$'
