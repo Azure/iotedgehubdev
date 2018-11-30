@@ -1,8 +1,12 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
+import os
+import re
 
 from jsonpath_rw import parse
+
+from .constants import EdgeConstants
 
 
 class CreateOptionParser(object):
@@ -178,16 +182,34 @@ def service_parser_volumes(create_options_details):
         volumes_list.append(volume_info)
 
     for bind in create_options_details.get('Binds', []):
-        parts = bind.split(':')
-        if len(parts) == 2 or (len(parts) == 3 and parts[2] == 'ro'):
-            volume_info = {
-                'type': 'bind',
-                'source': parts[0],
-                'target': parts[1]
-            }
-            if len(parts) == 3:
-                volume_info['read_only'] = True
+        target = None
 
+        # Binds should be in the format [source:]destination[:mode]
+        # Windows format and LCOW format are more strict than Linux format due to colons in Windows paths,
+        # so match with them first
+        match = re.match(EdgeConstants.MOUNT_WIN_REGEX, bind) or re.match(EdgeConstants.MOUNT_LCOW_REGEX, bind)
+        if match is not None:
+            source = match.group('source') or ''
+            target = match.group('destination')
+            read_only = match.group('mode') == 'ro'
+        else:
+            # Port of Docker daemon
+            # https://github.com/docker/docker-ce/blob/1c27a55b6259743f35549e96d06334a53d0c0549/components/engine/volume/mounts/linux_parser.go#L18-L28
+            parts = bind.split(':')
+            if len(parts) == 2 or (len(parts) == 3 and parts[2] in ('ro', 'rw', '')):
+                if parts[0] != '':
+                    source = parts[0]
+                    target = parts[1]
+                    read_only = len(parts) == 3 and parts[2] == 'ro'
+
+        if target is not None:
+            volume_info = {
+                'type': 'bind' if source and os.path.isabs(source) else 'volume',
+                'source': source,
+                'target': target
+            }
+            if read_only:
+                volume_info['read_only'] = True
             volumes_list.append(volume_info)
         else:
             raise ValueError('Invalid create option Binds: {0}'.format(bind))
