@@ -1,3 +1,11 @@
+## 0.6.0  - 2018-12-0X
+### Added
+* Support parsing `Binds` in `createOptions`
+* Log in registries with credentials in deployment manifest
+
+### Changed
+* Fix authentication error when hostname is longer than 64
+
 ## 0.5.0 - 2018-10-31
 ### Added
 * Support extended `createOptions`
