@@ -51,7 +51,7 @@ jobs:
         inputs:
           SourceFolder: $(BUILD.REPOSITORY.LOCALPATH)/dist
           TargetFolder: $(Build.ArtifactStagingDirectory)
-        displayName: "Copy Files to: build artifact staging directory"
+        displayName: "Copy1 Files to: build artifact staging directory"
 
       - task: PublishBuildArtifacts@1
         inputs:
