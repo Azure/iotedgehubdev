@@ -1,4 +1,4 @@
-## 0.6.0  - 2018-12-0X
+## 0.6.0  - 2018-12-05
 ### Added
 * Support parsing `Binds` in `createOptions`
 * Log in registries with credentials in deployment manifest
