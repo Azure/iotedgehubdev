@@ -2,8 +2,8 @@
 # Licensed under the MIT License.
 
 import os
-import platform
 import pytest
+import platform
 import re
 import subprocess
 import time
@@ -20,8 +20,15 @@ if os.path.exists(filename):
     load_dotenv(filename)
 docker_client = EdgeDockerClient()
 
+tests_dir = os.path.join(workingdirectory, "tests")
+test_config_dir = os.path.join(tests_dir, "assets", "config")
+test_resources_dir = os.path.join(tests_dir, 'test_compose_resources')
+
 VALID_DEVICECONNECTIONSTRING = os.environ[platform.system().upper() + '_DEVICE_CONNECTION_STRING']
 VALID_IOTHUBCONNECTIONSTRING = os.environ['IOTHUB_CONNECTION_STRING']
+VALID_CONTAINERREGISTRYSERVER = os.environ['CONTAINER_REGISTRY_SERVER']
+VALID_CONTAINERREGISTRYUSERNAME = os.environ['CONTAINER_REGISTRY_USERNAME']
+VALID_CONTAINERREGISTRYPASSWORD = os.environ['CONTAINER_REGISTRY_PASSWORD']
 
 device_id = re.findall(".*DeviceId=(.*);SharedAccessKey.*", VALID_DEVICECONNECTIONSTRING)[0]
 iothub_name = re.findall(".*HostName=(.*);DeviceId.*", VALID_DEVICECONNECTIONSTRING)[0].split('.')[0]
@@ -30,6 +37,18 @@ iothub_name = re.findall(".*HostName=(.*);DeviceId.*", VALID_DEVICECONNECTIONSTR
 @pytest.fixture
 def runner():
     return CliRunner()
+
+
+def get_docker_os_type():
+    return docker_client.get_os_type().lower()
+
+
+def get_platform_type():
+    if get_docker_os_type() == 'windows':
+        platform_type = 'windows-amd64'
+    else:
+        platform_type = 'amd64'
+    return platform_type
 
 
 def update_setting_ini_as_firsttime():
@@ -49,16 +68,14 @@ def start_process(command, is_shell):
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output, error = process.communicate()
     if process.returncode == 0:
-        print('Process Output Message:\n' + str(output) + '\n')
+        return str(output)
     else:
-        command = command.replace(VALID_IOTHUBCONNECTIONSTRING, '******')
+        if VALID_IOTHUBCONNECTIONSTRING in command:
+            command = command.replace(VALID_IOTHUBCONNECTIONSTRING, '******')
         raise Exception(error)
-    return str(output)
 
 
-def cli_start_with_deployment(runner, deployment_file):
-    test_resources_dir = os.path.join('tests', 'test_compose_resources')
-    deployment_json_file_path = os.path.join(test_resources_dir, deployment_file)
+def cli_start_with_deployment(runner, deployment_json_file_path):
     result = runner.invoke(cli.start, ['-d', deployment_json_file_path])
     if 'IoT Edge Simulator has been started in solution mode' not in result.output.strip():
         raise Exception(result.stdout)
@@ -110,19 +127,48 @@ def wait_verify_docker_output(docker_cmd, expect_values):
             raise Exception('Timeout to wait until it appears expected value ' + str(expect_values))
 
 
+def get_all_docker_volumes():
+    output = start_process(['docker', 'volume', 'ls'], False)
+    return output
+
+
 def remove_docker_volumes(volumes):
     for volume in volumes:
-        start_process(['docker', 'volume', 'rm', volume, '-f'], False)
+        if volume in get_all_docker_volumes():
+            start_process(['docker', 'volume', 'rm', volume, '-f'], False)
+
+
+def get_all_docker_images():
+    output = start_process(['docker', 'image', 'ls'], False)
+    return output
 
 
 def remove_docker_images(images):
     for image in images:
-        start_process(['docker', 'rmi', '-f', image], False)
+        image_without_tag = image.split(':')[0]
+        if image_without_tag in get_all_docker_images():
+            start_process(['docker', 'rmi', '-f', image], False)
+
+
+def get_all_docker_networks():
+    output = start_process(['docker', 'network', 'ls'], False)
+    return output
 
 
 def remove_docker_networks(networks):
     for network in networks:
-        start_process(['docker', 'network', 'rm', network], False)
+        if network in get_all_docker_networks():
+            start_process(['docker', 'network', 'rm', network], False)
+
+
+def update_file_content(file_path, actual_value, expected_value):
+    with open(file_path, "r+") as f:
+        stream_data = f.read()
+        ret = re.sub(actual_value, expected_value, stream_data)
+        f.seek(0)
+        f.truncate()
+        f.write(ret)
+        f.close()
 
 
 def test_cli(runner):
@@ -132,11 +178,12 @@ def test_cli(runner):
     assert 'Usage: main' in result.output.strip()
 
 
-@pytest.mark.skipif(docker_client.get_os_type().lower() == 'windows', reason='It does not support windows container')
+@pytest.mark.skipif(get_docker_os_type() == 'windows', reason='It does not support windows container')
 def test_cli_start_with_deployment(runner):
     try:
         cli_setup(runner)
-        cli_start_with_deployment(runner, 'deployment_without_custom_module.json')
+        deployment_json_file_path = os.path.join(test_resources_dir, 'deployment_without_custom_module.json')
+        cli_start_with_deployment(runner, deployment_json_file_path)
         wait_verify_docker_output(['docker', 'logs', 'edgeHubDev'], ['Opened link'])
         wait_verify_docker_output(['docker', 'logs', 'tempSensor'], ['Sending message'])
         invoke_module_method()
@@ -196,12 +243,13 @@ def test_cli_output_modulecred_file(runner):
             os.remove(output_file_path)
 
 
-@pytest.mark.skipif(docker_client.get_os_type().lower() == 'windows', reason='It does not support windows container')
+@pytest.mark.skipif(get_docker_os_type() == 'windows', reason='It does not support windows container')
 def test_cli_create_options_for_custom_volume(runner):
     try:
         cli_setup(runner)
         remove_docker_volumes(['testVolume'])
-        cli_start_with_deployment(runner, 'deployment_with_custom_volume.json')
+        deployment_json_file_path = os.path.join(test_resources_dir, 'deployment_with_custom_volume.json')
+        cli_start_with_deployment(runner, deployment_json_file_path)
         wait_verify_docker_output(['docker', 'volume', 'ls'],
                                   ['testVolume', 'edgemoduledev', 'edgehubdev'])
         expected_volumes = (['"Source": "testVolume"',
@@ -209,8 +257,12 @@ def test_cli_create_options_for_custom_volume(runner):
                              '"Source": "edgemoduledev"',
                              '"Destination": "/mnt/edgemodule"'])
         wait_verify_docker_output(['docker', 'inspect', 'tempSensor'], expected_volumes)
-        wait_verify_docker_output(['docker', 'inspect', 'edgehubdev'],
-                                  '"Mountpoint": "/var/lib/docker/volumes/edgehubdev/_data"')
+        if platform.system().lower() == "linux":
+            wait_verify_docker_output(['docker', 'inspect', 'edgehubdev'],
+                                      ['"Mountpoint": "/var/lib/docker/volumes/edgehubdev/_data"'])
+        else:
+            wait_verify_docker_output(['docker', 'inspect', 'edgehubdev'],
+                                      ['"Mountpoint": "/mnt/sda1/var/lib/docker/volumes/edgehubdev/_data"'])
     finally:
         result = cli_stop(runner)
         assert 'IoT Edge Simulator has been stopped successfully' in result.output.strip()
@@ -229,11 +281,12 @@ def test_cli_modulecred_for_multiple_modules(runner):
     assert 'ModuleId=edgeHubDev' in result.output.strip()
 
 
-@pytest.mark.skipif(docker_client.get_os_type().lower() == 'windows', reason='It does not support windows container')
+@pytest.mark.skipif(get_docker_os_type() == 'windows', reason='It does not support windows container')
 def test_cli_start_with_chunked_create_options(runner):
     try:
         cli_setup(runner)
-        cli_start_with_deployment(runner, 'deployment_with_create_options.json')
+        deployment_json_file_path = os.path.join(test_resources_dir, 'deployment_with_create_options.json')
+        cli_start_with_deployment(runner, deployment_json_file_path)
         wait_verify_docker_output(['docker', 'logs', 'edgeHubDev'], ['Opened link'])
         wait_verify_docker_output(['docker', 'logs', 'tempSensor'], ['Sending message'])
         expect_createoptions = ['FOO1=bar1', 'FOO2=bar2', 'FOO3=bar3',
@@ -251,16 +304,83 @@ def test_cli_start_with_chunked_create_options(runner):
 def test_cli_start_with_input(runner):
     try:
         result = runner.invoke(cli.start, ['-i', 'input1'])
-        assert not result.exception
-        assert result.exit_code == 0
-        assert 'IoT Edge Simulator has been started in single module mode' in result.output.strip()
-        assert 'curl --header' in result.output.strip()
+        if result.exit_code == 0:
+            assert 'IoT Edge Simulator has been started in single module mode' in result.output.strip()
+            assert 'curl --header' in result.output.strip()
+        else:
+            raise Exception(result.stdout)
     finally:
         result = cli_stop(runner)
         assert 'IoT Edge Simulator has been stopped successfully' in result.output.strip()
         remove_docker_networks(['azure-iot-edge-dev'])
         remove_docker_images(['mcr.microsoft.com/azureiotedge-hub:1.0',
                               'mcr.microsoft.com/azureiotedge-testing-utility:1.0.0-rc1'])
+
+
+def test_cli_start_with_create_options_for_bind(runner):
+    test_resources_dir = os.path.join('tests', 'test_compose_resources')
+    try:
+        if get_docker_os_type() == "windows":
+            deployment_json_file_path = os.path.join(test_resources_dir, 'deployment_with_create_options_for_bind.json')
+            update_file_content(deployment_json_file_path, '/usr:/home/moduleuser/test',
+                                'C:\\\\\\\\\\\\\\\\Users:C:/moduleuser/test')
+        cli_setup(runner)
+        deployment_json_file_path = os.path.join(test_resources_dir, 'deployment_with_create_options_for_bind.json')
+        cli_start_with_deployment(runner, deployment_json_file_path)
+        wait_verify_docker_output(['docker', 'logs', 'edgeHubDev'], ['Opened link'])
+        wait_verify_docker_output(['docker', 'logs', 'tempSensor'], ['Sending message'])
+        if get_docker_os_type() == "windows":
+            output = start_process('docker exec -w C:/moduleuser/test tempSensor cmd && dir', True)
+            assert 'Public' in output
+        else:
+            wait_verify_docker_output(['docker', 'exec', 'tempSensor', 'ls', '/home/moduleuser/test'], ["share"])
+    finally:
+        if get_docker_os_type() == "windows":
+            update_file_content(deployment_json_file_path,
+                                "C:\\\\\\\\\\\\\\\\Users:C:/moduleuser/test",
+                                "/usr:/home/moduleuser/test")
+        result = cli_stop(runner)
+        assert 'IoT Edge Simulator has been stopped successfully' in result.output.strip()
+        remove_docker_networks(['azure-iot-edge-dev'])
+        remove_docker_images(['mcr.microsoft.com/azureiotedge-simulated-temperature-sensor:1.0',
+                              'mcr.microsoft.com/azureiotedge-hub:1.0',
+                              'hello-world'])
+
+
+def test_cli_start_with_registry(runner):
+    print("Please provision a regsitry with amd64 module and windows-amd64 module before run this test case.")
+    try:
+        if get_docker_os_type() == "windows":
+            deployment_json_file_path = os.path.join(test_config_dir, "deployment.windows-amd64.json")
+        else:
+            deployment_json_file_path = os.path.join(test_config_dir, "deployment.amd64.json")
+
+        update_file_content(deployment_json_file_path, '"username": ""',
+                            '"username": "' + VALID_CONTAINERREGISTRYUSERNAME + '"')
+        update_file_content(deployment_json_file_path, '"password": ""',
+                            '"password": "' + VALID_CONTAINERREGISTRYPASSWORD + '"')
+        update_file_content(deployment_json_file_path, '"address": ""',
+                            '"address": "' + VALID_CONTAINERREGISTRYSERVER + '"')
+
+        cli_start_with_deployment(runner, deployment_json_file_path)
+        if get_docker_os_type() == "windows":
+            wait_verify_docker_output(['docker', 'ps'], ['windows_filtermodule_with_registry'])
+        else:
+            wait_verify_docker_output(['docker', 'ps'], ['filtermodule_with_registry'])
+    finally:
+        update_file_content(deployment_json_file_path, '"username": "(.*)"', '"username": ""')
+        update_file_content(deployment_json_file_path, '"password": "(.*)"', '"password": ""')
+        update_file_content(deployment_json_file_path, '"address": "(.*)"', '"address": ""')
+
+        result = cli_stop(runner)
+        assert 'IoT Edge Simulator has been stopped successfully' in result.output.strip()
+
+        remove_docker_networks(['azure-iot-edge-dev'])
+        remove_docker_images(['mcr.microsoft.com/azureiotedge-simulated-temperature-sensor:1.0',
+                              'mcr.microsoft.com/azureiotedge-hub:1.0',
+                              'aziotedgetoolingtest.azurecr.io/filtermodule_with_registry:0.0.1-amd64',
+                              'aziotedgetoolingtest.azurecr.io/windows_filtermodule_with_registry:0.0.1-windows-amd64',
+                              'hello-world'])
 
 
 # def test_cli_with_option(runner):

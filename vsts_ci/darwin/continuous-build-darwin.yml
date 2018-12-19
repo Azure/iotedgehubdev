@@ -33,8 +33,10 @@ steps:
       brew install docker-compose
       docker version
       sudo -E tox
-      docker-machine rm default -f -y
     displayName: "Install docker and run tests against iotedgehubdev source code with tox"
     env:
       DARWIN_DEVICE_CONNECTION_STRING: $(DARWIN_DEVICE_CONNECTION_STRING)
       IOTHUB_CONNECTION_STRING: $(IOTHUB_CONNECTION_STRING)
+      CONTAINER_REGISTRY_SERVER: $(CONTAINER_REGISTRY_SERVER)
+      CONTAINER_REGISTRY_USERNAME: $(CONTAINER_REGISTRY_USERNAME)
+      CONTAINER_REGISTRY_PASSWORD: $(CONTAINER_REGISTRY_PASSWORD)
