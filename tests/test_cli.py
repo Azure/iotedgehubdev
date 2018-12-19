@@ -301,6 +301,7 @@ def test_cli_start_with_chunked_create_options(runner):
                               'hello-world'])
 
 
+@pytest.mark.skipif(get_docker_os_type() == 'windows', reason='The base image of edgeHubDev image is 1809 but agent is 1803. So it does not support windows container.')
 def test_cli_start_with_input(runner):
     try:
         result = runner.invoke(cli.start, ['-i', 'input1'])
@@ -317,6 +318,7 @@ def test_cli_start_with_input(runner):
                               'mcr.microsoft.com/azureiotedge-testing-utility:1.0.0-rc1'])
 
 
+@pytest.mark.skipif(get_docker_os_type() == 'windows', reason='The base image of edgeHubDev image is 1809 but agent is 1803. So it does not support windows container.')
 def test_cli_start_with_create_options_for_bind(runner):
     test_resources_dir = os.path.join('tests', 'test_compose_resources')
     try:
@@ -347,6 +349,7 @@ def test_cli_start_with_create_options_for_bind(runner):
                               'hello-world'])
 
 
+@pytest.mark.skipif(get_docker_os_type() == 'windows', reason='The base image of edgeHubDev image is 1809 but agent is 1803. So it does not support windows container.')
 def test_cli_start_with_registry(runner):
     print("Please provision a regsitry with amd64 module and windows-amd64 module before run this test case.")
     try:
