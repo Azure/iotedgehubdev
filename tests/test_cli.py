@@ -105,8 +105,8 @@ def cli_stop(runner):
         raise Exception(result.stdout)
 
 
-def verify_docker_output(docker_cmd, expect_values):
-    result = start_process(docker_cmd, False)
+def verify_docker_output(docker_cmd, expect_values, use_shell):
+    result = start_process(docker_cmd, use_shell)
     print('Process result is: \n %s \n' % (result))
     for expect_value in expect_values:
         if expect_value in result:
@@ -117,9 +117,9 @@ def verify_docker_output(docker_cmd, expect_values):
     return True
 
 
-def wait_verify_docker_output(docker_cmd, expect_values):
+def wait_verify_docker_output(docker_cmd, expect_values, use_shell=False):
     times = 0
-    while (not verify_docker_output(docker_cmd, expect_values)):
+    while (not verify_docker_output(docker_cmd, expect_values, use_shell)):
         print("Waiting until docker command is ready... ...\n")
         time.sleep(10)
         times += 1
@@ -326,22 +326,21 @@ def test_cli_start_with_create_options_for_bind(runner):
         if get_docker_os_type() == "windows":
             deployment_json_file_path = os.path.join(test_resources_dir, 'deployment_with_create_options_for_bind.json')
             update_file_content(deployment_json_file_path, '/usr:/home/moduleuser/test',
-                                'C:\\\\\\\\\\\\\\\\Users:C:/moduleuser/test')
+                                r'C:\\\\\\\\Users:C:/moduleuser/test')
         cli_setup(runner)
         deployment_json_file_path = os.path.join(test_resources_dir, 'deployment_with_create_options_for_bind.json')
         cli_start_with_deployment(runner, deployment_json_file_path)
         wait_verify_docker_output(['docker', 'logs', 'edgeHubDev'], ['Opened link'])
         wait_verify_docker_output(['docker', 'logs', 'tempSensor'], ['Sending message'])
         if get_docker_os_type() == "windows":
-            output = start_process('docker exec -w C:/moduleuser/test tempSensor cmd && dir', True)
-            assert 'Public' in output
+            wait_verify_docker_output('docker exec -w C:/moduleuser/test tempSensor cmd && dir', ['Public'], True)
         else:
             wait_verify_docker_output(['docker', 'exec', 'tempSensor', 'ls', '/home/moduleuser/test'], ["share"])
     finally:
         if get_docker_os_type() == "windows":
             update_file_content(deployment_json_file_path,
-                                "C:\\\\\\\\\\\\\\\\Users:C:/moduleuser/test",
-                                "/usr:/home/moduleuser/test")
+                                r'C:\\\\\\\\Users:C:/moduleuser/test',
+                                '/usr:/home/moduleuser/test')
         result = cli_stop(runner)
         assert 'IoT Edge Simulator has been stopped successfully' in result.output.strip()
         remove_docker_networks(['azure-iot-edge-dev'])
@@ -357,12 +356,14 @@ def test_cli_start_with_registry(runner):
     try:
         if get_docker_os_type() == "windows":
             deployment_json_file_path = os.path.join(test_config_dir, "deployment.windows-amd64.json")
-            update_file_content(deployment_json_file_path, '"image": ""', '"image": "' +
-                                VALID_CONTAINERREGISTRYSERVER + '/windows_filtermodule_with_registry:0.0.1-windows-amd64"')
+            module_image_name = ('"image": "{0}/{1}"').format(VALID_CONTAINERREGISTRYSERVER,
+                                                              'windows_filtermodule_with_registry:0.0.1-windows-amd64')
+            update_file_content(deployment_json_file_path, '"image": ""', module_image_name)
         else:
             deployment_json_file_path = os.path.join(test_config_dir, "deployment.amd64.json")
-            update_file_content(deployment_json_file_path, '"image": ""',
-                                '"image": "' + VALID_CONTAINERREGISTRYSERVER + '/filtermodule_with_registry:0.0.1-amd64"')
+            module_image_name = ('"image": "{0}/{1}"').format(VALID_CONTAINERREGISTRYSERVER,
+                                                              'filtermodule_with_registry:0.0.1-amd64')
+            update_file_content(deployment_json_file_path, '"image": ""', module_image_name)
 
         update_file_content(deployment_json_file_path, '"username": ""',
                             '"username": "' + VALID_CONTAINERREGISTRYUSERNAME + '"')
@@ -377,13 +378,7 @@ def test_cli_start_with_registry(runner):
         else:
             wait_verify_docker_output(['docker', 'ps'], ['filtermodule_with_registry'])
     finally:
-        if get_docker_os_type() == "windows":
-            update_file_content(deployment_json_file_path, '"image": "' + VALID_CONTAINERREGISTRYSERVER +
-                                '/windows_filtermodule_with_registry:0.0.1-windows-amd64"', '"image": ""')
-        else:
-            update_file_content(deployment_json_file_path, '"image": "' + VALID_CONTAINERREGISTRYSERVER +
-                                '/filtermodule_with_registry:0.0.1-amd64"', '"image": ""')
-
+        update_file_content(deployment_json_file_path, module_image_name, '"image": ""')
         update_file_content(deployment_json_file_path, '"username": "(.*)"', '"username": ""')
         update_file_content(deployment_json_file_path, '"password": "(.*)"', '"password": ""')
         update_file_content(deployment_json_file_path, '"address": "(.*)"', '"address": ""')
