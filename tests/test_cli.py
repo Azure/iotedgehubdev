@@ -6,6 +6,7 @@ import pytest
 import platform
 import re
 import subprocess
+import shutil
 import time
 from click.testing import CliRunner
 from dotenv import load_dotenv
@@ -43,6 +44,26 @@ def get_docker_os_type():
     return docker_client.get_os_type().lower()
 
 
+def docker_login(username, password, server):
+    start_process(['docker', 'login', '-u', username, '-p', password, server], False)
+
+
+def docker_logout(server_name):
+    start_process(['docker', 'logout', server_name], False)
+
+
+def docker_pull_image(image_name):
+    start_process(['docker', 'pull', image_name], False)
+
+
+def docker_tag_image(original_tag_name, new_tag_name):
+    start_process(['docker', 'tag', original_tag_name, new_tag_name], False)
+
+
+def docker_push_image(image_name):
+    start_process(['docker', 'push', image_name], False)
+
+
 def get_platform_type():
     if get_docker_os_type() == 'windows':
         platform_type = 'windows-amd64'
@@ -70,8 +91,7 @@ def start_process(command, is_shell):
     if process.returncode == 0:
         return str(output)
     else:
-        if VALID_IOTHUBCONNECTIONSTRING in command:
-            command = command.replace(VALID_IOTHUBCONNECTIONSTRING, '******')
+        command = command.replace(VALID_IOTHUBCONNECTIONSTRING, '******')
         raise Exception(error)
 
 
@@ -133,8 +153,9 @@ def get_all_docker_volumes():
 
 
 def remove_docker_volumes(volumes):
+    all_volumes = get_all_docker_volumes()
     for volume in volumes:
-        if volume in get_all_docker_volumes():
+        if volume in all_volumes:
             start_process(['docker', 'volume', 'rm', volume, '-f'], False)
 
 
@@ -144,9 +165,10 @@ def get_all_docker_images():
 
 
 def remove_docker_images(images):
+    all_images = get_all_docker_images()
     for image in images:
         image_without_tag = image.split(':')[0]
-        if image_without_tag in get_all_docker_images():
+        if image_without_tag in all_images:
             start_process(['docker', 'rmi', '-f', image], False)
 
 
@@ -156,8 +178,9 @@ def get_all_docker_networks():
 
 
 def remove_docker_networks(networks):
+    all_networks = get_all_docker_networks()
     for network in networks:
-        if network in get_all_docker_networks():
+        if network in all_networks:
             start_process(['docker', 'network', 'rm', network], False)
 
 
@@ -257,11 +280,13 @@ def test_cli_create_options_for_custom_volume(runner):
                              '"Destination": "/mnt/edgemodule"'])
         wait_verify_docker_output(['docker', 'inspect', 'tempSensor'], expected_volumes)
         if platform.system().lower() == "linux":
-            wait_verify_docker_output(['docker', 'inspect', 'edgehubdev'],
-                                      ['"Mountpoint": "/var/lib/docker/volumes/edgehubdev/_data"'])
-        else:
-            wait_verify_docker_output(['docker', 'inspect', 'edgehubdev'],
-                                      ['"Mountpoint": "/mnt/sda1/var/lib/docker/volumes/edgehubdev/_data"'])
+            wait_verify_docker_output(['docker', 'inspect', 'edgeHubDev'], [
+                                      '"Source": "/var/lib/docker/volumes/edgehubdev/_data"',
+                                      '"Destination": "/mnt/edgehub"'])
+        elif platform.system().lower() == "darwin":
+            wait_verify_docker_output(['docker', 'inspect', 'edgeHubDev'], [
+                                      '"Source": "/mnt/sda1/var/lib/docker/volumes/edgehubdev/_data"',
+                                      '"Destination": "/mnt/edgehub"'])
     finally:
         result = cli_stop(runner)
         assert 'IoT Edge Simulator has been stopped successfully' in result.output.strip()
@@ -305,9 +330,10 @@ def test_cli_start_with_chunked_create_options(runner):
 def test_cli_start_with_input(runner):
     try:
         result = runner.invoke(cli.start, ['-i', 'input1'])
+        output = result.output.strip()
         if result.exit_code == 0:
-            assert 'IoT Edge Simulator has been started in single module mode' in result.output.strip()
-            assert 'curl --header' in result.output.strip()
+            assert 'IoT Edge Simulator has been started in single module mode' in output
+            assert 'curl --header' in output
         else:
             raise Exception(result.stdout)
     finally:
@@ -321,15 +347,21 @@ def test_cli_start_with_input(runner):
 @pytest.mark.skipif(get_docker_os_type() == 'windows', reason='The base image of edgeHubDev image is 1809 but agent is 1803.'
                     'So it does not support windows container.')
 def test_cli_start_with_create_options_for_bind(runner):
-    test_resources_dir = os.path.join('tests', 'test_compose_resources')
     try:
-        if get_docker_os_type() == "windows":
-            deployment_json_file_path = os.path.join(test_resources_dir, 'deployment_with_create_options_for_bind.json')
-            update_file_content(deployment_json_file_path, '/usr:/home/moduleuser/test',
-                                r'C:\\\\\\\\Users:C:/moduleuser/test')
-        cli_setup(runner)
         deployment_json_file_path = os.path.join(test_resources_dir, 'deployment_with_create_options_for_bind.json')
-        cli_start_with_deployment(runner, deployment_json_file_path)
+        temp_config_folder = os.path.join(tests_dir, 'tmp_config')
+        os.makedirs(temp_config_folder)
+
+        config_file_path = os.path.join(temp_config_folder, 'deployment_with_create_options_for_bind.json')
+        shutil.copy(deployment_json_file_path, config_file_path)
+
+        if get_docker_os_type() == "windows":
+            update_file_content(config_file_path, '/usr:/home/moduleuser/test',
+                                r'C:\\\\\\\\Users:C:/moduleuser/test')
+
+        cli_setup(runner)
+        cli_start_with_deployment(runner, config_file_path)
+
         wait_verify_docker_output(['docker', 'logs', 'edgeHubDev'], ['Opened link'])
         wait_verify_docker_output(['docker', 'logs', 'tempSensor'], ['Sending message'])
         if get_docker_os_type() == "windows":
@@ -337,10 +369,7 @@ def test_cli_start_with_create_options_for_bind(runner):
         else:
             wait_verify_docker_output(['docker', 'exec', 'tempSensor', 'ls', '/home/moduleuser/test'], ["share"])
     finally:
-        if get_docker_os_type() == "windows":
-            update_file_content(deployment_json_file_path,
-                                r'C:\\\\\\\\Users:C:/moduleuser/test',
-                                '/usr:/home/moduleuser/test')
+        shutil.rmtree(temp_config_folder, ignore_errors=True)
         result = cli_stop(runner)
         assert 'IoT Edge Simulator has been stopped successfully' in result.output.strip()
         remove_docker_networks(['azure-iot-edge-dev'])
@@ -352,45 +381,51 @@ def test_cli_start_with_create_options_for_bind(runner):
 @pytest.mark.skipif(get_docker_os_type() == 'windows', reason='The base image of edgeHubDev image is 1809 but agent is 1803.'
                     'So it does not support windows container.')
 def test_cli_start_with_registry(runner):
-    print("Please provision a regsitry with amd64 module and windows-amd64 module before run this test case.")
+    temp_config_folder = os.path.join(tests_dir, 'deployment_config')
+    os.makedirs(temp_config_folder)
     try:
-        if get_docker_os_type() == "windows":
-            deployment_json_file_path = os.path.join(test_config_dir, "deployment.windows-amd64.json")
-            module_image_name = ('"image": "{0}/{1}"').format(VALID_CONTAINERREGISTRYSERVER,
-                                                              'windows_filtermodule_with_registry:0.0.1-windows-amd64')
-            update_file_content(deployment_json_file_path, '"image": ""', module_image_name)
-        else:
-            deployment_json_file_path = os.path.join(test_config_dir, "deployment.amd64.json")
-            module_image_name = ('"image": "{0}/{1}"').format(VALID_CONTAINERREGISTRYSERVER,
-                                                              'filtermodule_with_registry:0.0.1-amd64')
-            update_file_content(deployment_json_file_path, '"image": ""', module_image_name)
+        old_tag = '1.0.0-rc1'
+        new_tag = '1.0.0-rc1.test'
+        image_name = 'azureiotedge-testing-utility'
+        old_image_name = image_name + ':' + old_tag
+        new_image_name = image_name + ':' + new_tag
+        old_tag_name = ('{0}/{1}').format('mcr.microsoft.com', old_image_name)
+        new_tag_name = ('{0}/{1}').format(VALID_CONTAINERREGISTRYSERVER, new_image_name)
 
-        update_file_content(deployment_json_file_path, '"username": ""',
+        docker_pull_image(old_tag_name)
+        docker_tag_image(old_tag_name, new_tag_name)
+        docker_login(VALID_CONTAINERREGISTRYUSERNAME, VALID_CONTAINERREGISTRYPASSWORD, VALID_CONTAINERREGISTRYSERVER)
+        docker_push_image(new_tag_name)
+
+        config_file_path = os.path.join(temp_config_folder, 'deployment.json')
+        deployment_file_path = os.path.join(test_config_dir, "deployment.json")
+        shutil.copy(deployment_file_path, config_file_path)
+
+        module_image_name = ('"image": "{0}/{1}"').format(VALID_CONTAINERREGISTRYSERVER, new_image_name)
+        update_file_content(config_file_path, '"image": ""', module_image_name)
+
+        update_file_content(config_file_path, '"username": ""',
                             '"username": "' + VALID_CONTAINERREGISTRYUSERNAME + '"')
-        update_file_content(deployment_json_file_path, '"password": ""',
+        update_file_content(config_file_path, '"password": ""',
                             '"password": "' + VALID_CONTAINERREGISTRYPASSWORD + '"')
-        update_file_content(deployment_json_file_path, '"address": ""',
+        update_file_content(config_file_path, '"address": ""',
                             '"address": "' + VALID_CONTAINERREGISTRYSERVER + '"')
 
-        cli_start_with_deployment(runner, deployment_json_file_path)
-        if get_docker_os_type() == "windows":
-            wait_verify_docker_output(['docker', 'ps'], ['windows_filtermodule_with_registry'])
-        else:
-            wait_verify_docker_output(['docker', 'ps'], ['filtermodule_with_registry'])
+        remove_docker_images([old_tag_name, new_tag_name])
+        docker_logout(VALID_CONTAINERREGISTRYSERVER)
+
+        cli_start_with_deployment(runner, config_file_path)
+        wait_verify_docker_output(['docker', 'ps'], ['azureiotedge-testing-utility', new_tag])
     finally:
-        update_file_content(deployment_json_file_path, module_image_name, '"image": ""')
-        update_file_content(deployment_json_file_path, '"username": "(.*)"', '"username": ""')
-        update_file_content(deployment_json_file_path, '"password": "(.*)"', '"password": ""')
-        update_file_content(deployment_json_file_path, '"address": "(.*)"', '"address": ""')
+        shutil.rmtree(temp_config_folder, ignore_errors=True)
 
         result = cli_stop(runner)
         assert 'IoT Edge Simulator has been stopped successfully' in result.output.strip()
 
         remove_docker_networks(['azure-iot-edge-dev'])
-        remove_docker_images(['mcr.microsoft.com/azureiotedge-simulated-temperature-sensor:1.0',
+        remove_docker_images([new_tag_name,
+                              old_tag_name,
                               'mcr.microsoft.com/azureiotedge-hub:1.0',
-                              'aziotedgetoolingtest.azurecr.io/filtermodule_with_registry:0.0.1-amd64',
-                              'aziotedgetoolingtest.azurecr.io/windows_filtermodule_with_registry:0.0.1-windows-amd64',
                               'hello-world'])
 
 

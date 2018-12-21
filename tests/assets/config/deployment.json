@@ -36,17 +36,7 @@
           }
         },
         "modules": {
-          "tempSensor": {
-            "version": "1.0",
-            "type": "docker",
-            "status": "running",
-            "restartPolicy": "always",
-            "settings": {
-              "image": "mcr.microsoft.com/azureiotedge-simulated-temperature-sensor:1.0",
-              "createOptions": "{}"
-            }
-          },
-          "filtermodule_with_registry": {
+          "testingUtility": {
             "version": "1.0",
             "type": "docker",
             "status": "running",
@@ -62,10 +52,7 @@
     "$edgeHub": {
       "properties.desired": {
         "schemaVersion": "1.0",
-        "routes": {
-          "sensorTofiltermodule_with_registry": "FROM /messages/modules/tempSensor/outputs/temperatureOutput INTO BrokeredEndpoint(\"/modules/filtermodule_with_registry/inputs/input1\")",
-          "filtermodule_with_registryToIoTHub": "FROM /messages/modules/filtermodule_with_registry/outputs/* INTO $upstream"
-        },
+        "routes": {},
         "storeAndForwardConfiguration": {
           "timeToLiveSecs": 7200
         }
