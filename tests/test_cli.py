@@ -333,7 +333,7 @@ def test_cli_start_with_create_options_for_bind(runner):
         wait_verify_docker_output(['docker', 'logs', 'edgeHubDev'], ['Opened link'])
         wait_verify_docker_output(['docker', 'logs', 'tempSensor'], ['Sending message'])
         if get_docker_os_type() == "windows":
-            wait_verify_docker_output('docker exec -w C:/moduleuser/test tempSensor cmd && dir', ['Public'], True)
+            wait_verify_docker_output('echo dir | docker exec -i -w c:/moduleuser/test/ tempSensor cmd', ['Public'], True)
         else:
             wait_verify_docker_output(['docker', 'exec', 'tempSensor', 'ls', '/home/moduleuser/test'], ["share"])
     finally:
