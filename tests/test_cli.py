@@ -357,8 +357,8 @@ def test_cli_start_with_registry(runner):
     try:
         if get_docker_os_type() == "windows":
             deployment_json_file_path = os.path.join(test_config_dir, "deployment.windows-amd64.json")
-            update_file_content(deployment_json_file_path, '"image": ""',
-                                '"image": "' + VALID_CONTAINERREGISTRYSERVER + '/windows_filtermodule_with_registry:0.0.1-windows-amd64"')
+            update_file_content(deployment_json_file_path, '"image": ""', '"image": "' +
+                                VALID_CONTAINERREGISTRYSERVER + '/windows_filtermodule_with_registry:0.0.1-windows-amd64"')
         else:
             deployment_json_file_path = os.path.join(test_config_dir, "deployment.amd64.json")
             update_file_content(deployment_json_file_path, '"image": ""',
