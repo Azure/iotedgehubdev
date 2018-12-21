@@ -24,8 +24,8 @@ tests_dir = os.path.join(workingdirectory, "tests")
 test_config_dir = os.path.join(tests_dir, "assets", "config")
 test_resources_dir = os.path.join(tests_dir, 'test_compose_resources')
 
-VALID_DEVICECONNECTIONSTRING = os.environ[platform.system().upper() + '_DEVICE_CONNECTION_STRING']
 VALID_IOTHUBCONNECTIONSTRING = os.environ['IOTHUB_CONNECTION_STRING']
+VALID_DEVICECONNECTIONSTRING = os.environ[platform.system().upper() + '_DEVICE_CONNECTION_STRING']
 VALID_CONTAINERREGISTRYSERVER = os.environ['CONTAINER_REGISTRY_SERVER']
 VALID_CONTAINERREGISTRYUSERNAME = os.environ['CONTAINER_REGISTRY_USERNAME']
 VALID_CONTAINERREGISTRYPASSWORD = os.environ['CONTAINER_REGISTRY_PASSWORD']
@@ -168,7 +168,6 @@ def update_file_content(file_path, actual_value, expected_value):
         f.seek(0)
         f.truncate()
         f.write(ret)
-        f.close()
 
 
 def test_cli(runner):
@@ -358,8 +357,12 @@ def test_cli_start_with_registry(runner):
     try:
         if get_docker_os_type() == "windows":
             deployment_json_file_path = os.path.join(test_config_dir, "deployment.windows-amd64.json")
+            update_file_content(deployment_json_file_path, '"image": ""',
+                                '"image": "' + VALID_CONTAINERREGISTRYSERVER + '/windows_filtermodule_with_registry:0.0.1-windows-amd64"')
         else:
             deployment_json_file_path = os.path.join(test_config_dir, "deployment.amd64.json")
+            update_file_content(deployment_json_file_path, '"image": ""',
+                                '"image": "' + VALID_CONTAINERREGISTRYSERVER + '/filtermodule_with_registry:0.0.1-amd64"')
 
         update_file_content(deployment_json_file_path, '"username": ""',
                             '"username": "' + VALID_CONTAINERREGISTRYUSERNAME + '"')
@@ -374,6 +377,13 @@ def test_cli_start_with_registry(runner):
         else:
             wait_verify_docker_output(['docker', 'ps'], ['filtermodule_with_registry'])
     finally:
+        if get_docker_os_type() == "windows":
+            update_file_content(deployment_json_file_path, '"image": "' + VALID_CONTAINERREGISTRYSERVER +
+                                '/windows_filtermodule_with_registry:0.0.1-windows-amd64"', '"image": ""')
+        else:
+            update_file_content(deployment_json_file_path, '"image": "' + VALID_CONTAINERREGISTRYSERVER +
+                                '/filtermodule_with_registry:0.0.1-amd64"', '"image": ""')
+
         update_file_content(deployment_json_file_path, '"username": "(.*)"', '"username": ""')
         update_file_content(deployment_json_file_path, '"password": "(.*)"', '"password": ""')
         update_file_content(deployment_json_file_path, '"address": "(.*)"', '"address": ""')

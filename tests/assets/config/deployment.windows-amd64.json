@@ -52,7 +52,7 @@
             "status": "running",
             "restartPolicy": "always",
             "settings": {
-              "image": "aziotedgetoolingtest.azurecr.io/windows_filtermodule_with_registry:0.0.1-windows-amd64",
+              "image": "",
               "createOptions": "{}"
             }
           }

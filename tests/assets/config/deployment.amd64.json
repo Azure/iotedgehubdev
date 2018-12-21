@@ -12,7 +12,7 @@
               "ytcontainers": {
                 "username": "",
                 "password": "",
-                "address": "aziotedgetoolingtest.azurecr.io"
+                "address": ""
               }
             }
           }
@@ -52,7 +52,7 @@
             "status": "running",
             "restartPolicy": "always",
             "settings": {
-              "image": "aziotedgetoolingtest.azurecr.io/filtermodule_with_registry:0.0.1-amd64",
+              "image": "",
               "createOptions": "{}"
             }
           }
