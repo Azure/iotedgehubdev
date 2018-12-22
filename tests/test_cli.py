@@ -268,33 +268,57 @@ def test_cli_output_modulecred_file(runner):
 @pytest.mark.skipif(get_docker_os_type() == 'windows', reason='It does not support windows container')
 def test_cli_create_options_for_custom_volume(runner):
     try:
+        deployment_json_file_path = os.path.join(test_resources_dir, 'deployment_with_custom_volume.json')
+        temp_config_folder = os.path.join(tests_dir, 'config_tmp')
+        os.makedirs(temp_config_folder)
+
+        config_file_path = os.path.join(temp_config_folder, 'deployment_with_custom_volume.json')
+        shutil.copy(deployment_json_file_path, config_file_path)
+
+        if get_docker_os_type() == "windows":
+            update_file_content(config_file_path, '/mnt_test', 'C:/mnt_test')
+
         cli_setup(runner)
         remove_docker_volumes(['testVolume'])
-        deployment_json_file_path = os.path.join(test_resources_dir, 'deployment_with_custom_volume.json')
-        cli_start_with_deployment(runner, deployment_json_file_path)
-        wait_verify_docker_output(['docker', 'volume', 'ls'],
-                                  ['testVolume', 'edgemoduledev', 'edgehubdev'])
-        expected_volumes = (['"Source": "testVolume"',
-                             '"Destination": "/mnt_test"',
-                             '"Source": "edgemoduledev"',
-                             '"Destination": "/mnt/edgemodule"'])
-        wait_verify_docker_output(['docker', 'inspect', 'tempSensor'], expected_volumes)
-        if platform.system().lower() == "linux":
+        cli_start_with_deployment(runner, config_file_path)
+
+        if get_docker_os_type() == 'linux':
+            wait_verify_docker_output(['docker', 'volume', 'ls'],
+                                      ['testVolume', 'edgemoduledev', 'edgehubdev'])
+            expected_volumes = (['"Source": "testVolume"',
+                                 '"Destination": "/mnt_test"',
+                                 '"Source": "edgemoduledev"',
+                                 '"Destination": "/mnt/edgemodule"'])
+            wait_verify_docker_output(['docker', 'inspect', 'tempSensor'], expected_volumes)
+
+            if platform.system().lower() == "linux" or platform.system().lower() == "windows":
+                wait_verify_docker_output(['docker', 'inspect', 'edgeHubDev'], [
+                    '"Source": "/var/lib/docker/volumes/edgehubdev/_data"',
+                    '"Destination": "/mnt/edgehub"'])
+            elif platform.system().lower() == "darwin":
+                wait_verify_docker_output(['docker', 'inspect', 'edgeHubDev'], [
+                    '"Source": "/mnt/sda1/var/lib/docker/volumes/edgehubdev/_data"',
+                    '"Destination": "/mnt/edgehub"'])
+        elif get_docker_os_type() == 'windows':
+            wait_verify_docker_output(['docker', 'volume', 'ls'],
+                                      ['testvolume', 'edgemoduledev', 'edgehubdev'])
+            expected_volumes = ([r'"Source": "C:\\\\ProgramData\\\\Docker\\\\volumes\\\\testvolume\\\\_data"',
+                                 r'"Destination": "C:\\\\mnt_test"',
+                                 r'"Source": "C:\\\\ProgramData\\\\Docker\\\\volumes\\\\edgemoduledev\\\\_data"',
+                                 r'"Destination": "c:\\\\mnt\\\\edgemodule"'])
+            wait_verify_docker_output(['docker', 'inspect', 'tempSensor'], expected_volumes)
             wait_verify_docker_output(['docker', 'inspect', 'edgeHubDev'], [
-                                      '"Source": "/var/lib/docker/volumes/edgehubdev/_data"',
-                                      '"Destination": "/mnt/edgehub"'])
-        elif platform.system().lower() == "darwin":
-            wait_verify_docker_output(['docker', 'inspect', 'edgeHubDev'], [
-                                      '"Source": "/mnt/sda1/var/lib/docker/volumes/edgehubdev/_data"',
-                                      '"Destination": "/mnt/edgehub"'])
+                r'"Source": "C:\\\\ProgramData\\\\Docker\\\\volumes\\\\edgehubdev\\\\_data"',
+                r'"Destination": "c:\\\\mnt\\\\edgehub"'])
     finally:
+        shutil.rmtree(temp_config_folder, ignore_errors=True)
         result = cli_stop(runner)
         assert 'IoT Edge Simulator has been stopped successfully' in result.output.strip()
         remove_docker_networks(['azure-iot-edge-dev'])
         remove_docker_images(['mcr.microsoft.com/azureiotedge-simulated-temperature-sensor:1.0',
                               'mcr.microsoft.com/azureiotedge-hub:1.0',
                               'hello-world'])
-        remove_docker_volumes(['testVolume'])
+        remove_docker_volumes(['testVolume', 'testvolume'])
 
 
 def test_cli_modulecred_for_multiple_modules(runner):
