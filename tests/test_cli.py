@@ -279,37 +279,28 @@ def test_cli_create_options_for_custom_volume(runner):
             update_file_content(config_file_path, '/mnt_test', 'C:/mnt_test')
 
         cli_setup(runner)
-        remove_docker_volumes(['testVolume'])
+        remove_docker_volumes(['testVolume', 'testvolume'])
         cli_start_with_deployment(runner, config_file_path)
 
         if get_docker_os_type() == 'linux':
-            wait_verify_docker_output(['docker', 'volume', 'ls'],
-                                      ['testVolume', 'edgemoduledev', 'edgehubdev'])
-            expected_volumes = (['"Source": "testVolume"',
-                                 '"Destination": "/mnt_test"',
-                                 '"Source": "edgemoduledev"',
-                                 '"Destination": "/mnt/edgemodule"'])
-            wait_verify_docker_output(['docker', 'inspect', 'tempSensor'], expected_volumes)
-
-            if platform.system().lower() == "linux" or platform.system().lower() == "windows":
-                wait_verify_docker_output(['docker', 'inspect', 'edgeHubDev'], [
-                    '"Source": "/var/lib/docker/volumes/edgehubdev/_data"',
-                    '"Destination": "/mnt/edgehub"'])
-            elif platform.system().lower() == "darwin":
-                wait_verify_docker_output(['docker', 'inspect', 'edgeHubDev'], [
-                    '"Source": "/mnt/sda1/var/lib/docker/volumes/edgehubdev/_data"',
-                    '"Destination": "/mnt/edgehub"'])
+            expected_volumes = (['testVolume', 'edgemoduledev', 'edgehubdev'])
+            expected_tempsensor_volumes = (['"Source": "testVolume"',
+                                            '"Target": "/mnt_test"',
+                                            '"Source": "edgemoduledev"',
+                                            '"Target": "/mnt/edgemodule"'])
+            expected_edgehubdev_volumes = (['"Source": "edgehubdev"', '"Target": "/mnt/edgehub"'])
         elif get_docker_os_type() == 'windows':
-            wait_verify_docker_output(['docker', 'volume', 'ls'],
-                                      ['testvolume', 'edgemoduledev', 'edgehubdev'])
-            expected_volumes = ([r'"Source": "C:\\\\ProgramData\\\\Docker\\\\volumes\\\\testvolume\\\\_data"',
-                                 r'"Destination": "C:\\\\mnt_test"',
-                                 r'"Source": "C:\\\\ProgramData\\\\Docker\\\\volumes\\\\edgemoduledev\\\\_data"',
-                                 r'"Destination": "c:\\\\mnt\\\\edgemodule"'])
-            wait_verify_docker_output(['docker', 'inspect', 'tempSensor'], expected_volumes)
-            wait_verify_docker_output(['docker', 'inspect', 'edgeHubDev'], [
-                r'"Source": "C:\\\\ProgramData\\\\Docker\\\\volumes\\\\edgehubdev\\\\_data"',
-                r'"Destination": "c:\\\\mnt\\\\edgehub"'])
+            expected_volumes = (['testvolume', 'edgemoduledev', 'edgehubdev'])
+            expected_tempsensor_volumes = (['"Source": "testVolume"',
+                                            '"Target": "C:/mnt_test"',
+                                            '"Source": "edgemoduledev"',
+                                            '"Target": "c:/mnt/edgemodule"'])
+            expected_edgehubdev_volumes = (['"Source": "edgehubdev"',
+                                            '"Target": "c:/mnt/edgehub"'])
+
+        wait_verify_docker_output(['docker', 'volume', 'ls'], expected_volumes)
+        wait_verify_docker_output(['docker', 'inspect', 'tempSensor'], expected_tempsensor_volumes)
+        wait_verify_docker_output(['docker', 'inspect', 'edgeHubDev'], expected_edgehubdev_volumes)
     finally:
         shutil.rmtree(temp_config_folder, ignore_errors=True)
         result = cli_stop(runner)
