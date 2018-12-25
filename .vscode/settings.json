@@ -1,4 +1,7 @@
 {
     "python.unitTest.unittestEnabled": true,
     "python.unitTest.pyTestEnabled": true,
+    "files.associations": {
+        "*.spec": "python",
+    },
 }
