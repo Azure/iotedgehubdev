@@ -17,7 +17,9 @@ The following table compares the steps needed to run the solution on the IoT Edg
   | Support native debug scenario| No | **YES** |
 
 ## Installing
-1. Install [Docker CE (18.02.0+)](https://www.docker.com/community-edition) on Windows, macOS or Linux.
+1. Install [Docker CE (18.02.0+)](https://www.docker.com/community-edition) on
+[Windows](https://docs.docker.com/docker-for-windows/install/), [macOS](https://docs.docker.com/docker-for-mac/install/) or [Linux](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce).
+
 2. Install [Docker Compose (1.20.0+)](https://docs.docker.com/compose/install/#install-compose) (Only required for **Linux**. Compose has already been included in Winows/macOS Docker CE installation)
 3. Install [Python (2.7/3.5+) and Pip](https://www.python.org/)
 4. Install iotedgehubdev by running below command in your terminal
@@ -25,6 +27,8 @@ The following table compares the steps needed to run the solution on the IoT Edg
     pip install --upgrade iotedgehubdev
     ```
     **Note**: Please install iotedgehubdev to **root** on linux/macOS.
+
+**Please make sure there is no Azure IoT Edge runtime running on the same machine with iotedgehubdev since they require the same ports.**
 
 ## Quickstart
 1. Setup
