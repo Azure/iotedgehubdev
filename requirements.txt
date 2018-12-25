@@ -12,3 +12,4 @@ rope
 tox
 pyyaml
 jsonpath_rw
+pyinstaller
