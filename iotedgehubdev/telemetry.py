@@ -3,17 +3,16 @@
 
 
 import datetime
-import json
-import os
 import platform
-import subprocess
-import sys
 import uuid
 from collections import defaultdict
 from functools import wraps
 
+import six
+from applicationinsights import TelemetryClient
+from applicationinsights.exceptions import enable
+
 from . import configs, decorators
-from . import telemetry_upload as telemetry_core
 
 PRODUCT_NAME = 'iotedgehubdev'
 
@@ -61,8 +60,7 @@ class TelemetrySession(object):
             'properties': props
         })
 
-        payload = json.dumps(self.events)
-        return _remove_symbols(payload)
+        return self.events
 
     @decorators.suppress_all_exceptions()
     @decorators.hash256_result
@@ -145,12 +143,19 @@ def _get_AI_key():
 # This includes a final user-agreement-check; ALL methods sending telemetry MUST call this.
 @_user_agrees_to_telemetry
 @decorators.suppress_all_exceptions()
-def _upload_telemetry_with_user_agreement(payload, **kwargs):
-    subprocess.Popen([sys.executable, os.path.realpath(telemetry_core.__file__), payload], **kwargs)
-
-
-def _remove_symbols(s):
-    if isinstance(s, str):
-        for c in '$%^&|':
-            s = s.replace(c, '_')
-    return s
+def _upload_telemetry_with_user_agreement(payload):
+    for AI_key in payload:
+        client = TelemetryClient(instrumentation_key=AI_key)
+        enable(AI_key)
+        for record in payload[AI_key]:
+            name = record['name']
+            raw_properties = record['properties']
+            properties = {}
+            measurements = {}
+            for k, v in raw_properties.items():
+                if isinstance(v, six.string_types):
+                    properties[k] = v
+                else:
+                    measurements[k] = v
+            client.track_event(name, properties, measurements)
+        client.flush()
