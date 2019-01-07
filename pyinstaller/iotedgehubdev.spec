@@ -24,11 +24,11 @@ def Entrypoint(dist, group, name, **kwargs):
     kwargs.setdefault('pathex', [])
     # get the entry point
     ep = pkg_resources.get_entry_info(dist, group, name)
-    # insert path of the egg at the verify front of the search path
+    # insert path of the egg at the very front of the search path
     kwargs['pathex'] = [ep.dist.location] + kwargs['pathex']
     # script name must not be a valid module name to avoid name clashes on import
     script_path = os.path.join(workpath, name + '-script.py')
-    print("creating script for entry point", dist, group, name)
+    print("Creating script for entry point", dist, group, name)
     with open(script_path, 'w') as fh:
         print("import", ep.module_name, file=fh)
         print("%s.%s()" % (ep.module_name, '.'.join(ep.attrs)), file=fh)
@@ -41,28 +41,10 @@ def Entrypoint(dist, group, name, **kwargs):
     )
 
 
-a = Entrypoint('iotedgehubdev', 'console_scripts', 'iotedgehubdev')
+a = Entrypoint('iotedgehubdev', 'console_scripts', 'iotedgehubdev', hookspath=[SPECPATH])
 
 pyz = PYZ(a.pure, a.zipped_data,
           cipher=block_cipher)
-
-# exe = EXE(pyz,
-#           a.scripts,
-#           [],
-#           exclude_binaries=True,
-#           name='setup',
-#           debug=False,
-#           bootloader_ignore_signals=False,
-#           strip=False,
-#           upx=True,
-#           console=True )
-# coll = COLLECT(exe,
-#                a.binaries,
-#                a.zipfiles,
-#                a.datas,
-#                strip=False,
-#                upx=True,
-#                name='setup')
 
 exe = EXE(pyz,
           a.scripts,
