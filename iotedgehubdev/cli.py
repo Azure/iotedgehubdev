@@ -3,6 +3,7 @@
 
 
 import json
+import multiprocessing
 import os
 import sys
 from functools import wraps
@@ -45,7 +46,10 @@ def _with_telemetry(func):
         try:
             value = func(*args, **kwargs)
             telemetry.success()
-            telemetry.flush()
+
+            p = multiprocessing.Process(target=telemetry.flush)
+            p.start()
+
             return value
         except Exception as e:
             output.error('Error: {0}'.format(str(e)))
@@ -261,4 +265,5 @@ main.add_command(start)
 main.add_command(stop)
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()
     main()
