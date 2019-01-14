@@ -11,6 +11,7 @@ import yaml
 from six import StringIO
 
 from .compose_parser import CreateOptionParser
+from .output import Output
 
 COMPOSE_VERSION = 3.6
 
@@ -53,11 +54,19 @@ class ComposeProject(object):
                 self.Services[service_name]['labels'][self.edge_info['labels']] = ""
 
             try:
+                # Default restart policy is 'on-unhealthy'
+                # https://github.com/Azure/iotedge/blob/8bd573590cdc149c014cf994dba58fc63f1a5c74/edge-agent/src/Microsoft.Azure.Devices.Edge.Agent.Core/Constants.cs#L18
+                restart_policy = config.get('restartPolicy', 'on-unhealthy')
                 self.Services[service_name]['restart'] = {
                     'never': 'no',
                     'on-failure': 'on-failure',
-                    'always': 'always'
-                }[config['restartPolicy']]
+                    'always': 'always',
+                    'on-unhealthy': 'always'
+                }[restart_policy]
+
+                if restart_policy == 'on-unhealthy':
+                    Output().warning('Unsupported restart policy \'{0}\' in solution mode. Falling back to \'always\'.'
+                                     .format(restart_policy))
             except KeyError as e:
                 raise KeyError('Unsupported restart policy {0} in solution mode.'.format(e))
 
