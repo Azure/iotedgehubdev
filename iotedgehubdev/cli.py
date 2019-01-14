@@ -23,6 +23,7 @@ output = Output()
 CONN_STR = 'connectionString'
 CERT_PATH = 'certPath'
 GATEWAY_HOST = 'gatewayhost'
+DOCKER_HOST = 'DOCKER_HOST'
 
 
 @decorators.suppress_all_exceptions()
@@ -182,8 +183,12 @@ def modulecred(modules, local, output_file):
               default=False,
               show_default=True,
               help='Show the solution container logs.')
+@click.option('--host',
+              '-H',
+              required=False,
+              help='Docker daemon socket to connect to')
 @_with_telemetry
-def start(inputs, port, deployment, verbose):
+def start(inputs, port, deployment, verbose, host):
     configFile = HostPlatform.get_config_file_path()
     try:
         with open(configFile) as f:
@@ -193,6 +198,8 @@ def start(inputs, port, deployment, verbose):
                 cert_path = jsonObj[CERT_PATH]
                 gatewayhost = jsonObj[GATEWAY_HOST]
                 edgeManager = EdgeManager(connection_str, gatewayhost, cert_path)
+                if host is not None:
+                    os.environ[DOCKER_HOST] = host
             else:
                 output.error('Missing keys in config file. Please run `iotedgehubdev setup` again.')
                 sys.exit(1)
@@ -246,9 +253,15 @@ def start(inputs, port, deployment, verbose):
 
 @click.command(context_settings=CONTEXT_SETTINGS,
                help="Stop the IoT Edge Simulator.")
+@click.option('--host',
+              '-H',
+              required=False,
+              help='Docker daemon socket to connect to')
 @_with_telemetry
-def stop():
+def stop(host):
     try:
+        if host is not None:
+            os.environ[DOCKER_HOST] = host
         EdgeManager.stop()
         output.info('IoT Edge Simulator has been stopped successfully.')
     except Exception as e:
