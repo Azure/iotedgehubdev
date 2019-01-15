@@ -17,6 +17,7 @@ steps:
     displayName: "Update and install required tools"
 
   - script: |
+      brew update
       brew install docker
       brew install docker-machine
       brew link --overwrite docker-machine
