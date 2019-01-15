@@ -22,7 +22,6 @@
           "edgeHub": {
             "type": "docker",
             "status": "running",
-            "restartPolicy": "always",
             "settings": {
               "image": "mcr.microsoft.com/azureiotedge-hub:1.0",
               "createOptions": "{\"HostConfig\":{\"PortBindings\":",
@@ -35,7 +34,7 @@
             "version": "1.0",
             "type": "docker",
             "status": "running",
-            "restartPolicy": "always",
+            "restartPolicy": "never",
             "settings": {
               "image": "mcr.microsoft.com/azureiotedge-simulated-temperature-sensor:1.0",
               "createOptions": "{\r\n  \"Hostname\": \"\",\r\n  \"Domainname\": \"\",\r\n  \"User\": \"\",\r\n  \"AttachStdin\": false,\r\n  \"AttachStdout\"",
@@ -52,7 +51,7 @@
             "version": "1.0",
             "type": "docker",
             "status": "running",
-            "restartPolicy": "always",
+            "restartPolicy": "unknown",
             "settings": {
               "image": "localhost:5000/samplemodule:0.0.1-amd64",
               "createOptions": ""

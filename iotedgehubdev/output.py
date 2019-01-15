@@ -18,6 +18,9 @@ class Output:
     def prompt(self, text):
         self.echo(text, color='white')
 
+    def warning(self, text):
+        self.echo("WARNING: " + text, color='yellow')
+
     def error(self, text):
         self.echo("ERROR: " + text, color='red')
 

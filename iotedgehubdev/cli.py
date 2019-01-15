@@ -220,7 +220,7 @@ def start(inputs, port, deployment, verbose, host):
             try:
                 EdgeManager.login_registries(module_content)
             except RegistriesLoginError as e:
-                output.info('Warn: {0}'.format(e.message()))
+                output.warning(e.message())
                 telemetry.add_extra_props({'failloginregistries': len(e.registries())})
             edgeManager.start_solution(module_content, verbose)
             if not verbose:

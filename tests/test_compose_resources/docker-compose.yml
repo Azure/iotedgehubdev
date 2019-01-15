@@ -40,7 +40,7 @@ services:
       iotedgehubdev: ''
     networks:
       azure-iot-edge-dev: null
-    restart: always
+    restart: on-failure
     volumes:
     - source: edgemoduledev
       target: /mnt/edgemodule
