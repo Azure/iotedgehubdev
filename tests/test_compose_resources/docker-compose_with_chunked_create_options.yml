@@ -56,7 +56,7 @@ services:
     - 11022:22/tcp
     privileged: false
     read_only: false
-    restart: always
+    restart: 'no'
     security_opt: []
     stop_grace_period: 10s
     stop_signal: SIGTERM
@@ -109,7 +109,7 @@ services:
       iotedgehubdev: ''
     networks:
       azure-iot-edge-dev: null
-    restart: always
+    restart: 'no'
     volumes:
     - source: edgemoduledev
       target: /mnt/edgemodule
