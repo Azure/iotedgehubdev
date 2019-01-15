@@ -1,7 +1,7 @@
 autopep8
 backports.unittest-mock
 click
-docker
+docker>=3.6.0
 flake8
 pyOpenSSL>=17.0.0
 requests
@@ -12,3 +12,4 @@ rope
 tox
 pyyaml
 jsonpath_rw
+docker-compose>=1.21.0
