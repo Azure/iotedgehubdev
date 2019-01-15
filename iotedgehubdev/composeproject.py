@@ -61,7 +61,8 @@ class ComposeProject(object):
                     'never': 'no',
                     'on-failure': 'on-failure',
                     'always': 'always',
-                    'on-unhealthy': 'always'
+                    'on-unhealthy': 'always',
+                    'unknown': 'no'
                 }[restart_policy]
 
                 if restart_policy == 'on-unhealthy':
