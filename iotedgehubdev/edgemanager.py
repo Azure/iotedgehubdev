@@ -20,7 +20,7 @@ from .utils import Utils
 class EdgeManager(object):
     LABEL = 'iotedgehubdev'
     EDGEHUB_IMG = 'mcr.microsoft.com/azureiotedge-hub:1.0'
-    TESTUTILITY_IMG = 'mcr.microsoft.com/azureiotedge-testing-utility:1.0.0-rc1'
+    TESTUTILITY_IMG = 'mcr.microsoft.com/azureiotedge-testing-utility:1.0.0'
     EDGEHUB_MODULE = '$edgeHub'
     EDGEHUB = 'edgeHubDev'
     INPUT = 'input'
