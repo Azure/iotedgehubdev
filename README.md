@@ -33,7 +33,7 @@ The following table compares the steps needed to run the solution on the IoT Edg
 ## Quickstart
 1. Setup
     ```
-    iotedgehubdev setup -c <edge-device-connection-string>
+    iotedgehubdev setup -c "<edge-device-connection-string>"
     ```
 
 2. Start/stop an IoT Edge solution in simulator
