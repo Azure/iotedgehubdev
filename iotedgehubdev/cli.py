@@ -57,6 +57,15 @@ def _with_telemetry(func):
     return _wrapper
 
 
+def _get_config_file():
+    config_file = HostPlatform.get_config_file_path()
+    if Utils.check_if_file_exists(config_file) is not True:
+        output.error('Cannot find config file. Please run `iotedgehubdev setup -c "<edge-device-connection-string>"` first.')
+        sys.exit(1)
+
+    return config_file
+
+
 @click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
 @click.version_option()
 def main():
@@ -136,12 +145,10 @@ def setup(connection_string, gateway_host):
               help='Specify the output file to save the connection string. If the file exists, the content will be overwritten.')
 @_with_telemetry
 def modulecred(modules, local, output_file):
-    configFile = HostPlatform.get_config_file_path()
-    if Utils.check_if_file_exists(configFile) is not True:
-        output.error('Cannot find config file. Please run `iotedgehubdev setup` first.')
-        sys.exit(1)
+    config_file = _get_config_file()
+
     try:
-        with open(configFile) as f:
+        with open(config_file) as f:
             jsonObj = json.load(f)
         if CONN_STR in jsonObj and CERT_PATH in jsonObj and GATEWAY_HOST in jsonObj:
             connection_str = jsonObj[CONN_STR]
@@ -189,9 +196,10 @@ def modulecred(modules, local, output_file):
               help='Docker daemon socket to connect to')
 @_with_telemetry
 def start(inputs, port, deployment, verbose, host):
-    configFile = HostPlatform.get_config_file_path()
+    config_file = _get_config_file()
+
     try:
-        with open(configFile) as f:
+        with open(config_file) as f:
             jsonObj = json.load(f)
             if CONN_STR in jsonObj and CERT_PATH in jsonObj and GATEWAY_HOST in jsonObj:
                 connection_str = jsonObj[CONN_STR]
