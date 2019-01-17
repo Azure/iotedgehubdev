@@ -147,14 +147,8 @@ class Utils(object):
 
     @staticmethod
     @suppress_all_exceptions()
-    def hash_connection_str_hostname(connection_str):
+    def hash_connection_str_hostname(hostname):
         """Hash connection string hostname to count distint IoT Hub number"""
-        try:
-            connection_str_dict = Utils.parse_device_connection_str(connection_str)
-            hostname = connection_str_dict[EC.HOSTNAME_KEY]
-        except Exception:
-            hostname = None
-
         if not hostname:
             return ("", "")
 

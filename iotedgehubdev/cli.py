@@ -57,24 +57,27 @@ def _with_telemetry(func):
     return _wrapper
 
 
-def _load_config_json():
+def _parse_config_json():
     config_file = HostPlatform.get_config_file_path()
 
     if not Utils.check_if_file_exists(config_file):
-        raise ValueError('Cannot find config file. Please run `iotedgehubdev setup -c "<edge-device-connection-string>"` first.')
+        raise ValueError('Cannot find config file. Please run `{0}` first.'.format(_get_setup_command()))
 
     with open(config_file) as f:
         try:
             config_json = json.load(f)
 
-            if CONN_STR not in config_json \
-                    or CERT_PATH not in config_json \
-                    or GATEWAY_HOST not in config_json:
-                raise ValueError()
+            connection_str = config_json[CONN_STR]
+            cert_path = config_json[CERT_PATH]
+            gatewayhost = config_json[GATEWAY_HOST]
 
-            return config_json
-        except ValueError:
-            raise ValueError('Invalid config file. Please run `iotedgehubdev setup -c "<edge-device-connection-string>"` again.')
+            return EdgeManager(connection_str, gatewayhost, cert_path)
+        except (ValueError, KeyError):
+            raise ValueError('Invalid config file. Please run `{0}` again.'.format(_get_setup_command()))
+
+
+def _get_setup_command():
+    return '{0}iotedgehubdev setup -c "<edge-device-connection-string>"'.format('' if os.name == 'nt' else 'sudo ')
 
 
 @click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
@@ -156,15 +159,11 @@ def setup(connection_string, gateway_host):
               help='Specify the output file to save the connection string. If the file exists, the content will be overwritten.')
 @_with_telemetry
 def modulecred(modules, local, output_file):
-    config_json = _load_config_json()
+    edge_manager = _parse_config_json()
 
-    if config_json:
-        connection_str = config_json[CONN_STR]
-        cert_path = config_json[CERT_PATH]
-        gatewayhost = config_json[GATEWAY_HOST]
-        edgeManager = EdgeManager(connection_str, gatewayhost, cert_path)
+    if edge_manager:
         modules = [module.strip() for module in modules.strip().split('|')]
-        credential = edgeManager.outputModuleCred(modules, local, output_file)
+        credential = edge_manager.outputModuleCred(modules, local, output_file)
         output.info(credential[0])
         output.info(credential[1])
 
@@ -199,37 +198,30 @@ def modulecred(modules, local, output_file):
               help='Docker daemon socket to connect to')
 @_with_telemetry
 def start(inputs, port, deployment, verbose, host):
-    config_json = _load_config_json()
+    edge_manager = _parse_config_json()
 
-    if config_json:
-        connection_str = config_json[CONN_STR]
-        cert_path = config_json[CERT_PATH]
-        gatewayhost = config_json[GATEWAY_HOST]
-        edgeManager = EdgeManager(connection_str, gatewayhost, cert_path)
+    if edge_manager:
         if host is not None:
             os.environ[DOCKER_HOST] = host
 
-        hostname_hash, suffix = Utils.hash_connection_str_hostname(connection_str)
+        hostname_hash, suffix = Utils.hash_connection_str_hostname(edge_manager.hostname)
         telemetry.add_extra_props({'iothubhostname': hostname_hash, 'iothubhostnamesuffix': suffix})
 
         if inputs is None and deployment is not None:
+            with open(deployment) as json_file:
+                json_data = json.load(json_file)
+                if 'modulesContent' in json_data:
+                    module_content = json_data['modulesContent']
+                elif 'moduleContent' in json_data:
+                    module_content = json_data['moduleContent']
             try:
-                with open(deployment) as json_file:
-                    json_data = json.load(json_file)
-                    if 'modulesContent' in json_data:
-                        module_content = json_data['modulesContent']
-                    elif 'moduleContent' in json_data:
-                        module_content = json_data['moduleContent']
-                try:
-                    EdgeManager.login_registries(module_content)
-                except RegistriesLoginError as e:
-                    output.warning(e.message())
-                    telemetry.add_extra_props({'failloginregistries': len(e.registries())})
-                edgeManager.start_solution(module_content, verbose)
-                if not verbose:
-                    output.info('IoT Edge Simulator has been started in solution mode.')
-            except Exception as e:
-                raise e
+                EdgeManager.login_registries(module_content)
+            except RegistriesLoginError as e:
+                output.warning(e.message())
+                telemetry.add_extra_props({'failloginregistries': len(e.registries())})
+            edge_manager.start_solution(module_content, verbose)
+            if not verbose:
+                output.info('IoT Edge Simulator has been started in solution mode.')
         else:
             if deployment is not None:
                 output.info('Deployment manifest is ignored when inputs are present.')
@@ -238,7 +230,7 @@ def start(inputs, port, deployment, verbose, host):
             else:
                 input_list = [input_.strip() for input_ in inputs.strip().split(',')]
 
-            edgeManager.start_singlemodule(input_list, port)
+            edge_manager.start_singlemodule(input_list, port)
 
             data = '--data \'{{"inputName": "{0}","data":"hello world"}}\''.format(input_list[0])
             url = 'http://localhost:{0}/api/v1/messages'.format(port)
