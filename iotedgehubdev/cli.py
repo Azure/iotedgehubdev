@@ -49,12 +49,35 @@ def _with_telemetry(func):
             telemetry.flush()
             return value
         except Exception as e:
-            output.error('Error: {0}'.format(str(e)))
+            output.error(str(e))
             telemetry.fail(str(e), 'Command failed')
             telemetry.flush()
             sys.exit(1)
 
     return _wrapper
+
+
+def _parse_config_json():
+    config_file = HostPlatform.get_config_file_path()
+
+    if not Utils.check_if_file_exists(config_file):
+        raise ValueError('Cannot find config file. Please run `{0}` first.'.format(_get_setup_command()))
+
+    with open(config_file) as f:
+        try:
+            config_json = json.load(f)
+
+            connection_str = config_json[CONN_STR]
+            cert_path = config_json[CERT_PATH]
+            gatewayhost = config_json[GATEWAY_HOST]
+
+            return EdgeManager(connection_str, gatewayhost, cert_path)
+        except (ValueError, KeyError):
+            raise ValueError('Invalid config file. Please run `{0}` again.'.format(_get_setup_command()))
+
+
+def _get_setup_command():
+    return '{0}iotedgehubdev setup -c "<edge-device-connection-string>"'.format('' if os.name == 'nt' else 'sudo ')
 
 
 @click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
@@ -136,27 +159,13 @@ def setup(connection_string, gateway_host):
               help='Specify the output file to save the connection string. If the file exists, the content will be overwritten.')
 @_with_telemetry
 def modulecred(modules, local, output_file):
-    configFile = HostPlatform.get_config_file_path()
-    if Utils.check_if_file_exists(configFile) is not True:
-        output.error('Cannot find config file. Please run `iotedgehubdev setup` first.')
-        sys.exit(1)
-    try:
-        with open(configFile) as f:
-            jsonObj = json.load(f)
-        if CONN_STR in jsonObj and CERT_PATH in jsonObj and GATEWAY_HOST in jsonObj:
-            connection_str = jsonObj[CONN_STR]
-            cert_path = jsonObj[CERT_PATH]
-            gatewayhost = jsonObj[GATEWAY_HOST]
-            edgeManager = EdgeManager(connection_str, gatewayhost, cert_path)
-            modules = [module.strip() for module in modules.strip().split('|')]
-            credential = edgeManager.outputModuleCred(modules, local, output_file)
-            output.info(credential[0])
-            output.info(credential[1])
-        else:
-            output.error('Missing keys in config file. Please run `iotedgehubdev setup` again.')
-            sys.exit(1)
-    except Exception as e:
-        raise e
+    edge_manager = _parse_config_json()
+
+    if edge_manager:
+        modules = [module.strip() for module in modules.strip().split('|')]
+        credential = edge_manager.outputModuleCred(modules, local, output_file)
+        output.info(credential[0])
+        output.info(credential[1])
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
@@ -189,28 +198,16 @@ def modulecred(modules, local, output_file):
               help='Docker daemon socket to connect to')
 @_with_telemetry
 def start(inputs, port, deployment, verbose, host):
-    configFile = HostPlatform.get_config_file_path()
-    try:
-        with open(configFile) as f:
-            jsonObj = json.load(f)
-            if CONN_STR in jsonObj and CERT_PATH in jsonObj and GATEWAY_HOST in jsonObj:
-                connection_str = jsonObj[CONN_STR]
-                cert_path = jsonObj[CERT_PATH]
-                gatewayhost = jsonObj[GATEWAY_HOST]
-                edgeManager = EdgeManager(connection_str, gatewayhost, cert_path)
-                if host is not None:
-                    os.environ[DOCKER_HOST] = host
-            else:
-                output.error('Missing keys in config file. Please run `iotedgehubdev setup` again.')
-                sys.exit(1)
-    except Exception as e:
-        raise e
+    edge_manager = _parse_config_json()
 
-    hostname_hash, suffix = Utils.hash_connection_str_hostname(connection_str)
-    telemetry.add_extra_props({'iothubhostname': hostname_hash, 'iothubhostnamesuffix': suffix})
+    if edge_manager:
+        if host is not None:
+            os.environ[DOCKER_HOST] = host
 
-    if inputs is None and deployment is not None:
-        try:
+        hostname_hash, suffix = Utils.hash_connection_str_hostname(edge_manager.hostname)
+        telemetry.add_extra_props({'iothubhostname': hostname_hash, 'iothubhostnamesuffix': suffix})
+
+        if inputs is None and deployment is not None:
             with open(deployment) as json_file:
                 json_data = json.load(json_file)
                 if 'modulesContent' in json_data:
@@ -222,33 +219,31 @@ def start(inputs, port, deployment, verbose, host):
             except RegistriesLoginError as e:
                 output.warning(e.message())
                 telemetry.add_extra_props({'failloginregistries': len(e.registries())})
-            edgeManager.start_solution(module_content, verbose)
+            edge_manager.start_solution(module_content, verbose)
             if not verbose:
                 output.info('IoT Edge Simulator has been started in solution mode.')
-        except Exception as e:
-            raise e
-    else:
-        if deployment is not None:
-            output.info('Deployment manifest is ignored when inputs are present.')
-        if inputs is None:
-            input_list = ['input1']
         else:
-            input_list = [input_.strip() for input_ in inputs.strip().split(',')]
+            if deployment is not None:
+                output.info('Deployment manifest is ignored when inputs are present.')
+            if inputs is None:
+                input_list = ['input1']
+            else:
+                input_list = [input_.strip() for input_ in inputs.strip().split(',')]
 
-        edgeManager.start_singlemodule(input_list, port)
+            edge_manager.start_singlemodule(input_list, port)
 
-        data = '--data \'{{"inputName": "{0}","data":"hello world"}}\''.format(input_list[0])
-        url = 'http://localhost:{0}/api/v1/messages'.format(port)
-        curl_msg = '        curl --header "Content-Type: application/json" --request POST {0} {1}'.format(data, url)
-        output.info('IoT Edge Simulator has been started in single module mode.')
-        output.info('Please run `iotedgehubdev modulecred` to get credential to connect your module.')
-        output.info('And send message through:')
-        output.line()
-        output.echo(curl_msg, 'green')
-        output.line()
-        output.info(
-            'Please refer to https://github.com/Azure/iot-edge-testing-utility/blob/master/swagger.json'
-            ' for detail schema')
+            data = '--data \'{{"inputName": "{0}","data":"hello world"}}\''.format(input_list[0])
+            url = 'http://localhost:{0}/api/v1/messages'.format(port)
+            curl_msg = '        curl --header "Content-Type: application/json" --request POST {0} {1}'.format(data, url)
+            output.info('IoT Edge Simulator has been started in single module mode.')
+            output.info('Please run `iotedgehubdev modulecred` to get credential to connect your module.')
+            output.info('And send message through:')
+            output.line()
+            output.echo(curl_msg, 'green')
+            output.line()
+            output.info(
+                'Please refer to https://github.com/Azure/iot-edge-testing-utility/blob/master/swagger.json'
+                ' for detail schema')
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
@@ -259,13 +254,10 @@ def start(inputs, port, deployment, verbose, host):
               help='Docker daemon socket to connect to')
 @_with_telemetry
 def stop(host):
-    try:
-        if host is not None:
-            os.environ[DOCKER_HOST] = host
-        EdgeManager.stop()
-        output.info('IoT Edge Simulator has been stopped successfully.')
-    except Exception as e:
-        raise e
+    if host is not None:
+        os.environ[DOCKER_HOST] = host
+    EdgeManager.stop()
+    output.info('IoT Edge Simulator has been stopped successfully.')
 
 
 main.add_command(setup)

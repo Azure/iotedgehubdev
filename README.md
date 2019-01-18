@@ -32,20 +32,42 @@ The following table compares the steps needed to run the solution on the IoT Edg
 
 ## Quickstart
 1. Setup
+
+    Windows
     ```
-    iotedgehubdev setup -c <edge-device-connection-string>
+    iotedgehubdev setup -c "<edge-device-connection-string>"
+    ```
+
+    Linux/macOS
+    ```
+    sudo iotedgehubdev setup -c "<edge-device-connection-string>"
     ```
 
 2. Start/stop an IoT Edge solution in simulator
+
+    Windows
     ```
-    iotedgehubdev start -d <path/to/deployment manifest>
+    iotedgehubdev start -d <path/to/deployment-manifest>
     iotedgehubdev stop
+    ```
+
+    Linux/macOS
+    ```
+    sudo iotedgehubdev start -d <path/to/deployment-manifest>
+    sudo iotedgehubdev stop
     ```
 
 3. Start and debug a single module natively
     1. Start the module with specific input(s)
+
+        Windows
         ```
-        iotedgehubdev start -i <module-inputs>
+        iotedgehubdev start -i "<module-inputs>"
+        ```
+
+        Linux/macOS
+        ```
+        sudo iotedgehubdev start -i "<module-inputs>"
         ```
 
         For example: `iotedgehubdev start -i "input1,input2"`
@@ -61,6 +83,17 @@ The following table compares the steps needed to run the solution on the IoT Edg
 
         For example:
         `curl --header "Content-Type: application/json" --request POST --data '{"inputName": "input1","data": "hello world"}' http://localhost:53000/api/v1/messages`
+    5. Stop the simulator
+
+        Windows
+        ```
+        iotedgehubdev stop
+        ```
+
+        Linux/macOS
+        ```
+        sudo iotedgehubdev stop
+        ```
  
 ## Other resources
 - [Azure IoT Edge for Visual Studio Code](https://github.com/microsoft/vscode-azure-iot-edge)
