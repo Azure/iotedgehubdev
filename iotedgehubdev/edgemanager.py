@@ -42,14 +42,18 @@ class EdgeManager(object):
 
     def __init__(self, connection_str, gatewayhost, cert_path):
         connection_str_dict = Utils.parse_device_connection_str(connection_str)
-        self.hostname = connection_str_dict[EC.HOSTNAME_KEY]
-        self.device_id = connection_str_dict[EC.DEVICE_ID_KEY]
-        self.access_key = connection_str_dict[EC.ACCESS_KEY_KEY]
-        self.compose_file = None
-        self.gatewayhost = gatewayhost
-        self.device_uri = '{0}/devices/{1}'.format(self.hostname, self.device_id)
-        self.cert_path = cert_path
-        self.edge_cert = EdgeCert(self.cert_path, self.gatewayhost)
+        self._hostname = connection_str_dict[EC.HOSTNAME_KEY]
+        self._device_id = connection_str_dict[EC.DEVICE_ID_KEY]
+        self._access_key = connection_str_dict[EC.ACCESS_KEY_KEY]
+        self._compose_file = None
+        self._gatewayhost = gatewayhost
+        self._device_uri = '{0}/devices/{1}'.format(self._hostname, self._device_id)
+        self._cert_path = cert_path
+        self._edge_cert = EdgeCert(self._cert_path, self._gatewayhost)
+
+    @property
+    def hostname(self):
+        return self._hostname
 
     @staticmethod
     def stop(edgedockerclient=None):
@@ -117,7 +121,7 @@ class EdgeManager(object):
         edgedockerclient.copy_file_to_volume(
             EdgeManager.INPUT, EdgeManager.MODULE_VOLUME, self._device_cert(),
             module_mount,
-            self.edge_cert.get_cert_file_path(EC.EDGE_DEVICE_CA))
+            self._edge_cert.get_cert_file_path(EC.EDGE_DEVICE_CA))
         edgedockerclient.start(inputContainer.get('Id'))
 
     def config_solution(self, module_content, target, mount_base):
@@ -152,7 +156,7 @@ class EdgeManager(object):
 
         network_info = {
             'NW_NAME': EdgeManager.NW_NAME,
-            'ALIASES': self.gatewayhost
+            'ALIASES': self._gatewayhost
         }
 
         compose_project = ComposeProject(module_content)
@@ -233,13 +237,13 @@ class EdgeManager(object):
 
         edgedockerclient.copy_file_to_volume(
             EdgeManager.CERT_HELPER, EdgeManager.HUB_VOLUME, EdgeManager._chain_cert(),
-            hub_mount, self.edge_cert.get_cert_file_path(EC.EDGE_CHAIN_CA))
+            hub_mount, self._edge_cert.get_cert_file_path(EC.EDGE_CHAIN_CA))
         edgedockerclient.copy_file_to_volume(
             EdgeManager.CERT_HELPER, EdgeManager.HUB_VOLUME, EdgeManager._hubserver_pfx(),
-            hub_mount, self.edge_cert.get_pfx_file_path(EC.EDGE_HUB_SERVER))
+            hub_mount, self._edge_cert.get_pfx_file_path(EC.EDGE_HUB_SERVER))
         edgedockerclient.copy_file_to_volume(
             EdgeManager.CERT_HELPER, EdgeManager.MODULE_VOLUME, self._device_cert(),
-            module_mount, self.edge_cert.get_cert_file_path(EC.EDGE_DEVICE_CA))
+            module_mount, self._edge_cert.get_cert_file_path(EC.EDGE_DEVICE_CA))
 
     def start(self, modulesDict, routes):
         return
@@ -258,7 +262,7 @@ class EdgeManager(object):
 
     def outputModuleCred(self, names, islocal, output_file):
         connstrENV = 'EdgeHubConnectionString={0}'.format('|'.join([self.getOrAddModule(name, islocal) for name in names]))
-        deviceCAEnv = 'EdgeModuleCACertificateFile={0}'.format(self.edge_cert.get_cert_file_path(EC.EDGE_DEVICE_CA))
+        deviceCAEnv = 'EdgeModuleCACertificateFile={0}'.format(self._edge_cert.get_cert_file_path(EC.EDGE_DEVICE_CA))
         cred = [connstrENV, deviceCAEnv]
 
         if output_file is not None:
@@ -272,7 +276,7 @@ class EdgeManager(object):
 
     def getModule(self, name, islocal):
         moduleUri = self._getModuleReqUri(name)
-        sas = Utils.get_iot_hub_sas_token(self.device_uri, self.access_key, None)
+        sas = Utils.get_iot_hub_sas_token(self._device_uri, self._access_key, None)
         res = requests.get(
             moduleUri,
             headers={
@@ -294,7 +298,7 @@ class EdgeManager(object):
 
     def updateModule(self, name, etag, islocal):
         moduleUri = self._getModuleReqUri(name)
-        sas = Utils.get_iot_hub_sas_token(self.device_uri, self.access_key, None)
+        sas = Utils.get_iot_hub_sas_token(self._device_uri, self._access_key, None)
         res = requests.put(
             moduleUri,
             headers={
@@ -304,7 +308,7 @@ class EdgeManager(object):
             },
             data=json.dumps({
                 'moduleId': name,
-                'deviceId': self.device_id,
+                'deviceId': self._device_id,
                 'authentication': {
                     'type': 'sas'
                 }
@@ -316,7 +320,7 @@ class EdgeManager(object):
 
     def addModule(self, name, islocal):
         moduleUri = self._getModuleReqUri(name)
-        sas = Utils.get_iot_hub_sas_token(self.device_uri, self.access_key, None)
+        sas = Utils.get_iot_hub_sas_token(self._device_uri, self._access_key, None)
         res = requests.put(
             moduleUri,
             headers={
@@ -325,7 +329,7 @@ class EdgeManager(object):
             },
             data=json.dumps({
                 'moduleId': name,
-                'deviceId': self.device_id
+                'deviceId': self._device_id
             })
         )
         if res.ok is not True:
@@ -334,7 +338,7 @@ class EdgeManager(object):
 
     def _getModuleReqUri(self, name):
         return "https://{0}/devices/{1}/modules/{2}?api-version=2018-06-30".format(
-            self.hostname, self.device_id, name)
+            self._hostname, self._device_id, name)
 
     def _generateModuleConnectionStr(self, response, islocal):
         jsonObj = response.json()
@@ -343,13 +347,13 @@ class EdgeManager(object):
         sasKey = jsonObj['authentication']['symmetricKey']['primaryKey']
         hubTemplate = 'HostName={0};DeviceId={1};ModuleId={2};SharedAccessKey={3}'
         moduleTemplate = 'HostName={0};GatewayHostName={1};DeviceId={2};ModuleId={3};SharedAccessKey={4}'
-        gatewayhost = self.gatewayhost
+        gatewayhost = self._gatewayhost
         if (islocal):
             gatewayhost = 'localhost'
         if (moduleId == '$edgeHub'):
-            return hubTemplate.format(self.hostname, deviceId, moduleId, sasKey)
+            return hubTemplate.format(self._hostname, deviceId, moduleId, sasKey)
         else:
-            return moduleTemplate.format(self.hostname, gatewayhost, deviceId, moduleId, sasKey)
+            return moduleTemplate.format(self._hostname, gatewayhost, deviceId, moduleId, sasKey)
 
     def _generateRoutesEnvFromInputs(self, inputs):
         routes = [
@@ -368,7 +372,7 @@ class EdgeManager(object):
 
     def _start_edge_hub(self, edgedockerclient, edgeHubConnStr, routes, mount_base):
         edgedockerclient.pull(EdgeManager.EDGEHUB_IMG, None, None)
-        network_config = edgedockerclient.create_config_for_network(EdgeManager.NW_NAME, aliases=[self.gatewayhost])
+        network_config = edgedockerclient.create_config_for_network(EdgeManager.NW_NAME, aliases=[self._gatewayhost])
         hub_mount = EdgeManager.HUB_MOUNT.format(mount_base)
         hub_host_config = edgedockerclient.create_host_config(
             mounts=[docker.types.Mount(hub_mount, EdgeManager.HUB_VOLUME)],
@@ -399,10 +403,10 @@ class EdgeManager(object):
 
         edgedockerclient.copy_file_to_volume(
             EdgeManager.EDGEHUB, EdgeManager.HUB_VOLUME, EdgeManager._chain_cert(),
-            hub_mount, self.edge_cert.get_cert_file_path(EC.EDGE_CHAIN_CA))
+            hub_mount, self._edge_cert.get_cert_file_path(EC.EDGE_CHAIN_CA))
         edgedockerclient.copy_file_to_volume(
             EdgeManager.EDGEHUB, EdgeManager.HUB_VOLUME, EdgeManager._hubserver_pfx(),
-            hub_mount, self.edge_cert.get_pfx_file_path(EC.EDGE_HUB_SERVER))
+            hub_mount, self._edge_cert.get_pfx_file_path(EC.EDGE_HUB_SERVER))
         edgedockerclient.start(hubContainer.get('Id'))
 
     def _obtain_mount_path(self, edgedockerclient):
