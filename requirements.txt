@@ -13,3 +13,4 @@ tox
 pyyaml
 jsonpath_rw
 docker-compose>=1.21.0
+pytest
