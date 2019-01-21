@@ -250,6 +250,41 @@ def test_pre_setup(runner):
     assert instruction in result.output.strip()
 
 
+@pytest.mark.skipif(get_docker_os_type() == 'windows', reason='Windows container is not yet supported')
+def test_corrupt_edge_hub_config(runner):
+    json_file = HostPlatform.get_config_file_path()
+
+    base_dir = os.path.dirname(json_file)
+    if not os.path.exists(base_dir):
+        os.makedirs(base_dir)
+
+    if os.path.exists(json_file):
+        os.remove(json_file)
+
+    # Create an empty edgehub.json file
+    open(json_file, 'a').close()
+
+    instruction = ('ERROR: Invalid config file. Please run `iotedgehubdev setup -c "<edge-device-connection-string>"` again.'
+                   if platform.system().lower() == 'windows'
+                   else 'ERROR: Invalid config file. '
+                   'Please run `sudo iotedgehubdev setup -c "<edge-device-connection-string>"` again.')
+
+    result = runner.invoke(cli.start, ['-i', 'input1'])
+    assert result.exception
+    assert result.exit_code != 0
+    assert instruction in result.output.strip()
+
+    result = runner.invoke(cli.start, ['-d', 'dummy_deployment.json'])
+    assert result.exception
+    assert result.exit_code != 0
+    assert instruction in result.output.strip()
+
+    result = runner.invoke(cli.modulecred)
+    assert result.exception
+    assert result.exit_code != 0
+    assert instruction in result.output.strip()
+
+
 def test_cli_setup_during_first_time(runner):
     iniFile = HostPlatform.get_setting_ini_path()
     jsonFile = HostPlatform.get_config_file_path()
