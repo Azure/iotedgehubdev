@@ -1,4 +1,18 @@
-## 0.6.0  - 2018-12-05
+# Changelog
+
+[![PyPI version](https://badge.fury.io/py/iotedgehubdev.svg)](https://badge.fury.io/py/iotedgehubdev)
+
+## 0.7.0 - 2019-01-XX
+### Added
+* Allow specifying Docker daemon socket to connect to with the `--host/-H` option
+* docker-compose as a pip dependency
+* Partially support `on-unhealthy` restart policy by falling back to `always`
+* Provide more friendly information when starting without setting up
+
+### Changed
+* Update testing utility image version to 1.0.0
+
+## 0.6.0 - 2018-12-05
 ### Added
 * Support parsing `Binds` in `createOptions`
 * Log in registries with credentials in deployment manifest
