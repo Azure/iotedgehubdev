@@ -223,6 +223,33 @@ def test_cli_start_with_deployment(runner):
                               'hello-world'])
 
 
+@pytest.mark.skipif(get_docker_os_type() == 'windows', reason='Windows container is not yet supported')
+def test_pre_setup(runner):
+    json_file = HostPlatform.get_config_file_path()
+    if os.path.exists(json_file):
+        os.remove(json_file)
+
+    instruction = ('ERROR: Cannot find config file. Please run `iotedgehubdev setup -c "<edge-device-connection-string>"` first.'
+                   if platform.system().lower() == 'windows'
+                   else 'ERROR: Cannot find config file. '
+                   'Please run `sudo iotedgehubdev setup -c "<edge-device-connection-string>"` first.')
+
+    result = runner.invoke(cli.start, ['-i', 'input1'])
+    assert result.exception
+    assert result.exit_code != 0
+    assert instruction in result.output.strip()
+
+    result = runner.invoke(cli.start, ['-d', 'dummy_deployment.json'])
+    assert result.exception
+    assert result.exit_code != 0
+    assert instruction in result.output.strip()
+
+    result = runner.invoke(cli.modulecred)
+    assert result.exception
+    assert result.exit_code != 0
+    assert instruction in result.output.strip()
+
+
 def test_cli_setup_during_first_time(runner):
     iniFile = HostPlatform.get_setting_ini_path()
     jsonFile = HostPlatform.get_config_file_path()
