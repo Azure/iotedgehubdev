@@ -202,7 +202,7 @@ def start(inputs, port, deployment, verbose, host):
 
     if edge_manager:
         if host is not None:
-            os.environ[DOCKER_HOST] = host
+            os.environ[DOCKER_HOST] = str(host)
 
         hostname_hash, suffix = Utils.hash_connection_str_hostname(edge_manager.hostname)
         telemetry.add_extra_props({'iothubhostname': hostname_hash, 'iothubhostnamesuffix': suffix})
@@ -255,7 +255,7 @@ def start(inputs, port, deployment, verbose, host):
 @_with_telemetry
 def stop(host):
     if host is not None:
-        os.environ[DOCKER_HOST] = host
+        os.environ[DOCKER_HOST] = str(host)
     EdgeManager.stop()
     output.info('IoT Edge Simulator has been stopped successfully.')
 
