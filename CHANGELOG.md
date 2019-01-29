@@ -2,7 +2,7 @@
 
 [![PyPI version](https://badge.fury.io/py/iotedgehubdev.svg)](https://badge.fury.io/py/iotedgehubdev)
 
-## 0.7.0 - 2019-01-XX
+## 0.7.0 - 2019-01-29
 ### Added
 * Allow specifying Docker daemon socket to connect to with the `--host/-H` option
 * docker-compose as a pip dependency
