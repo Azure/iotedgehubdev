@@ -305,7 +305,7 @@ def test_bind(source, target, mode):
         'type': 'bind' if source is not None and os.path.isabs(source) else 'volume'
     }
 
-    if mode is 'ro':
+    if mode == 'ro':
         volume['read_only'] = True
 
     assert [volume] == iotedgehubdev.compose_parser.service_parser_volumes(bind)
