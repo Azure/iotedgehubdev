@@ -22,7 +22,7 @@ class Output:
         self.echo("WARNING: " + text, color='yellow')
 
     def error(self, text):
-        self.echo("ERROR: " + text, color='red')
+        self.echo("ERROR: " + text, color='red', err=True)
 
     def header(self, text, suppress=False):
 
@@ -51,8 +51,8 @@ class Output:
     def line(self):
         self.echo(text="")
 
-    def echo(self, text, color="", dim=False):
+    def echo(self, text, color="", dim=False, err=False):
         try:
-            click.secho(text, fg=color, dim=dim)
+            click.secho(text, fg=color, dim=dim, err=err)
         except Exception:
             print(text)
