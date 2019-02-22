@@ -27,9 +27,9 @@ with open('README.md', 'rb') as f:
 
 dependencies = [
     'click',
-    'docker>=3.6.0',
+    'docker[ssh]>=3.6.0',
     'pyOpenSSL>=17.0.0',
-    'requests',
+    'requests!=2.11.0,!=2.12.2,!=2.18.0,<2.21,>=2.6.1',
     'six',
     'applicationinsights',
     'pyyaml',
