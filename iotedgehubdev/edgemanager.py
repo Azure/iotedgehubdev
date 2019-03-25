@@ -40,7 +40,7 @@ class EdgeManager(object):
     HELPER_IMG = 'hello-world:latest'
     COMPOSE_FILE = os.path.join(HostPlatform.get_share_data_path(), 'docker-compose.yml')
 
-    def __init__(self, connection_str, gatewayhost, cert_path):
+    def __init__(self, connection_str, gatewayhost, cert_path, hub_conn_str=None):
         connection_str_dict = Utils.parse_device_connection_str(connection_str)
         self._hostname = connection_str_dict[EC.HOSTNAME_KEY]
         self._device_id = connection_str_dict[EC.DEVICE_ID_KEY]
@@ -50,6 +50,12 @@ class EdgeManager(object):
         self._device_uri = '{0}/devices/{1}'.format(self._hostname, self._device_id)
         self._cert_path = cert_path
         self._edge_cert = EdgeCert(self._cert_path, self._gatewayhost)
+        self._hub_access_key = None
+        self._hub_access_name = None
+        if hub_conn_str is not None:
+            hub_str_dict = Utils.parse_hub_connection_str(hub_conn_str, connection_str)
+            self._hub_access_key = hub_str_dict[EC.ACCESS_KEY_KEY]
+            self._hub_access_name = hub_str_dict[EC.ACCESS_KEY_NAME]
 
     @property
     def hostname(self):
@@ -172,7 +178,12 @@ class EdgeManager(object):
         compose_project.compose()
         compose_project.dump(target)
 
-    def start_solution(self, module_content, verbose):
+    def start_solution(self, module_content, verbose, output):
+        try:
+            EdgeManager.login_registries(module_content)
+        except RegistriesLoginError as e:
+            output.warning(e.message())
+
         edgedockerclient = EdgeDockerClient()
         mount_base = self._obtain_mount_path(edgedockerclient)
         if not mount_base:
@@ -183,6 +194,10 @@ class EdgeManager(object):
         self._prepare_cert(edgedockerclient, mount_base)
 
         self.config_solution(module_content, EdgeManager.COMPOSE_FILE, mount_base)
+        try:
+            self.update_module_twin(module_content)
+        except Exception as e:
+            output.warning(str(e))
 
         cmd_pull = ['docker-compose', '-f', EdgeManager.COMPOSE_FILE, 'pull', EdgeManager.EDGEHUB]
         Utils.exe_proc(cmd_pull)
@@ -191,6 +206,35 @@ class EdgeManager(object):
         else:
             cmd_up = ['docker-compose', '-f', EdgeManager.COMPOSE_FILE, 'up', '-d']
         Utils.exe_proc(cmd_up)
+
+    def update_module_twin(self, module_content):
+        if self._hub_access_key is None:
+            return
+
+        twinErrorMsg = ''
+        sas = Utils.get_iot_hub_sas_token(self._hostname, self._hub_access_key, self._hub_access_name)
+        for name in module_content:
+            if name == '$edgeAgent' or name == '$edgeHub':
+                continue
+            twin = module_content.get(name).get('properties.desired')
+            uri = self._get_update_twin_uri(name)
+            res = requests.patch(
+                uri,
+                headers={
+                    'Authorization': sas,
+                    'Content-Type': "application/json",
+                    'If-Match': '"*"'
+                },
+                data=json.dumps({
+                    'properties': {
+                        'desired': twin
+                    }
+                })
+            )
+            if res.ok is not True:
+                twinErrorMsg += 'Fail to update {0} twin. Code:{1}. Detail:{2}'.format(name, res.status_code, res.text)
+        if twinErrorMsg:
+            raise Exception(twinErrorMsg)
 
     @staticmethod
     def login_registries(module_content):
@@ -338,6 +382,10 @@ class EdgeManager(object):
 
     def _getModuleReqUri(self, name):
         return "https://{0}/devices/{1}/modules/{2}?api-version=2018-06-30".format(
+            self._hostname, self._device_id, name)
+
+    def _get_update_twin_uri(self, name):
+        return "https://{0}/twins/{1}/modules/{2}?api-version=2018-06-30".format(
             self._hostname, self._device_id, name)
 
     def _generateModuleConnectionStr(self, response, islocal):
