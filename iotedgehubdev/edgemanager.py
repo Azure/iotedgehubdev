@@ -41,21 +41,17 @@ class EdgeManager(object):
     COMPOSE_FILE = os.path.join(HostPlatform.get_share_data_path(), 'docker-compose.yml')
 
     def __init__(self, connection_str, gatewayhost, cert_path, hub_conn_str=None):
-        connection_str_dict = Utils.parse_device_connection_str(connection_str)
+        connection_str_dict = Utils.parse_connection_strs(connection_str, hub_conn_str)
         self._hostname = connection_str_dict[EC.HOSTNAME_KEY]
         self._device_id = connection_str_dict[EC.DEVICE_ID_KEY]
-        self._access_key = connection_str_dict[EC.ACCESS_KEY_KEY]
+        self._access_key = connection_str_dict[EC.DEVICE_ACCESS_KEY_KEY]
         self._compose_file = None
         self._gatewayhost = gatewayhost
         self._device_uri = '{0}/devices/{1}'.format(self._hostname, self._device_id)
         self._cert_path = cert_path
         self._edge_cert = EdgeCert(self._cert_path, self._gatewayhost)
-        self._hub_access_key = None
-        self._hub_access_name = None
-        if hub_conn_str is not None:
-            hub_str_dict = Utils.parse_hub_connection_str(hub_conn_str, connection_str)
-            self._hub_access_key = hub_str_dict[EC.ACCESS_KEY_KEY]
-            self._hub_access_name = hub_str_dict[EC.ACCESS_KEY_NAME]
+        self._hub_access_key = connection_str_dict.get(EC.HUB_ACCESS_KEY_KEY)
+        self._hub_access_name = connection_str_dict.get(EC.ACCESS_KEY_NAME)
 
     @property
     def hostname(self):

@@ -111,15 +111,14 @@ def setup(connection_string, gateway_host, iothub_connection_string):
     try:
         gateway_host = gateway_host.lower()
         certDir = HostPlatform.get_default_cert_path()
+        Utils.parse_connection_strs(connection_string, iothub_connection_string)
         if iothub_connection_string is None:
-            Utils.parse_device_connection_str(connection_string)
             configDict = {
                 CONN_STR: connection_string,
                 CERT_PATH: certDir,
                 GATEWAY_HOST: gateway_host
             }
         else:
-            Utils.parse_hub_connection_str(iothub_connection_string, connection_string)
             configDict = {
                 CONN_STR: connection_string,
                 CERT_PATH: certDir,

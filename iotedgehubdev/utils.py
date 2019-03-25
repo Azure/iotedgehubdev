@@ -22,7 +22,17 @@ from .errors import EdgeFileAccessError
 
 class Utils(object):
     @staticmethod
-    def parse_device_connection_str(connection_string):
+    def parse_connection_strs(device_conn_str, hub_conn_str=None):
+        data = Utils._parse_device_connection_str(device_conn_str)
+        data[EC.DEVICE_ACCESS_KEY_KEY] = data.pop(EC.ACCESS_KEY_KEY)
+        if hub_conn_str is not None:
+            hub_data = Utils._parse_hub_connection_str(hub_conn_str, data[EC.HOSTNAME_KEY])
+            data[EC.HUB_ACCESS_KEY_KEY] = hub_data[EC.ACCESS_KEY_KEY]
+            data[EC.ACCESS_KEY_NAME] = hub_data[EC.ACCESS_KEY_NAME]
+        return data
+
+    @staticmethod
+    def _parse_device_connection_str(connection_string):
         data = Utils._split_connection_string(connection_string)
         if len(data) > 0:
             if EC.HOSTNAME_KEY not in data or EC.DEVICE_ID_KEY not in data or EC.ACCESS_KEY_KEY not in data:
@@ -37,9 +47,7 @@ class Utils(object):
             raise KeyError('Error parsing connection string')
 
     @staticmethod
-    def parse_hub_connection_str(hub_connection_string, connection_string):
-        device_data = Utils.parse_device_connection_str(connection_string)
-
+    def _parse_hub_connection_str(hub_connection_string, host_name):
         hub_data = Utils._split_connection_string(hub_connection_string)
         if len(hub_data) > 0:
             if EC.HOSTNAME_KEY not in hub_data or EC.ACCESS_KEY_NAME not in hub_data or EC.ACCESS_KEY_KEY not in hub_data:
@@ -49,7 +57,7 @@ class Utils(object):
                 else:
                     raise KeyError('Error parsing connection string. '
                                    'Please make sure you wrap the connection string with double quotes when supplying it via CLI')
-            elif hub_data[EC.HOSTNAME_KEY] != device_data[EC.HOSTNAME_KEY]:
+            elif hub_data[EC.HOSTNAME_KEY] != host_name:
                 raise KeyError('Please make sure the device belongs to the IoT Hub')
             return hub_data
         else:

@@ -11,27 +11,27 @@ from iotedgehubdev.utils import Utils
 
 class TestUtilAPIs(unittest.TestCase):
 
-    def test_parse_hub_connection_str_valid(self):
-        """" Test a valid invocation of API parse_hub_connection_str"""
+    def test_parse_connection_strs_valid(self):
+        """" Test a valid invocation of API parse_connection_strs"""
         device_connstr = 'HostName=testhub.azure-devices.net;DeviceId=mylaptop2;SharedAccessKey=XXXXX'
         hub_connstr = 'HostName=testhub.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=XXXXX'
-        data = Utils.parse_hub_connection_str(hub_connstr, device_connstr)
+        data = Utils.parse_connection_strs(device_connstr, hub_connstr)
         self.assertEqual('iothubowner', data['SharedAccessKeyName'])
 
-    def test_parse_hub_connection_str_invalid(self):
-        """" Test an invalid invocation of API parse_hub_connection_str"""
+    def test_parse_connection_strs_invalid(self):
+        """" Test an invalid invocation of API parse_connection_strs"""
         device_connstr = 'HostName=testhub.azure-devices.net;DeviceId=mylaptop2;SharedAccessKey=XXXXX'
         hub_connstr = device_connstr
         with self.assertRaises(KeyError) as err:
-            Utils.parse_hub_connection_str(hub_connstr, device_connstr)
+            Utils.parse_connection_strs(device_connstr, hub_connstr)
         self.assertTrue('instead of an device' in err.exception.args[0])
 
-    def test_parse_hub_connection_str_notmatch_device(self):
-        """" Test an invalid invocation of API parse_hub_connection_str. Mismatch between the connection strings"""
+    def test_parse_connection_strs_notmatch_device(self):
+        """" Test an invalid invocation of API parse_connection_strs. Mismatch between the connection strings"""
         device_connstr = 'HostName=testhub.azure-devices.net;DeviceId=mylaptop2;SharedAccessKey=XXXXX'
         hub_connstr = 'HostName=hub.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=XXXXX'
         with self.assertRaises(KeyError) as err:
-            Utils.parse_hub_connection_str(hub_connstr, device_connstr)
+            Utils.parse_connection_strs(device_connstr, hub_connstr)
         self.assertTrue('belongs to' in err.exception.args[0])
 
     @mock.patch('shutil.rmtree')
