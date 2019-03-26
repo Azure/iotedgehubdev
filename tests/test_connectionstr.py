@@ -13,18 +13,18 @@ invalid_connectionstring = "HostName=testhub.azure-devices.net;SharedAccessKey=o
 
 def test_empty_connectionstring():
     with pytest.raises(KeyError):
-        connection_str_dict = Utils.parse_device_connection_str(empty_string)
+        connection_str_dict = Utils.parse_connection_strs(empty_string)
         assert not connection_str_dict
 
 
 def test_valid_connectionstring():
-    connection_str_dict = Utils.parse_device_connection_str(valid_connectionstring)
+    connection_str_dict = Utils.parse_connection_strs(valid_connectionstring)
     assert connection_str_dict[EC.HOSTNAME_KEY] == "testhub.azure-devices.net"
     assert connection_str_dict[EC.DEVICE_ID_KEY] == "testdevice"
-    assert connection_str_dict[EC.ACCESS_KEY_KEY] == "othergibberish="
+    assert connection_str_dict[EC.DEVICE_ACCESS_KEY_KEY] == "othergibberish="
 
 
 def test_invalid_connectionstring():
     with pytest.raises(KeyError):
-        connection_str_dict = Utils.parse_device_connection_str(empty_string)
+        connection_str_dict = Utils.parse_connection_strs(empty_string)
         assert not connection_str_dict

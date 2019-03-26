@@ -22,26 +22,57 @@ from .errors import EdgeFileAccessError
 
 class Utils(object):
     @staticmethod
-    def parse_device_connection_str(connection_string):
-        parts = connection_string.split(';')
-        if len(parts) > 0:
-            data = dict()
-            for part in parts:
-                if "=" in part:
-                    subparts = [s.strip() for s in part.split("=", 1)]
-                    data[subparts[0]] = subparts[1]
+    def parse_connection_strs(device_conn_str, hub_conn_str=None):
+        data = Utils._parse_device_connection_str(device_conn_str)
+        data[EC.DEVICE_ACCESS_KEY_KEY] = data.pop(EC.ACCESS_KEY_KEY)
+        if hub_conn_str is not None:
+            hub_data = Utils._parse_hub_connection_str(hub_conn_str, data[EC.HOSTNAME_KEY])
+            data[EC.HUB_ACCESS_KEY_KEY] = hub_data[EC.ACCESS_KEY_KEY]
+            data[EC.ACCESS_KEY_NAME] = hub_data[EC.ACCESS_KEY_NAME]
+        return data
 
+    @staticmethod
+    def _parse_device_connection_str(connection_string):
+        data = Utils._split_connection_string(connection_string)
+        if len(data) > 0:
             if EC.HOSTNAME_KEY not in data or EC.DEVICE_ID_KEY not in data or EC.ACCESS_KEY_KEY not in data:
-                if "SharedAccessKeyName" in data:
+                if EC.ACCESS_KEY_NAME in data:
                     raise KeyError('Please make sure you are using a device connection string '
                                    'instead of an IoT Hub connection string')
                 else:
                     raise KeyError('Error parsing connection string. '
                                    'Please make sure you wrap the connection string with double quotes when supplying it via CLI')
-
             return data
         else:
             raise KeyError('Error parsing connection string')
+
+    @staticmethod
+    def _parse_hub_connection_str(hub_connection_string, host_name):
+        hub_data = Utils._split_connection_string(hub_connection_string)
+        if len(hub_data) > 0:
+            if EC.HOSTNAME_KEY not in hub_data or EC.ACCESS_KEY_NAME not in hub_data or EC.ACCESS_KEY_KEY not in hub_data:
+                if EC.DEVICE_ID_KEY in hub_data:
+                    raise KeyError('Please make sure you are using a IoT Hub connection string '
+                                   'instead of an device connection string')
+                else:
+                    raise KeyError('Error parsing connection string. '
+                                   'Please make sure you wrap the connection string with double quotes when supplying it via CLI')
+            elif hub_data[EC.HOSTNAME_KEY] != host_name:
+                raise KeyError('Please make sure the device belongs to the IoT Hub')
+            return hub_data
+        else:
+            raise KeyError('Error parsing IoT Hub connection string')
+
+    @staticmethod
+    def _split_connection_string(connection_string):
+        data = dict()
+        if connection_string is not None:
+            parts = connection_string.split(';')
+            for part in parts:
+                if "=" in part:
+                    subparts = [s.strip() for s in part.split("=", 1)]
+                    data[subparts[0]] = subparts[1]
+        return data
 
     @staticmethod
     def get_hostname():

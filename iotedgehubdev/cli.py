@@ -12,7 +12,6 @@ import click
 from . import configs, decorators, telemetry
 from .edgecert import EdgeCert
 from .edgemanager import EdgeManager
-from .errors import RegistriesLoginError
 from .hostplatform import HostPlatform
 from .output import Output
 from .utils import Utils
@@ -24,6 +23,7 @@ CONN_STR = 'connectionString'
 CERT_PATH = 'certPath'
 GATEWAY_HOST = 'gatewayhost'
 DOCKER_HOST = 'DOCKER_HOST'
+HUB_CONN_STR = 'iothubConnectionString'
 
 
 @decorators.suppress_all_exceptions()
@@ -70,8 +70,9 @@ def _parse_config_json():
             connection_str = config_json[CONN_STR]
             cert_path = config_json[CERT_PATH]
             gatewayhost = config_json[GATEWAY_HOST]
+            hub_conn_str = config_json.get(HUB_CONN_STR)
+            return EdgeManager(connection_str, gatewayhost, cert_path, hub_conn_str)
 
-            return EdgeManager(connection_str, gatewayhost, cert_path)
         except (ValueError, KeyError):
             raise ValueError('Invalid config file. Please run `{0}` again.'.format(_get_setup_command()))
 
@@ -94,31 +95,44 @@ def main():
 @click.option('--connection-string',
               '-c',
               required=True,
-              help='Set the connection string of the Edge device. Note: Use double quotes when supplying this input.')
+              help='Set Azure IoT Edge device connection string. Note: Use double quotes when supplying this input.')
 @click.option('--gateway-host',
               '-g',
               required=False,
               default=Utils.get_hostname(),
               show_default=True,
               help='GatewayHostName value for the module to connect.')
+@click.option('--iothub-connection-string',
+              '-i',
+              required=False,
+              help='Set Azure IoT Hub connection string. Note: Use double quotes when supplying this input.')
 @_with_telemetry
-def setup(connection_string, gateway_host):
+def setup(connection_string, gateway_host, iothub_connection_string):
     try:
-        Utils.parse_device_connection_str(connection_string)
         gateway_host = gateway_host.lower()
-        fileType = 'edgehub.config'
         certDir = HostPlatform.get_default_cert_path()
+        Utils.parse_connection_strs(connection_string, iothub_connection_string)
+        if iothub_connection_string is None:
+            configDict = {
+                CONN_STR: connection_string,
+                CERT_PATH: certDir,
+                GATEWAY_HOST: gateway_host
+            }
+        else:
+            configDict = {
+                CONN_STR: connection_string,
+                CERT_PATH: certDir,
+                GATEWAY_HOST: gateway_host,
+                HUB_CONN_STR: iothub_connection_string
+            }
+
+        fileType = 'edgehub.config'
         Utils.mkdir_if_needed(certDir)
         edgeCert = EdgeCert(certDir, gateway_host)
         edgeCert.generate_self_signed_certs()
         configFile = HostPlatform.get_config_file_path()
         Utils.delete_file(configFile, fileType)
         Utils.mkdir_if_needed(HostPlatform.get_config_path())
-        configDict = {
-            CONN_STR: connection_string,
-            CERT_PATH: certDir,
-            GATEWAY_HOST: gateway_host
-        }
         configJson = json.dumps(configDict, indent=2, sort_keys=True)
         Utils.create_file(configFile, configJson, fileType)
 
@@ -214,12 +228,7 @@ def start(inputs, port, deployment, verbose, host):
                     module_content = json_data['modulesContent']
                 elif 'moduleContent' in json_data:
                     module_content = json_data['moduleContent']
-            try:
-                EdgeManager.login_registries(module_content)
-            except RegistriesLoginError as e:
-                output.warning(e.message())
-                telemetry.add_extra_props({'failloginregistries': len(e.registries())})
-            edge_manager.start_solution(module_content, verbose)
+            edge_manager.start_solution(module_content, verbose, output)
             if not verbose:
                 output.info('IoT Edge Simulator has been started in solution mode.')
         else:

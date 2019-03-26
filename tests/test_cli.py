@@ -9,16 +9,12 @@ import subprocess
 import shutil
 import time
 from click.testing import CliRunner
-from dotenv import load_dotenv
 from iotedgehubdev import cli
 from iotedgehubdev import configs
 from iotedgehubdev.edgedockerclient import EdgeDockerClient
 from iotedgehubdev.hostplatform import HostPlatform
 
 workingdirectory = os.getcwd()
-filename = os.path.join(workingdirectory, '.env')
-if os.path.exists(filename):
-    load_dotenv(filename)
 docker_client = EdgeDockerClient()
 
 tests_dir = os.path.join(workingdirectory, "tests")
@@ -78,8 +74,26 @@ def update_setting_ini_as_firsttime():
     configs._prod_config.update_config()
 
 
+def clean_config_files():
+    iniFile = HostPlatform.get_setting_ini_path()
+    jsonFile = HostPlatform.get_config_file_path()
+    update_setting_ini_as_firsttime()
+    if os.path.exists(iniFile):
+        os.remove(iniFile)
+    if os.path.exists(jsonFile):
+        os.remove(jsonFile)
+
+
 def cli_setup(runner):
     result = runner.invoke(cli.setup, ['-c', VALID_DEVICECONNECTIONSTRING, '-g', 'iotedgetestingnow'])
+    if 'Setup IoT Edge Simulator successfully' not in result.output.strip():
+        raise Exception(result.stdout)
+
+
+def cli_setup_with_hub(runner):
+    device_connstr = 'HostName=testhub.azure-devices.net;DeviceId=mylaptop2;SharedAccessKey=XXXXX'
+    hub_connstr = 'HostName=testhub.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=XXXXX'
+    result = runner.invoke(cli.setup, ['-c', device_connstr, '-i', hub_connstr])
     if 'Setup IoT Edge Simulator successfully' not in result.output.strip():
         raise Exception(result.stdout)
 
@@ -286,14 +300,19 @@ def test_corrupt_edge_hub_config(runner):
 
 
 def test_cli_setup_during_first_time(runner):
+    clean_config_files()
+    cli_setup(runner)
+    ini_file = HostPlatform.get_setting_ini_path()
+    json_file = HostPlatform.get_config_file_path()
+    assert os.path.exists(ini_file)
+    assert os.path.exists(json_file)
+
+
+def test_cli_setup_with_hub_during_first_time(runner):
+    clean_config_files()
+    cli_setup_with_hub(runner)
     iniFile = HostPlatform.get_setting_ini_path()
     jsonFile = HostPlatform.get_config_file_path()
-    update_setting_ini_as_firsttime()
-    if os.path.exists(iniFile):
-        os.remove(iniFile)
-    if os.path.exists(jsonFile):
-        os.remove(jsonFile)
-    cli_setup(runner)
     assert os.path.exists(iniFile)
     assert os.path.exists(jsonFile)
 
