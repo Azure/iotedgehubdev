@@ -302,10 +302,10 @@ def test_corrupt_edge_hub_config(runner):
 def test_cli_setup_during_first_time(runner):
     clean_config_files()
     cli_setup(runner)
-    iniFile = HostPlatform.get_setting_ini_path()
-    jsonFile = HostPlatform.get_config_file_path()
-    assert os.path.exists(iniFile)
-    assert os.path.exists(jsonFile)
+    ini_file = HostPlatform.get_setting_ini_path()
+    json_file = HostPlatform.get_config_file_path()
+    assert os.path.exists(ini_file)
+    assert os.path.exists(json_file)
 
 
 def test_cli_setup_with_hub_during_first_time(runner):

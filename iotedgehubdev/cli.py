@@ -95,7 +95,7 @@ def main():
 @click.option('--connection-string',
               '-c',
               required=True,
-              help='Set the connection string of the Edge device. Note: Use double quotes when supplying this input.')
+              help='Set Azure IoT Edge device connection string. Note: Use double quotes when supplying this input.')
 @click.option('--gateway-host',
               '-g',
               required=False,
@@ -105,7 +105,7 @@ def main():
 @click.option('--iothub-connection-string',
               '-i',
               required=False,
-              help='Set the connection string of Azure IoT Hub. Note: Use double quotes when supplying this input.')
+              help='Set Azure IoT Hub connection string. Note: Use double quotes when supplying this input.')
 @_with_telemetry
 def setup(connection_string, gateway_host, iothub_connection_string):
     try:
