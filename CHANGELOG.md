@@ -1,6 +1,13 @@
 # Changelog
 
 [![PyPI version](https://badge.fury.io/py/iotedgehubdev.svg)](https://badge.fury.io/py/iotedgehubdev)
+## 0.8.0 - 2019-04-01
+### Added
+* Add module twin support
+* Support Docker daemon with ssh:// URL for Python 2
+
+### Changed
+* Output errors to stderr
 
 ## 0.7.0 - 2019-01-29
 ### Added
