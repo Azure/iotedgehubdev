@@ -1,6 +1,13 @@
 # Changelog
 
 [![PyPI version](https://badge.fury.io/py/iotedgehubdev.svg)](https://badge.fury.io/py/iotedgehubdev)
+## 0.8.0 - 2019-04-01
+### Added
+* Add module twin support
+
+### Changed
+* Upgrade docker-py dependency to support connect remote Docker engine with ssh://
+* Output errors to stderr
 
 ## 0.7.0 - 2019-01-29
 ### Added
