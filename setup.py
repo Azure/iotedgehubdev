@@ -27,14 +27,14 @@ with open('README.md', 'rb') as f:
 
 dependencies = [
     'click',
-    'docker[ssh]>=3.6.0',
+    'docker[ssh]>=3.6.0,<4.0',
     'pyOpenSSL>=17.0.0',
     'requests<2.21,>2.19.1',
     'six',
     'applicationinsights',
     'pyyaml>=3.10,<4.3',
     'jsonpath_rw',
-    'docker-compose>=1.21.0'
+    'docker-compose>=1.21.0,<=1.24.0'
 ]
 
 setup(
