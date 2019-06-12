@@ -1,6 +1,10 @@
 # Changelog
 
 [![PyPI version](https://badge.fury.io/py/iotedgehubdev.svg)](https://badge.fury.io/py/iotedgehubdev)
+## 0.9.0 - 2019-xx-xx
+### Changed
+* Use range version for dependences to avoid incompatible issue
+
 ## 0.8.0 - 2019-04-01
 ### Added
 * Add module twin support
