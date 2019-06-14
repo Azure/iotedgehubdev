@@ -1,7 +1,7 @@
 # Changelog
 
 [![PyPI version](https://badge.fury.io/py/iotedgehubdev.svg)](https://badge.fury.io/py/iotedgehubdev)
-## 0.9.0 - 2019-xx-xx
+## 0.9.0 - 2019-06-14
 ### Changed
 * Use range version for dependences to avoid incompatible issue
 
