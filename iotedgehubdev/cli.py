@@ -273,11 +273,8 @@ def stop(host):
                help="Determine whether config file is valid.")
 @_with_telemetry
 def validateconfig():
-    try:
-        _parse_config_json()
-        output.info('Config file is valid.')
-    except Exception as e:
-        raise ValueError('Config file is not valid.')
+    _parse_config_json()
+    output.info('Config file is valid.')
 
 
 main.add_command(setup)
