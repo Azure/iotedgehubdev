@@ -270,22 +270,21 @@ def stop(host):
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
-               help="Determine whether config file exists.")
+               help="Determine whether config file is valid.")
 @_with_telemetry
-def checkconfig():
-    config_file = HostPlatform.get_config_file_path()
-
-    if Utils.check_if_file_exists(config_file):
-        output.info('Config file exists.')
-    else:
-        raise ValueError('Config file doesn\'t exist.')
+def validateconfig():
+    try:
+        _parse_config_json()
+        output.info('Config file is valid.')
+    except Exception as e:
+        raise ValueError('Config file is not valid.')
 
 
 main.add_command(setup)
 main.add_command(modulecred)
 main.add_command(start)
 main.add_command(stop)
-main.add_command(checkconfig)
+main.add_command(validateconfig)
 
 if __name__ == "__main__":
     main()
