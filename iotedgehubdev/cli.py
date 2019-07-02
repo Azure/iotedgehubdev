@@ -269,10 +269,19 @@ def stop(host):
     output.info('IoT Edge Simulator has been stopped successfully.')
 
 
+@click.command(context_settings=CONTEXT_SETTINGS,
+               help="Determine whether config file is valid.")
+@_with_telemetry
+def validateconfig():
+    _parse_config_json()
+    output.info('Config file is valid.')
+
+
 main.add_command(setup)
 main.add_command(modulecred)
 main.add_command(start)
 main.add_command(stop)
+main.add_command(validateconfig)
 
 if __name__ == "__main__":
     main()
