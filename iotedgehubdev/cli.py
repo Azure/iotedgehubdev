@@ -15,6 +15,7 @@ from .edgemanager import EdgeManager
 from .hostplatform import HostPlatform
 from .output import Output
 from .utils import Utils
+import multiprocessing
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'], max_content_width=120)
 output = Output()
@@ -46,12 +47,18 @@ def _with_telemetry(func):
         try:
             value = func(*args, **kwargs)
             telemetry.success()
-            telemetry.flush()
+            p = multiprocessing.Process(target=telemetry.flush)
+            p.start()
+            p.join()
+            # telemetry.flush()
             return value
         except Exception as e:
             output.error(str(e))
             telemetry.fail(str(e), 'Command failed')
-            telemetry.flush()
+            p = multiprocessing.Process(target=telemetry.flush)
+            p.start()
+            p.join()
+            # telemetry.flush()
             sys.exit(1)
 
     return _wrapper
@@ -275,4 +282,5 @@ main.add_command(start)
 main.add_command(stop)
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()
     main()

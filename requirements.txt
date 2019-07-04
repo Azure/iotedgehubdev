@@ -15,3 +15,4 @@ pyyaml>=3.10,<4.3
 jsonpath_rw
 docker-compose>=1.21.0,<=1.24.0
 pytest
+pyinstaller
