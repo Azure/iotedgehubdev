@@ -5,6 +5,7 @@
 import json
 import os
 import sys
+import re
 from functools import wraps
 
 import click
@@ -246,6 +247,10 @@ def start(inputs, port, deployment, verbose, host, environment):
                 input_list = ['input1']
             else:
                 input_list = [input_.strip() for input_ in inputs.strip().split(',')]
+
+            for env in environment:
+                if re.match(r'^[a-zA-Z][a-zA-Z0-9_]*?=.*$', env) is None:
+                    raise ValueError('Environment variable: `{0}` is not valid.'.format(env))
 
             edge_manager.start_singlemodule(input_list, port, environment)
 
