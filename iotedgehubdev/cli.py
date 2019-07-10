@@ -210,8 +210,13 @@ def modulecred(modules, local, output_file):
               '-H',
               required=False,
               help='Docker daemon socket to connect to')
+@click.option('--environment',
+              '-e',
+              required=False,
+              multiple=True,
+              help='Environment variables for single module mode, e.g., `-e "Env1=Value1" -e "Env2=Value2"`.')
 @_with_telemetry
-def start(inputs, port, deployment, verbose, host):
+def start(inputs, port, deployment, verbose, host, environment):
     edge_manager = _parse_config_json()
 
     if edge_manager:
@@ -222,6 +227,9 @@ def start(inputs, port, deployment, verbose, host):
         telemetry.add_extra_props({'iothubhostname': hostname_hash, 'iothubhostnamesuffix': suffix})
 
         if inputs is None and deployment is not None:
+            if len(environment) > 0:
+                output.info('Environment variables are ignored when start IoT Edge Simulator in solution mode.')
+
             with open(deployment) as json_file:
                 json_data = json.load(json_file)
                 if 'modulesContent' in json_data:
@@ -239,7 +247,7 @@ def start(inputs, port, deployment, verbose, host):
             else:
                 input_list = [input_.strip() for input_ in inputs.strip().split(',')]
 
-            edge_manager.start_singlemodule(input_list, port)
+            edge_manager.start_singlemodule(input_list, port, environment)
 
             data = '--data \'{{"inputName": "{0}","data":"hello world"}}\''.format(input_list[0])
             url = 'http://localhost:{0}/api/v1/messages'.format(port)

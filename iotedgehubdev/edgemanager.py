@@ -81,7 +81,7 @@ class EdgeManager(object):
                 '' if compose_err is None else str(compose_err),
                 '' if label_err is None else str(label_err)))
 
-    def start_singlemodule(self, inputs, port):
+    def start_singlemodule(self, inputs, port, envs):
         edgedockerclient = EdgeDockerClient()
         mount_base = self._obtain_mount_path(edgedockerclient)
         if mount_base is None:
@@ -93,7 +93,7 @@ class EdgeManager(object):
         edgeHubConnStr = self.getOrAddModule(EdgeManager.EDGEHUB_MODULE, False)
         inputConnStr = self.getOrAddModule(EdgeManager.INPUT, False)
         routes = self._generateRoutesEnvFromInputs(inputs)
-        self._start_edge_hub(edgedockerclient, edgeHubConnStr, routes, mount_base)
+        self._start_edge_hub(edgedockerclient, edgeHubConnStr, routes, mount_base, envs)
 
         module_mount = EdgeManager.MODULE_MOUNT.format(mount_base)
         edgedockerclient.pullIfNotExist(EdgeManager.TESTUTILITY_IMG, None, None)
@@ -414,7 +414,7 @@ class EdgeManager(object):
         edgedockerclient.create_volume(EdgeManager.HUB_VOLUME)
         edgedockerclient.create_volume(EdgeManager.MODULE_VOLUME)
 
-    def _start_edge_hub(self, edgedockerclient, edgeHubConnStr, routes, mount_base):
+    def _start_edge_hub(self, edgedockerclient, edgeHubConnStr, routes, mount_base, envs):
         edgedockerclient.pull(EdgeManager.EDGEHUB_IMG, None, None)
         network_config = edgedockerclient.create_config_for_network(EdgeManager.NW_NAME, aliases=[self._gatewayhost])
         hub_mount = EdgeManager.HUB_MOUNT.format(mount_base)
@@ -434,6 +434,8 @@ class EdgeManager(object):
             EdgeManager.HUB_SSLCRT_ENV,
             'IotHubConnectionString={0}'.format(edgeHubConnStr)]
         hubEnv.extend(routes)
+        hubEnv.extend(list(envs))
+
         hubContainer = edgedockerclient.create_container(
             EdgeManager.EDGEHUB_IMG,
             name=EdgeManager.EDGEHUB,
