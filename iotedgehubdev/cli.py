@@ -44,6 +44,7 @@ def _send_failed_telemetry(e):
     telemetry.fail(str(e), 'Command failed')
     telemetry.flush()
 
+
 def _with_telemetry(func):
     @wraps(func)
     def _wrapper(*args, **kwargs):
@@ -85,7 +86,7 @@ def _parse_config_json():
             except (ValueError, KeyError):
                 raise ValueError('Invalid config file. Please run `{0}` again.'.format(_get_setup_command()))
     except Exception as e:
-        raise  InvalidConfigError(str(e))
+        raise InvalidConfigError(str(e))
 
 
 def _get_setup_command():
