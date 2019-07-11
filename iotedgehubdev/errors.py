@@ -61,3 +61,7 @@ class RegistriesLoginError(Exception):
 
     def registries(self):
         return self._registries
+
+
+class InvalidConfigError(Exception):
+    pass

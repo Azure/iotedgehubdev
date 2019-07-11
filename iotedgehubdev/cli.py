@@ -16,6 +16,7 @@ from .edgemanager import EdgeManager
 from .hostplatform import HostPlatform
 from .output import Output
 from .utils import Utils
+from .errors import InvalidConfigError
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'], max_content_width=120)
 output = Output()
@@ -38,6 +39,11 @@ def _parse_params(*args, **kwargs):
     return params
 
 
+def _send_failed_telemetry(e):
+    output.error(str(e))
+    telemetry.fail(str(e), 'Command failed')
+    telemetry.flush()
+
 def _with_telemetry(func):
     @wraps(func)
     def _wrapper(*args, **kwargs):
@@ -49,33 +55,37 @@ def _with_telemetry(func):
             telemetry.success()
             telemetry.flush()
             return value
+        except InvalidConfigError as e:
+            _send_failed_telemetry(e)
+            sys.exit(2)
         except Exception as e:
-            output.error(str(e))
-            telemetry.fail(str(e), 'Command failed')
-            telemetry.flush()
+            _send_failed_telemetry(e)
             sys.exit(1)
 
     return _wrapper
 
 
 def _parse_config_json():
-    config_file = HostPlatform.get_config_file_path()
+    try:
+        config_file = HostPlatform.get_config_file_path()
 
-    if not Utils.check_if_file_exists(config_file):
-        raise ValueError('Cannot find config file. Please run `{0}` first.'.format(_get_setup_command()))
+        if not Utils.check_if_file_exists(config_file):
+            raise ValueError('Cannot find config file. Please run `{0}` first.'.format(_get_setup_command()))
 
-    with open(config_file) as f:
-        try:
-            config_json = json.load(f)
+        with open(config_file) as f:
+            try:
+                config_json = json.load(f)
 
-            connection_str = config_json[CONN_STR]
-            cert_path = config_json[CERT_PATH]
-            gatewayhost = config_json[GATEWAY_HOST]
-            hub_conn_str = config_json.get(HUB_CONN_STR)
-            return EdgeManager(connection_str, gatewayhost, cert_path, hub_conn_str)
+                connection_str = config_json[CONN_STR]
+                cert_path = config_json[CERT_PATH]
+                gatewayhost = config_json[GATEWAY_HOST]
+                hub_conn_str = config_json.get(HUB_CONN_STR)
+                return EdgeManager(connection_str, gatewayhost, cert_path, hub_conn_str)
 
-        except (ValueError, KeyError):
-            raise ValueError('Invalid config file. Please run `{0}` again.'.format(_get_setup_command()))
+            except (ValueError, KeyError):
+                raise ValueError('Invalid config file. Please run `{0}` again.'.format(_get_setup_command()))
+    except Exception as e:
+        raise  InvalidConfigError(str(e))
 
 
 def _get_setup_command():
