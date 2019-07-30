@@ -126,7 +126,7 @@ def invoke_module_method():
 
 def monitor_d2c_message():
     invoke_monitor_events_cmd = 'az iot hub monitor-events -n "' + iothub_name + \
-        '" -d "' + device_id + '" --login "' + VALID_IOTHUBCONNECTIONSTRING + '" -y -t 5'
+        '" -d "' + device_id + '" --login "' + VALID_IOTHUBCONNECTIONSTRING + '" -y -t 20'
     output = start_process(invoke_monitor_events_cmd, True)
     return output
 
