@@ -1,7 +1,7 @@
 # Changelog
 
 [![PyPI version](https://badge.fury.io/py/iotedgehubdev.svg)](https://badge.fury.io/py/iotedgehubdev)
-## 0.10.0 - 2019-07-xx
+## 0.10.0 - 2019-08-02
 ### Added
 * Support environment variables for single module ([#193](https://github.com/Azure/iotedgehubdev/issues/193))
 * Add validateconfig command to check whether configuration is valid
