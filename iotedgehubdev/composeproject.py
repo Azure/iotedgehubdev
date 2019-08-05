@@ -80,10 +80,11 @@ class ComposeProject(object):
             else:
                 self.config_modules(service_name)
 
-            for nw in self.Services[service_name]['networks']:
-                self.Networks[nw] = {
-                    'external': True
-                }
+            if 'networks' in self.Services[service_name]:
+                for nw in self.Services[service_name]['networks']:
+                    self.Networks[nw] = {
+                        'external': True
+                    }
 
             for vol in self.Services[service_name]['volumes']:
                 if vol['type'] == 'volume':
@@ -115,6 +116,9 @@ class ComposeProject(object):
         if 'depends_on' not in config:
             config['depends_on'] = []
         config['depends_on'].append(self.edge_info['hub_name'])
+
+        if 'network_mode' in config and 'networks' in config:
+            del config['networks']
 
     def config_edge_hub(self, service_name):
         config = self.Services[service_name]
