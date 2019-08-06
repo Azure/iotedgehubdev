@@ -47,7 +47,11 @@ class ComposeProject(object):
             if 'networks' not in self.Services[service_name]:
                 self.Services[service_name]['networks'] = {}
                 self.Services[service_name]['networks'][self.edge_info['network_info']['NW_NAME']] = None
-            elif 'host' in self.Services[service_name]['networks']:
+
+            if 'network_mode' in self.Services[service_name]:
+                del self.Services[service_name]['network_mode']
+
+            if 'host' in self.Services[service_name]['networks']:
                 self.Services[service_name]['network_mode'] = 'host'
                 del self.Services[service_name]['networks']
 
