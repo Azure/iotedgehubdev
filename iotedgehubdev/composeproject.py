@@ -46,7 +46,10 @@ class ComposeProject(object):
 
             if 'networks' not in self.Services[service_name]:
                 self.Services[service_name]['networks'] = {}
-            self.Services[service_name]['networks'][self.edge_info['network_info']['NW_NAME']] = None
+                self.Services[service_name]['networks'][self.edge_info['network_info']['NW_NAME']] = None
+            elif 'host' in self.Services[service_name]['networks']:
+                self.Services[service_name]['network_mode'] = 'host'
+                del self.Services[service_name]['networks']
 
             if 'labels' not in self.Services[service_name]:
                 self.Services[service_name]['labels'] = {self.edge_info['labels']: ""}
@@ -116,9 +119,6 @@ class ComposeProject(object):
         if 'depends_on' not in config:
             config['depends_on'] = []
         config['depends_on'].append(self.edge_info['hub_name'])
-
-        if 'network_mode' in config and 'networks' in config:
-            del config['networks']
 
     def config_edge_hub(self, service_name):
         config = self.Services[service_name]
