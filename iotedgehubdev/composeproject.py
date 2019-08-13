@@ -46,7 +46,14 @@ class ComposeProject(object):
 
             if 'networks' not in self.Services[service_name]:
                 self.Services[service_name]['networks'] = {}
-            self.Services[service_name]['networks'][self.edge_info['network_info']['NW_NAME']] = None
+                self.Services[service_name]['networks'][self.edge_info['network_info']['NW_NAME']] = None
+
+            if 'network_mode' in self.Services[service_name]:
+                del self.Services[service_name]['network_mode']
+
+            if 'host' in self.Services[service_name]['networks']:
+                self.Services[service_name]['network_mode'] = 'host'
+                del self.Services[service_name]['networks']
 
             if 'labels' not in self.Services[service_name]:
                 self.Services[service_name]['labels'] = {self.edge_info['labels']: ""}
@@ -80,10 +87,11 @@ class ComposeProject(object):
             else:
                 self.config_modules(service_name)
 
-            for nw in self.Services[service_name]['networks']:
-                self.Networks[nw] = {
-                    'external': True
-                }
+            if 'networks' in self.Services[service_name]:
+                for nw in self.Services[service_name]['networks']:
+                    self.Networks[nw] = {
+                        'external': True
+                    }
 
             for vol in self.Services[service_name]['volumes']:
                 if vol['type'] == 'volume':

@@ -42,9 +42,7 @@ services:
       driver: json-file
       options: {}
     mac_address: 12:34:56:78:9a:bc
-    network_mode: bridge
     networks:
-      azure-iot-edge-dev: null
       isolated_nw:
         aliases:
         - server_x
