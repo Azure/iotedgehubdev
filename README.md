@@ -58,20 +58,24 @@ The following table compares the steps needed to run the solution on the IoT Edg
     ```
 
 3. Start and debug a single module natively
-    1. Start the module with specific input(s)
+    1. Start the module with specific input(s) and environment variable(s)
 
         Windows
         ```
-        iotedgehubdev start -i "<module-inputs>"
+        iotedgehubdev start -i "<module-inputs>" -e "<environment-variable>"
         ```
 
         Linux/macOS
         ```
-        sudo iotedgehubdev start -i "<module-inputs>"
+        sudo iotedgehubdev start -i "<module-inputs>" -e "<environment-variable>"
         ```
 
-        For example: `iotedgehubdev start -i "input1,input2"`
-    
+        For example: 
+        ```
+        iotedgehubdev start -i "input1,input2"
+        iotedgehubdev start -i "input1,input2" -e "TestEnv1=Value1" -e "TestEnv2=Value2"
+        ```
+
     2. Output the module credential environment variables
 
         ```
