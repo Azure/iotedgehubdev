@@ -71,19 +71,33 @@ The following table compares the steps needed to run the solution on the IoT Edg
         ```
 
         For example: `iotedgehubdev start -i "input1,input2"`
-    
-    2. Output the module credential environment variables
+
+    2. Start the module with specific input(s) and environment variable(s)
+
+        Windows
+        ```
+        iotedgehubdev start -i "<module-inputs>" -e "<environment-variable>"
+        ```
+
+        Linux/macOS
+        ```
+        sudo iotedgehubdev start -i "<module-inputs>" -e "<environment-variable>"
+        ```
+
+        For example: `iotedgehubdev start -i "input1,input2" -e "TestEnv1=Value1" -e "TestEnv2=Value2"`
+
+    3. Output the module credential environment variables
 
         ```
         iotedgehubdev modulecred
         ```
 
-    3. Start the module natively with the environment variables got from previous step
-    4. Send message to the module through RESTful API. 
+    4. Start the module natively with the environment variables got from previous step
+    5. Send message to the module through RESTful API. 
 
         For example:
         `curl --header "Content-Type: application/json" --request POST --data '{"inputName": "input1","data": "hello world"}' http://localhost:53000/api/v1/messages`
-    5. Stop the simulator
+    6. Stop the simulator
 
         Windows
         ```
