@@ -32,7 +32,7 @@ dependencies = [
     'requests<2.21,>2.19.1',
     'six',
     'applicationinsights',
-    'pyyaml>=3.10,<4.3',
+    'pyyaml>=4.1,<=4.2b4',
     'jsonpath_rw',
     'docker-compose>=1.21.0,<=1.24.0'
 ]
