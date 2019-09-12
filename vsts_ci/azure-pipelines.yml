@@ -16,6 +16,12 @@ jobs:
       vmImage: ubuntu-16.04
     steps:
       - template: linux/continuous-build-linux.yml
+  
+  - job: LegalStatusPolicyCheck
+    pool:
+      vmImage: ubuntu-16.04
+    steps:
+      - template: policy/continuous-legal-status-policy-check.yml
 
   - job: PublishDropFile
     dependsOn:
