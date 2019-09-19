@@ -8,7 +8,7 @@ block_cipher = None
 
 a = Analysis(['main.py'],
              pathex=['.'],
-             binaries=[('.\\venv\\Scripts\\docker-compose.exe', '.')],
+             binaries=[],
              datas=[],
              hiddenimports=[],
              hookspath=['.\\pyinstaller'],
