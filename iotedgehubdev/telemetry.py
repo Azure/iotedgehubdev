@@ -4,11 +4,10 @@
 
 import datetime
 import json
-import os
 import platform
-import subprocess
-import sys
 import uuid
+import multiprocessing
+
 from collections import defaultdict
 from functools import wraps
 
@@ -146,7 +145,8 @@ def _get_AI_key():
 @_user_agrees_to_telemetry
 @decorators.suppress_all_exceptions()
 def _upload_telemetry_with_user_agreement(payload, **kwargs):
-    subprocess.Popen([sys.executable, os.path.realpath(telemetry_core.__file__), payload], **kwargs)
+    p = multiprocessing.Process(target=telemetry_core.upload, args=(payload, kwargs))
+    p.start()
 
 
 def _remove_symbols(s):

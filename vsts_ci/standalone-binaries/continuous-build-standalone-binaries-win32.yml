@@ -1,0 +1,41 @@
+steps:
+  - task: UsePythonVersion@0
+    displayName: 'Use Python 3.x'
+    inputs:
+      architecture: x86
+
+  - powershell: |
+      $env:Path += ";C:\Program Files (x86)\Windows Kits\10\Redist\ucrt\DLLs\x86"
+      $VERSION_TAG = git describe --tags
+      Write-Host "##vso[task.setvariable variable=VERSION_TAG]$VERSION_TAG"
+      python -m venv ./venv
+      .\venv\Scripts\activate
+      python -m pip install --upgrade pip
+      if ("$(BUILD.SOURCEBRANCH)" -match "^refs/tags/v?[0-9]+\.[0-9]+\.[0-9]+$") { ((Get-Content -path "$(BUILD.REPOSITORY.LOCALPATH)\iotedgehubdev\__init__.py" -Raw) -replace "__AIkey__ = '.*'","__AIkey__ = '$(AI_KEY)'") | Set-Content -Path "$(BUILD.REPOSITORY.LOCALPATH)\iotedgehubdev\__init__.py" }
+      pip install -e .
+      pip install -r requirements.txt
+      pyinstaller iotedgehubdev.spec
+      $COMPOSE_VER = pip show docker-compose | select-string -Pattern "Version: (\d+\.\d+\.\d+)" | % {$_.Matches.Groups[1].Value}
+      Invoke-WebRequest "https://github.com/docker/compose/releases/download/$COMPOSE_VER/docker-compose-Windows-x86_64.exe" -Out "./standalone-binaries/iotedgehubdev/docker-compose.exe"
+
+  - task: ArchiveFiles@2
+    inputs:
+      rootFolderOrFile: 'standalone-binaries/iotedgehubdev'
+      archiveFile: '$(Build.ArtifactStagingDirectory)/iotedgehubdev-$(VERSION_TAG)-win32-ia32.zip'
+
+  - task: GitHubRelease@0
+    inputs:
+      gitHubConnection: 'GitConnection'
+      tagPattern: '^v?[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+$'
+      releaseNotesSource: input
+      assets: '$(Build.ArtifactStagingDirectory)/iotedgehubdev-$(VERSION_TAG)-win32-ia32.zip'
+      isPreRelease: true
+      addChangeLog: false
+
+  - task: GitHubRelease@0
+    inputs:
+      gitHubConnection: 'GitConnection'
+      tagPattern: '^v?[0-9]+\.[0-9]+\.[0-9]+$'
+      releaseNotesSource: input
+      assets: '$(Build.ArtifactStagingDirectory)/iotedgehubdev-$(VERSION_TAG)-win32-ia32.zip'
+      addChangeLog: false
