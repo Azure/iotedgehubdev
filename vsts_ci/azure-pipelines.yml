@@ -24,6 +24,10 @@ jobs:
       - template: policy/continuous-legal-status-policy-check.yml
 
   - job: PublishStandaloneBinariesForWin32
+    dependsOn:
+      - MacOS
+      - Windows
+      - Linux
     pool:
       vmImage: vs2017-win2016
     steps:
