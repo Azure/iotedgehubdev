@@ -1,7 +1,7 @@
 jobs:
   - job: MacOS
     pool:
-      vmImage: macOS-10.13
+      vmImage: macOS-10.14
     steps:
       - template: darwin/continuous-build-darwin.yml
 
@@ -32,14 +32,14 @@ jobs:
       vmImage: vs2017-win2016
     steps:
       - template: standalone-binaries/continuous-build-standalone-binaries-win32.yml
-    condition: and(succeeded('MacOS'), succeeded('Windows'), succeeded('Linux'), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+    condition: and(succeeded('Windows'), succeeded('Linux'), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
 
   - job: PublishDropFile
     dependsOn:
       - MacOS
       - Windows
       - Linux
-    condition: and(succeeded('MacOS'), succeeded('Windows'), succeeded('Linux'), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+    condition: and(succeeded('Windows'), succeeded('Linux'), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
     pool:
       vmImage: "ubuntu-16.04"
 
