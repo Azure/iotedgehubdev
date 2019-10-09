@@ -1,6 +1,11 @@
 # Changelog
 
 [![PyPI version](https://badge.fury.io/py/iotedgehubdev.svg)](https://badge.fury.io/py/iotedgehubdev)
+## 0.11.0 - 2019-10-09
+### Added
+* Support host network for modules
+* Standalone binaries of iotedgehubdev for Windows is available
+
 ## 0.10.0 - 2019-08-02
 ### Added
 * Support environment variables for single module ([#193](https://github.com/Azure/iotedgehubdev/issues/193))
