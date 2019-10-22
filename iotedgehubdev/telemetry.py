@@ -145,7 +145,7 @@ def _get_AI_key():
 @_user_agrees_to_telemetry
 @decorators.suppress_all_exceptions()
 def _upload_telemetry_with_user_agreement(payload, **kwargs):
-    p = multiprocessing.Process(target=telemetry_core.upload, args=(payload, kwargs))
+    p = multiprocessing.Process(target=telemetry_core.upload, args=(payload,))
     p.start()
 
 
