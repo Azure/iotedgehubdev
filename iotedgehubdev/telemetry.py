@@ -144,8 +144,8 @@ def _get_AI_key():
 # This includes a final user-agreement-check; ALL methods sending telemetry MUST call this.
 @_user_agrees_to_telemetry
 @decorators.suppress_all_exceptions()
-def _upload_telemetry_with_user_agreement(payload, **kwargs):
-    p = multiprocessing.Process(target=telemetry_core.upload, args=(payload, kwargs))
+def _upload_telemetry_with_user_agreement(payload):
+    p = multiprocessing.Process(target=telemetry_core.upload, args=(payload,))
     p.start()
 
 
