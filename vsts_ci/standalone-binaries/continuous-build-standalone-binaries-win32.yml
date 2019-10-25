@@ -1,7 +1,8 @@
 steps:
   - task: UsePythonVersion@0
-    displayName: 'Use Python 3.x'
+    displayName: 'Use Python 3.7.4'
     inputs:
+      versionSpec: 3.7.4
       architecture: x86
 
   - powershell: |
