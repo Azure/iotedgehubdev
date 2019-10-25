@@ -3,7 +3,7 @@
 [![PyPI version](https://badge.fury.io/py/iotedgehubdev.svg)](https://badge.fury.io/py/iotedgehubdev)
 ## 0.11.1 - 2019-10-25
 ### Fixed
-* Fix telemetry is not work
+* Fix telemetry issue
 
 ## 0.11.0 - 2019-10-09
 ### Added
