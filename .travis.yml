@@ -4,7 +4,7 @@ services:
   - docker
 python:
   - "2.7"
-  - "3.6"
+  - "3.7"
 install:
   - sudo pip install --upgrade docker-compose
   - pip install tox-travis
