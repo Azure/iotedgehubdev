@@ -403,7 +403,7 @@ class EdgeCertUtil(object):
         # authorityKeyIdentifier requires subjectKeyIdentifier in issuer cert, add it first
         cert.add_extensions(extensions)
 
-        extensions.clear()
+        del extensions[:]
         extensions.append(crypto.X509Extension(b'authorityKeyIdentifier',
                                                False,
                                                b'keyid:always,issuer:always',
