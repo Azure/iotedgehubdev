@@ -394,20 +394,20 @@ class EdgeCertUtil(object):
         extensions.append(crypto.X509Extension(b'basicConstraints',
                                                critical=True, value=val))
         extensions.append(crypto.X509Extension(b'subjectKeyIdentifier',
-                                                False,
-                                                b'hash',
-                                                subject=cert))
+                                               False,
+                                               b'hash',
+                                               subject=cert))
         extensions.append(crypto.X509Extension(b'keyUsage',
-                                                critical=True,
-                                                value=b'digitalSignature, cRLSign, keyCertSign'))
+                                               critical=True,
+                                               value=b'digitalSignature, cRLSign, keyCertSign'))
         # authorityKeyIdentifier requires subjectKeyIdentifier in issuer cert, add it first
         cert.add_extensions(extensions)
 
         extensions.clear()
         extensions.append(crypto.X509Extension(b'authorityKeyIdentifier',
-                                                False,
-                                                b'keyid:always,issuer:always',
-                                                issuer=issuer_cert if isinstance(issuer_cert, OpenSSL.crypto.X509) else cert ))
+                                               False,
+                                               b'keyid:always,issuer:always',
+                                               issuer=issuer_cert if isinstance(issuer_cert, OpenSSL.crypto.X509) else cert))
         cert.add_extensions(extensions)
         cert.sign(issuer_key_pair, EdgeCertUtil.DIGEST)
         return cert
