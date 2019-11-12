@@ -23,7 +23,7 @@ class EdgeCert(object):
                                               EdgeConstants.EDGE_DEVICE_CA,
                                               validity_days_from_now=365,
                                               common_name='Edge Agent CA',
-                                              set_terminal_ca=True,
+                                              set_terminal_ca=False,
                                               passphrase=None)
         cert_util.export_cert_artifacts_to_dir(EdgeConstants.EDGE_AGENT_CA, self.certs_dir)
 
