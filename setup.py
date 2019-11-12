@@ -35,7 +35,7 @@ dependencies = [
     'pyyaml>=4.1,<=4.2b4',
     'jsonpath_rw',
     'docker-compose>=1.21.0,<=1.24.0',
-    'pywin32<226'
+    'pywin32<226;platform_system=="Windows"'
 ]
 
 setup(
