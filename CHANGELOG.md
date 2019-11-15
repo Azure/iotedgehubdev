@@ -2,12 +2,10 @@
 
 [![PyPI version](https://badge.fury.io/py/iotedgehubdev.svg)](https://badge.fury.io/py/iotedgehubdev)
 ## 0.12.0 - 2019-11-xx
-### Added
-* Add cert extensions required by iot edge transparent gateway
-
 ### Changed
-* Add python version requirement in README and setup.py
+* Add python version requirement in README and setup.py (Now we are only support python 2.7/3.5/3.6/3.7)
 * Make python version consistent between pip and standalone
+* Update cert generation logic
 
 ## 0.11.1 - 2019-10-25
 ### Fixed

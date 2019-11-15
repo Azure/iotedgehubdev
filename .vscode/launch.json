@@ -12,9 +12,9 @@
             "module": "iotedgehubdev.cli",
             "args": [
                 // "singlemoduletest"
-                "setup",
-                "--connectionstring",
-                "<DeviceConnstr>"
+                "start",
+                //"--connectionstring",
+                //"<DeviceConnstr>"
             ],
             "debugOptions": [
                 "RedirectOutput"
