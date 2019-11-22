@@ -35,7 +35,7 @@ dependencies = [
     'pyyaml>=4.1,<=4.2b4',
     'jsonpath_rw',
     'docker-compose>=1.21.0,<=1.24.0',
-    'pywin32<226;platform_system=="Windows"'
+    'pywin32==227;platform_system=="Windows"'
 ]
 
 setup(
@@ -58,7 +58,7 @@ setup(
             'iotedgehubdev = iotedgehubdev.cli:main',
         ],
     },
-    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <3.8',
+    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <=3.8',
     classifiers=[
         # As from http://pypi.python.org/pypi?%3Aaction=list_classifiers
         # 'Development Status :: 1 - Planning',
