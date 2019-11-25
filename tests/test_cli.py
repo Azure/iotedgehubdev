@@ -445,8 +445,11 @@ def test_cli_start_with_input(runner):
 @pytest.mark.skipif(get_docker_os_type() == 'windows', reason='The base image of edgeHubDev image is 1809 but agent is 1803.'
                     'So it does not support windows container.')
 def test_cli_start_with_input_and_host(runner):
+    docker_host = 'unix:///var/run/docker.sock'
+    if platform.system().lower() == 'windows':
+        docker_host = 'npipe:////./pipe/docker_engine'
     try:
-        result = runner.invoke(cli.start, ['-i', 'input1', '-H', 'npipe:////./pipe/docker_engine'])
+        result = runner.invoke(cli.start, ['-i', 'input1', '-H', docker_host])
         output = result.output.strip()
         if result.exit_code == 0:
             assert 'IoT Edge Simulator has been started in single module mode' in output
@@ -454,7 +457,7 @@ def test_cli_start_with_input_and_host(runner):
         else:
             raise Exception(result.stdout)
     finally:
-        result = runner.invoke(cli.stop, ['-H', 'npipe:////./pipe/docker_engine'])
+        result = runner.invoke(cli.stop, ['-H', docker_host])
         assert 'IoT Edge Simulator has been stopped successfully' in result.output.strip()
         remove_docker_networks(['azure-iot-edge-dev'])
         remove_docker_images(['mcr.microsoft.com/azureiotedge-hub:1.0',
