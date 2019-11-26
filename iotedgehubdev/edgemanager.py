@@ -296,6 +296,8 @@ class EdgeManager(object):
                 try:
                     return self.addModule(name, islocal)
                 except ResponseError as adderr:
+                    if adderr.status_code == 400:
+                        raise ResponseError(400, adderr.value + " Please make sure you're using an Edge device.")
                     raise adderr
             else:
                 raise geterr
