@@ -11,6 +11,7 @@ from functools import wraps
 import click
 
 from . import configs, decorators, telemetry
+from .constants import EdgeConstants
 from .edgecert import EdgeCert
 from .edgemanager import EdgeManager
 from .hostplatform import HostPlatform
@@ -300,12 +301,62 @@ def validateconfig():
     _parse_config_json()
     output.info('Config file is valid.')
 
+@click.command(context_settings=CONTEXT_SETTINGS,
+               help="Create IoT Edge device CA")
+@click.option('--cert-name',
+              '-n',
+              required=True,
+              help='The name of generated cert. The final name will looks like iot-edge-device-ca-{name}.')
+@click.option('--output-dir',
+              '-o',
+              required=False,
+              default=".",
+              help='The output folder of generated cert.')
+@click.option('--valid-days',
+              required=False,
+              default=90,
+              show_default=True,
+              help='Days before cert expires.')
+@click.option('--force',
+              required=False,
+              is_flag=True,
+              default=False,
+              show_default=True,
+              help='Whether overwrite existing cert files.')
+@click.option('--trusted-ca',
+              required=False,
+              help='Path of your own trusted ca used to sign IoT Edge device ca. '
+              'Must also provide trsuted ca private key and related passphase (if have).'
+              )
+@click.option('--trusted-ca-key',
+              required=False,
+              help='Path of your own trusted ca private key used to sign IoT Edge device ca. '
+              'Must also provide trusted ca and related passphase (if have).')
+@click.option('--trusted-ca-key-passphase',
+              required=False,
+              help='Passphase of your own trusted ca private key.')
+@_with_telemetry
+def generatedeviceca(cert_name, output_dir, valid_days, force, trusted_ca, trusted_ca_key, trusted_ca_key_passphase):
+    try:
+        output_dir = os.path.abspath(output_dir)
+        if trusted_ca_key_passphase:
+            trusted_ca_key_passphase = trusted_ca_key_passphase.encode()  # crypto requires byte string
+        edgeCert = EdgeCert(output_dir, "")
+        if trusted_ca and trusted_ca_key:
+            output.info('--trusted-ca and --trusted-ca-key are provided, load given trusted ca instead of creating new one.')
+            edgeCert.load_cert_from_file(EdgeConstants.ROOT_CA_ID, trusted_ca, trusted_ca_key, trusted_ca_key_passphase)
+        edgeCert.generate_device_ca(cert_name, valid_days, force)
+        output.info('Successfully generated device ca. Please find the generated certs at %s' % output_dir)
+    except Exception as e:
+        raise e
+
 
 main.add_command(setup)
 main.add_command(modulecred)
 main.add_command(start)
 main.add_command(stop)
 main.add_command(validateconfig)
+main.add_command(generatedeviceca)
 
 if __name__ == "__main__":
     main()

@@ -17,16 +17,20 @@ from iotedgehubdev.hostplatform import HostPlatform
 workingdirectory = os.getcwd()
 docker_client = EdgeDockerClient()
 
-tests_dir = os.path.join(workingdirectory, "tests")
-test_config_dir = os.path.join(tests_dir, "assets", "config")
+tests_dir = os.path.join(workingdirectory, 'tests')
+test_config_dir = os.path.join(tests_dir, 'assets', 'config')
+test_certs_dir = os.path.join(tests_dir, 'assets', 'certs')
 test_resources_dir = os.path.join(tests_dir, 'test_compose_resources')
+test_temp_cert_dir = os.path.join(tests_dir, 'cert_temp')
+test_ca_file = 'iotedgehubdev-test-only.root.ca.cert.pem'
+test_ca_key_file = 'iotedgehubdev-test-only.root.ca.key.pem'
 
 VALID_IOTHUBCONNECTIONSTRING = os.environ['IOTHUB_CONNECTION_STRING']
 VALID_DEVICECONNECTIONSTRING = os.environ[platform.system().upper() + '_DEVICE_CONNECTION_STRING']
 VALID_CONTAINERREGISTRYSERVER = os.environ['CONTAINER_REGISTRY_SERVER']
 VALID_CONTAINERREGISTRYUSERNAME = os.environ['CONTAINER_REGISTRY_USERNAME']
 VALID_CONTAINERREGISTRYPASSWORD = os.environ['CONTAINER_REGISTRY_PASSWORD']
-
+VALID_TEST_CA_KEY_PASSPHASE = os.environ['TEST_CA_KEY_PASSPHASE']
 
 device_id = re.findall(".*DeviceId=(.*);SharedAccessKey.*", VALID_DEVICECONNECTIONSTRING)[0]
 iothub_name = re.findall(".*HostName=(.*);DeviceId.*", VALID_DEVICECONNECTIONSTRING)[0].split('.')[0]
@@ -498,55 +502,61 @@ def test_cli_start_with_create_options_for_bind(runner):
                               'hello-world'])
 
 
-@pytest.mark.skipif(get_docker_os_type() == 'windows', reason='The base image of edgeHubDev image is 1809 but agent is 1803.'
-                    'So it does not support windows container.')
-def test_cli_start_with_registry(runner):
-    temp_config_folder = os.path.join(tests_dir, 'deployment_config')
-    os.makedirs(temp_config_folder)
+def test_cli_generate_device_ca(runner):
+    os.makedirs(test_temp_cert_dir)
     try:
-        old_tag = '1.0.0-rc1'
-        new_tag = '1.0.0-rc1.test'
-        image_name = 'azureiotedge-testing-utility'
-        old_image_name = image_name + ':' + old_tag
-        new_image_name = image_name + ':' + new_tag
-        old_tag_name = ('{0}/{1}').format('mcr.microsoft.com', old_image_name)
-        new_tag_name = ('{0}/{1}').format(VALID_CONTAINERREGISTRYSERVER, new_image_name)
-
-        docker_pull_image(old_tag_name)
-        docker_tag_image(old_tag_name, new_tag_name)
-        docker_login(VALID_CONTAINERREGISTRYUSERNAME, VALID_CONTAINERREGISTRYPASSWORD, VALID_CONTAINERREGISTRYSERVER)
-        docker_push_image(new_tag_name)
-
-        config_file_path = os.path.join(temp_config_folder, 'deployment.json')
-        deployment_file_path = os.path.join(test_config_dir, "deployment.json")
-        shutil.copy(deployment_file_path, config_file_path)
-
-        module_image_name = ('"image": "{0}/{1}"').format(VALID_CONTAINERREGISTRYSERVER, new_image_name)
-        update_file_content(config_file_path, '"image": ""', module_image_name)
-
-        update_file_content(config_file_path, '"username": ""',
-                            '"username": "' + VALID_CONTAINERREGISTRYUSERNAME + '"')
-        update_file_content(config_file_path, '"password": ""',
-                            '"password": "' + VALID_CONTAINERREGISTRYPASSWORD + '"')
-        update_file_content(config_file_path, '"address": ""',
-                            '"address": "' + VALID_CONTAINERREGISTRYSERVER + '"')
-
-        remove_docker_images([old_tag_name, new_tag_name])
-        docker_logout(VALID_CONTAINERREGISTRYSERVER)
-
-        cli_start_with_deployment(runner, config_file_path)
-        wait_verify_docker_output(['docker', 'ps'], ['azureiotedge-testing-utility', new_tag])
+        result = runner.invoke(cli.generatedeviceca, ['-n', 'test-device-ca', '-o', test_temp_cert_dir])
+        assert 'Successfully generated device ca. Please find the generated certs at %s' % test_temp_cert_dir in result.output
+        assert os.path.exists(os.path.join(test_temp_cert_dir, 'azure-iot-test-only.root.ca.cert.pem'))
+        assert os.path.exists(os.path.join(test_temp_cert_dir, 'azure-iot-test-only.root.ca.key.pem'))
+        assert os.path.exists(os.path.join(test_temp_cert_dir, 'iot-edge-device-ca-test-device-ca.cert.pem'))
+        assert os.path.exists(os.path.join(test_temp_cert_dir, 'iot-edge-device-ca-test-device-ca.cert.pem'))
+        # The command should fail when cert files already exist
+        result = runner.invoke(cli.generatedeviceca, ['-n', 'test-device-ca', '-o', test_temp_cert_dir])
+        assert 'Following cert file already exists. You can use --force option to overwrite existing file:' in result.output
+        assert 'azure-iot-test-only.root.ca' in result.output
+        # --force option overwrites existing cert files
+        result = runner.invoke(cli.generatedeviceca, ['-n', 'test-device-ca', '-o', test_temp_cert_dir, '--force'])
+        assert 'Successfully generated device ca. Please find the generated certs at %s' % test_temp_cert_dir in result.output
     finally:
-        shutil.rmtree(temp_config_folder, ignore_errors=True)
+        shutil.rmtree(test_temp_cert_dir, ignore_errors=True)
 
-        result = cli_stop(runner)
-        assert 'IoT Edge Simulator has been stopped successfully' in result.output.strip()
 
-        remove_docker_networks(['azure-iot-edge-dev'])
-        remove_docker_images([new_tag_name,
-                              old_tag_name,
-                              'mcr.microsoft.com/azureiotedge-hub:1.0',
-                              'hello-world'])
+def test_cli_generate_device_ca_with_given_ca(runner):
+    os.makedirs(test_temp_cert_dir)
+    trusted_ca_file = os.path.join(test_certs_dir, test_ca_file)
+    trusted_ca_key_file = os.path.join(test_certs_dir, test_ca_key_file)
+    try:
+        result = runner.invoke(cli.generatedeviceca, ['-n', 'test-given-ca',
+                                                      '-o', test_temp_cert_dir,
+                                                      '--valid-days', 365,
+                                                      '--trusted-ca', trusted_ca_file,
+                                                      '--trusted-ca-key', trusted_ca_key_file,
+                                                      '--trusted-ca-key-passphase', VALID_TEST_CA_KEY_PASSPHASE])
+        assert 'Successfully generated device ca. Please find the generated certs at %s' % test_temp_cert_dir in result.output
+        assert not os.path.exists(os.path.join(test_temp_cert_dir, 'azure-iot-test-only.root.ca.cert.pem'))
+        assert not os.path.exists(os.path.join(test_temp_cert_dir, 'azure-iot-test-only.root.ca.key.pem'))
+        assert os.path.exists(os.path.join(test_temp_cert_dir, 'iot-edge-device-ca-test-given-ca.cert.pem'))
+        assert os.path.exists(os.path.join(test_temp_cert_dir, 'iot-edge-device-ca-test-given-ca.cert.pem'))
+    finally:
+        shutil.rmtree(test_temp_cert_dir, ignore_errors=True)
+
+
+def test_cli_generate_device_ca_with_wrong_ca_passphase(runner):
+    temp_cert_folder = os.path.join(tests_dir, 'certs_temp')
+    os.makedirs(temp_cert_folder)
+    trusted_ca_file = os.path.join(test_certs_dir, test_ca_file)
+    trusted_ca_key_file = os.path.join(test_certs_dir, test_ca_key_file)
+    try:
+        result = runner.invoke(cli.generatedeviceca, ['-n', 'test-device-ca-optional-parameter',
+                                                      '-o', temp_cert_folder,
+                                                      '--valid-days', 365,
+                                                      '--trusted-ca', trusted_ca_file,
+                                                      '--trusted-ca-key', trusted_ca_key_file,
+                                                      '--trusted-ca-key-passphase', VALID_TEST_CA_KEY_PASSPHASE + 'wrong'])
+        assert 'Failed to load privake key. Please check your passphase.' in result.output
+    finally:
+        shutil.rmtree(temp_cert_folder, ignore_errors=True)
 
 
 # def test_cli_with_option(runner):
