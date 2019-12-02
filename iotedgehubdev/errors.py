@@ -60,5 +60,5 @@ class RegistriesLoginError(EdgeError):
 
 
 class InvalidConfigError(EdgeError):
-    def __init__(self, msg, ex=None):
+    def __init__(self, msg):
         super(InvalidConfigError, self).__init__(msg)
