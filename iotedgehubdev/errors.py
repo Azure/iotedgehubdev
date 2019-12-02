@@ -52,7 +52,7 @@ class RegistriesLoginError(EdgeError):
         self._registries = registries
         self._errmsg = errmsg
 
-    def message(self):
+    def getmsg(self):
         return ('Fail to login {0}. Detail: {1}').format(self._registries, self._errmsg)
 
     def registries(self):
