@@ -13,6 +13,7 @@ steps:
       .\venv\Scripts\activate
       python -m pip install --upgrade pip
       if ("$(BUILD.SOURCEBRANCH)" -match "^refs/tags/v?[0-9]+\.[0-9]+\.[0-9]+$") { ((Get-Content -path "$(BUILD.REPOSITORY.LOCALPATH)\iotedgehubdev\__init__.py" -Raw) -replace "__AIkey__ = '.*'","__AIkey__ = '$(AI_KEY)'") | Set-Content -Path "$(BUILD.REPOSITORY.LOCALPATH)\iotedgehubdev\__init__.py" }
+      ((Get-Content -path "$(BUILD.REPOSITORY.LOCALPATH)\iotedgehubdev\telemetry.py" -Raw) -replace "PRODUCT_NAME = 'iotedgehubdev'","PRODUCT_NAME = 'iotedgehubdev-standalone'") | Set-Content -Path "$(BUILD.REPOSITORY.LOCALPATH)\iotedgehubdev\telemetry.py"
       pip install -e .
       pip install -r requirements.txt
       pyinstaller iotedgehubdev.spec
