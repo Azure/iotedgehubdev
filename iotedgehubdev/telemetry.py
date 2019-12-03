@@ -11,10 +11,12 @@ import multiprocessing
 from collections import defaultdict
 from functools import wraps
 
+
 from . import configs, decorators
 from . import telemetry_upload as telemetry_core
+from . import __production__ as production_name
 
-PRODUCT_NAME = 'iotedgehubdev'
+PRODUCT_NAME = production_name
 
 
 class TelemetrySession(object):
