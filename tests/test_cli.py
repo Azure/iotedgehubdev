@@ -505,18 +505,29 @@ def test_cli_start_with_create_options_for_bind(runner):
 def test_cli_generate_device_ca(runner):
     os.makedirs(test_temp_cert_dir)
     try:
-        result = runner.invoke(cli.generatedeviceca, ['-n', 'test-device-ca', '-o', test_temp_cert_dir])
+        result = runner.invoke(cli.generatedeviceca, ['-o', test_temp_cert_dir])
         assert 'Successfully generated device ca. Please find the generated certs at %s' % test_temp_cert_dir in result.output
-        assert os.path.exists(os.path.join(test_temp_cert_dir, 'azure-iot-test-only.root.ca.cert.pem'))
-        assert os.path.exists(os.path.join(test_temp_cert_dir, 'azure-iot-test-only.root.ca.key.pem'))
-        assert os.path.exists(os.path.join(test_temp_cert_dir, 'iot-edge-device-ca-test-device-ca.cert.pem'))
-        assert os.path.exists(os.path.join(test_temp_cert_dir, 'iot-edge-device-ca-test-device-ca.cert.pem'))
+        assert os.path.exists(os.path.join(test_temp_cert_dir, 'certs', 'azure-iot-test-only.root.ca.cert.pem'))
+        assert os.path.exists(os.path.join(test_temp_cert_dir, 'certs', 'azure-iot-test-only.root.ca.key.pem'))
+        assert os.path.exists(os.path.join(test_temp_cert_dir, 'certs', 'iot-edge-device-ca.cert.pem'))
+        assert os.path.exists(os.path.join(test_temp_cert_dir, 'certs', 'iot-edge-device-ca.key.pem'))
+        assert os.path.exists(os.path.join(test_temp_cert_dir, 'certs', 'iot-edge-device-ca-full-chain.cert.pem'))
         # The command should fail when cert files already exist
-        result = runner.invoke(cli.generatedeviceca, ['-n', 'test-device-ca', '-o', test_temp_cert_dir])
-        assert 'Following cert file already exists. You can use --force option to overwrite existing file:' in result.output
-        assert 'azure-iot-test-only.root.ca' in result.output
+        result = runner.invoke(cli.generatedeviceca, ['-o', test_temp_cert_dir])
+        assert 'Following cert files already exist. You can use --force option to overwrite existing files:' in result.output
+        assert 'azure-iot-test-only.root.ca.cert.pem' in result.output
+        assert 'azure-iot-test-only.root.ca.key.pem' in result.output
+        assert 'iot-edge-device-ca.cert.pem' in result.output
+        assert 'iot-edge-device-ca.key.pem' in result.output
+        assert 'iot-edge-device-ca-full-chain.cert.pem' in result.output
         # --force option overwrites existing cert files
-        result = runner.invoke(cli.generatedeviceca, ['-n', 'test-device-ca', '-o', test_temp_cert_dir, '--force'])
+        result = runner.invoke(cli.generatedeviceca, ['-o', test_temp_cert_dir, '--force'])
+        assert 'Following cert files already exist and will be overwritten:'
+        assert 'azure-iot-test-only.root.ca.cert.pem' in result.output
+        assert 'azure-iot-test-only.root.ca.key.pem' in result.output
+        assert 'iot-edge-device-ca.cert.pem' in result.output
+        assert 'iot-edge-device-ca.key.pem' in result.output
+        assert 'iot-edge-device-ca-full-chain.cert.pem' in result.output
         assert 'Successfully generated device ca. Please find the generated certs at %s' % test_temp_cert_dir in result.output
     finally:
         shutil.rmtree(test_temp_cert_dir, ignore_errors=True)
@@ -527,17 +538,17 @@ def test_cli_generate_device_ca_with_given_ca(runner):
     trusted_ca_file = os.path.join(test_certs_dir, test_ca_file)
     trusted_ca_key_file = os.path.join(test_certs_dir, test_ca_key_file)
     try:
-        result = runner.invoke(cli.generatedeviceca, ['-n', 'test-given-ca',
-                                                      '-o', test_temp_cert_dir,
+        result = runner.invoke(cli.generatedeviceca, ['-o', test_temp_cert_dir,
                                                       '--valid-days', 365,
                                                       '--trusted-ca', trusted_ca_file,
                                                       '--trusted-ca-key', trusted_ca_key_file,
                                                       '--trusted-ca-key-passphase', VALID_TEST_CA_KEY_PASSPHASE])
         assert 'Successfully generated device ca. Please find the generated certs at %s' % test_temp_cert_dir in result.output
-        assert not os.path.exists(os.path.join(test_temp_cert_dir, 'azure-iot-test-only.root.ca.cert.pem'))
-        assert not os.path.exists(os.path.join(test_temp_cert_dir, 'azure-iot-test-only.root.ca.key.pem'))
-        assert os.path.exists(os.path.join(test_temp_cert_dir, 'iot-edge-device-ca-test-given-ca.cert.pem'))
-        assert os.path.exists(os.path.join(test_temp_cert_dir, 'iot-edge-device-ca-test-given-ca.cert.pem'))
+        assert not os.path.exists(os.path.join(test_temp_cert_dir, 'certs', 'azure-iot-test-only.root.ca.cert.pem'))
+        assert not os.path.exists(os.path.join(test_temp_cert_dir, 'certs', 'azure-iot-test-only.root.ca.key.pem'))
+        assert os.path.exists(os.path.join(test_temp_cert_dir, 'certs', 'iot-edge-device-ca.cert.pem'))
+        assert os.path.exists(os.path.join(test_temp_cert_dir, 'certs', 'iot-edge-device-ca.key.pem'))
+        assert os.path.exists(os.path.join(test_temp_cert_dir, 'certs', 'iot-edge-device-ca-full-chain.cert.pem'))
     finally:
         shutil.rmtree(test_temp_cert_dir, ignore_errors=True)
 

@@ -26,7 +26,8 @@ class EdgeConstants():
     PFX_SUFFIX = '.cert.pfx'
     KEY_SUFFIX = '.key.pem'
     ROOT_CA_ID = 'azure-iot-test-only.root.ca'
-    DEVICE_CA_ID_PREFIX = 'iot-edge-device-ca-'
+    DEVICE_CA_ID = 'iot-edge-device-ca'
+    CERT_FOLDER = 'certs'
 
     CERT_DEFAULT_DICT = {
         SUBJECT_COUNTRY_KEY: 'US',

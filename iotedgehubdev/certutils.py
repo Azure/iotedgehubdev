@@ -252,15 +252,15 @@ class EdgeCertUtil(object):
             raise EdgeValueError(msg)
         return self._cert_chain[id_str]
 
-    def dump_cert(self, id_str, output_dir, overwrite_existing):
-        self.dump_cert_content(id_str, output_dir, overwrite_existing)
-        self.dump_cert_key(id_str, output_dir, overwrite_existing)
+    def dump_cert(self, id_str, cert_output_path, key_output_path, overwrite_existing):
+        self.dump_cert_content(id_str, cert_output_path, overwrite_existing)
+        self.dump_cert_key(id_str, key_output_path, overwrite_existing)
 
-    def dump_cert_content(self, id_str, output_dir, overwrite_existing):
-        output_path = os.path.join(output_dir, id_str + EC.CERT_SUFFIX)
-        if os.path.exists(output_path) and not overwrite_existing:
+    def dump_cert_content(self, id_str, output_path, overwrite_existing):
+        if not overwrite_existing and os.path.exists(output_path):
             raise EdgeFileAccessError(
-                'Following cert file already exists. You can use --force option to overwrite existing file', output_path)
+                'Following cert file already exists.', output_path)
+        Utils.mkdir_if_needed(os.path.dirname(output_path))
         cert_dict = self.get_cert_dict(id_str)
         cert_obj = cert_dict['cert']
         try:
@@ -273,11 +273,11 @@ class EdgeCertUtil(object):
                   ' Errno: {2} Error: {3}'.format(id_str, ex.filename, str(ex.errno), ex.strerror)
             raise EdgeFileAccessError(msg, output_path)
 
-    def dump_cert_key(self, id_str, output_dir, overwrite_existing):
-        output_path = os.path.join(output_dir, id_str + EC.KEY_SUFFIX)
-        if os.path.exists(output_path) and not overwrite_existing:
+    def dump_cert_key(self, id_str, output_path, overwrite_existing):
+        if not overwrite_existing and os.path.exists(output_path):
             raise EdgeFileAccessError(
-                'Following cert file already exists. You can use --force option to overwrite existing file', output_path)
+                'Following cert file already exists.', output_path)
+        Utils.mkdir_if_needed(os.path.dirname(output_path))
         cert_dict = self.get_cert_dict(id_str)
         key_obj = cert_dict['key_pair']
         key_passphrase = cert_dict['passphrase']
@@ -299,16 +299,15 @@ class EdgeCertUtil(object):
                   ' Errno: {2} Error: {3}'.format(id_str, ex.filename, str(ex.errno), ex.strerror)
             raise EdgeFileAccessError(msg, output_path)
 
-    # The first cert id will be used to generate cert chain file name
-    def dump_cert_chain(self, output_dir, overwrite_existing, *id_strs):
+    def dump_cert_chain(self, output_path, overwrite_existing, *id_strs):
         certs_provided = len(id_strs)
         if certs_provided < 2:
             raise EdgeInvalidArgument(
                 'At least two certs are required to generate cert chain. %d cert is provided.' % certs_provided)
-        output_path = os.path.join(output_dir, id_strs[0] + EC.FULLCHAIN_CERT_SUFFIX)
-        if os.path.exists(output_path) and not overwrite_existing:
+        if not overwrite_existing and os.path.exists(output_path):
             raise EdgeFileAccessError(
-                'Following cert file already exists. You can use --force option to overwrite existing file', output_path)
+                'Following cert file already exists.', output_path)
+        Utils.mkdir_if_needed(os.path.dirname(output_path))
         cert_objs = []
         for id_str in id_strs:
             cert_objs.append(self.get_cert_dict(id_str)['cert'])
