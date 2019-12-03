@@ -310,26 +310,31 @@ def validateconfig():
               help='The output folder of generated certs. '
               'The tool will create a certs folder under given path to store the certs.')
 @click.option('--valid-days',
+              '-d',
               required=False,
               default=90,
               show_default=True,
               help='Days before cert expires.')
 @click.option('--force',
+              '-f',
               required=False,
               is_flag=True,
               default=False,
               show_default=True,
               help='Whether overwrite existing cert files.')
 @click.option('--trusted-ca',
+              '-c',
               required=False,
               help='Path of your own trusted ca used to sign IoT Edge device ca. '
               'Please also provide trsuted ca private key and related passphase (if have).'
               )
 @click.option('--trusted-ca-key',
+              '-k',
               required=False,
               help='Path of your own trusted ca private key used to sign IoT Edge device ca. '
               'Please also provide trusted ca and related passphase (if have).')
 @click.option('--trusted-ca-key-passphase',
+              '-p',
               required=False,
               help='Passphase of your own trusted ca private key.')
 @_with_telemetry
