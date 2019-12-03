@@ -559,8 +559,7 @@ def test_cli_generate_device_ca_with_wrong_ca_passphase(runner):
     trusted_ca_file = os.path.join(test_certs_dir, test_ca_file)
     trusted_ca_key_file = os.path.join(test_certs_dir, test_ca_key_file)
     try:
-        result = runner.invoke(cli.generatedeviceca, ['-n', 'test-device-ca-optional-parameter',
-                                                      '-o', temp_cert_folder,
+        result = runner.invoke(cli.generatedeviceca, ['-o', temp_cert_folder,
                                                       '--valid-days', 365,
                                                       '--trusted-ca', trusted_ca_file,
                                                       '--trusted-ca-key', trusted_ca_key_file,
