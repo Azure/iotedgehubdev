@@ -39,29 +39,26 @@ class EdgeDeploymentError(EdgeError):
         super(EdgeDeploymentError, self).__init__(msg, ex)
 
 
-class ResponseError(Exception):
+class ResponseError(EdgeError):
     def __init__(self, status_code, value):
+        super(ResponseError, self).__init__('Code:{0}. Detail:{1}'.format(status_code, value))
         self.value = value
         self.status_code = status_code
 
-    def message(self):
-        return ('Code:{0}. Detail:{1}').format(self.status_code, self.value)
 
-    def status(self):
-        return self.status_code
-
-
-class RegistriesLoginError(Exception):
+class RegistriesLoginError(EdgeError):
     def __init__(self, registries, errmsg):
+        super(RegistriesLoginError, self).__init__(errmsg)
         self._registries = registries
         self._errmsg = errmsg
 
-    def message(self):
+    def getmsg(self):
         return ('Fail to login {0}. Detail: {1}').format(self._registries, self._errmsg)
 
     def registries(self):
         return self._registries
 
 
-class InvalidConfigError(Exception):
-    pass
+class InvalidConfigError(EdgeError):
+    def __init__(self, msg):
+        super(InvalidConfigError, self).__init__(msg)
