@@ -534,7 +534,6 @@ def test_cli_generate_device_ca(runner):
 
 
 def test_cli_generate_device_ca_with_given_ca(runner):
-    # The test ca will expire on November 28, 2022. Renew it when expires.
     os.makedirs(test_temp_cert_dir)
     trusted_ca_file = os.path.join(test_certs_dir, test_ca_file)
     trusted_ca_key_file = os.path.join(test_certs_dir, test_ca_key_file)
@@ -544,7 +543,9 @@ def test_cli_generate_device_ca_with_given_ca(runner):
                                                       '--trusted-ca', trusted_ca_file,
                                                       '--trusted-ca-key', trusted_ca_key_file,
                                                       '--trusted-ca-key-passphase', VALID_TEST_CA_KEY_PASSPHASE])
-        assert 'Successfully generated device ca. Please find the generated certs at %s' % test_temp_cert_dir in result.output
+        assert 'Successfully generated device ca. '
+        'Please find the generated certs at %s' % test_temp_cert_dir in result.output, 'The root ca '
+        'expires on November 28, 2022. Please check whether it expires first when test case failed.'
         assert not os.path.exists(os.path.join(test_temp_cert_dir, 'certs', 'azure-iot-test-only.root.ca.cert.pem'))
         assert not os.path.exists(os.path.join(test_temp_cert_dir, 'certs', 'azure-iot-test-only.root.ca.key.pem'))
         assert os.path.exists(os.path.join(test_temp_cert_dir, 'certs', 'iot-edge-device-ca.cert.pem'))
@@ -555,7 +556,6 @@ def test_cli_generate_device_ca_with_given_ca(runner):
 
 
 def test_cli_generate_device_ca_with_wrong_ca_passphase(runner):
-    # The test ca will expire on November 28, 2022. Renew it when expires.
     temp_cert_folder = os.path.join(tests_dir, 'certs_temp')
     os.makedirs(temp_cert_folder)
     trusted_ca_file = os.path.join(test_certs_dir, test_ca_file)
@@ -566,7 +566,8 @@ def test_cli_generate_device_ca_with_wrong_ca_passphase(runner):
                                                       '--trusted-ca', trusted_ca_file,
                                                       '--trusted-ca-key', trusted_ca_key_file,
                                                       '--trusted-ca-key-passphase', VALID_TEST_CA_KEY_PASSPHASE + 'wrong'])
-        assert 'Failed to load privake key. Please check your passphase.' in result.output
+        assert 'Failed to load privake key. Please check your passphase.' in result.output, 'The root ca '
+        'expires on November 28, 2022. Please check whether it expires first when test case failed.'
     finally:
         shutil.rmtree(temp_cert_folder, ignore_errors=True)
 
