@@ -534,6 +534,7 @@ def test_cli_generate_device_ca(runner):
 
 
 def test_cli_generate_device_ca_with_given_ca(runner):
+    # The test ca will expire on November 28, 2022. Renew it when expires.
     os.makedirs(test_temp_cert_dir)
     trusted_ca_file = os.path.join(test_certs_dir, test_ca_file)
     trusted_ca_key_file = os.path.join(test_certs_dir, test_ca_key_file)
@@ -554,6 +555,7 @@ def test_cli_generate_device_ca_with_given_ca(runner):
 
 
 def test_cli_generate_device_ca_with_wrong_ca_passphase(runner):
+    # The test ca will expire on November 28, 2022. Renew it when expires.
     temp_cert_folder = os.path.join(tests_dir, 'certs_temp')
     os.makedirs(temp_cert_folder)
     trusted_ca_file = os.path.join(test_certs_dir, test_ca_file)
