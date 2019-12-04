@@ -41,7 +41,7 @@ class EdgeDeploymentError(EdgeError):
 
 class ResponseError(EdgeError):
     def __init__(self, status_code, value):
-        super(ResponseError, self).__init__(value)
+        super(ResponseError, self).__init__('Code:{0}. Detail:{1}'.format(status_code, value))
         self.value = value
         self.status_code = status_code
 
