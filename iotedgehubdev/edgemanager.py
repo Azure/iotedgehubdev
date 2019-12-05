@@ -178,7 +178,7 @@ class EdgeManager(object):
         try:
             EdgeManager.login_registries(module_content)
         except RegistriesLoginError as e:
-            output.warning(e.message())
+            output.warning(e.getmsg())
 
         edgedockerclient = EdgeDockerClient()
         mount_base = self._obtain_mount_path(edgedockerclient)
