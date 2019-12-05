@@ -1,9 +1,9 @@
 # Changelog
 
 [![PyPI version](https://badge.fury.io/py/iotedgehubdev.svg)](https://badge.fury.io/py/iotedgehubdev)
-## 0.12.0 - 2019-11-xx
+## 0.12.0 - 2019-12-05
 ### Changed
-* Add python version requirement in README and setup.py (Now we are only support python 2.7/3.5/3.6/3.7)
+* Support Python 3.8
 * Make python version consistent between pip and standalone
 * Update cert generation logic
 
