@@ -22,7 +22,7 @@ class EdgeConstants():
     EDGE_DEVICE_CA = 'edge-device-ca'
     EDGE_AGENT_CA = 'edge-agent-ca'
     CERT_SUFFIX = '.cert.pem'
-    FULLCHAIN_CERT_SUFFIX = '-full-chain.cert.pem'
+    CHAIN_CERT_SUFFIX = '-chain.cert.pem'
     PFX_SUFFIX = '.cert.pfx'
     KEY_SUFFIX = '.key.pem'
     ROOT_CA_ID = 'azure-iot-test-only.root.ca'

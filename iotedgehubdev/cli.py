@@ -17,7 +17,7 @@ from .edgemanager import EdgeManager
 from .hostplatform import HostPlatform
 from .output import Output
 from .utils import Utils
-from .errors import InvalidConfigError
+from .errors import EdgeError, InvalidConfigError
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'], max_content_width=120)
 output = Output()
@@ -343,6 +343,27 @@ def generatedeviceca(output_dir, valid_days, force, trusted_ca, trusted_ca_key, 
         output_dir = os.path.abspath(os.path.join(output_dir, EdgeConstants.CERT_FOLDER))
         if trusted_ca_key_passphase:
             trusted_ca_key_passphase = trusted_ca_key_passphase.encode()  # crypto requires byte string
+        # Check whether create new trusted CA and generate files to be created
+        output_files = list(Utils.get_device_ca_file_paths(output_dir, EdgeConstants.DEVICE_CA_ID).values())
+        if trusted_ca and trusted_ca_key:
+            output.info('Trusted CA and trusted CA key were provided. Load trusted CA from given files.')
+        else:
+            output.info('Trusted CA and Trusted CA key were not provided. Will create new trusted CA.')
+            root_ca_files = Utils.get_device_ca_file_paths(output_dir, EdgeConstants.ROOT_CA_ID)
+            root_ca_files.pop(EdgeConstants.ROOT_CA_ID + EdgeConstants.CHAIN_CERT_SUFFIX, 'Not exist')  # Ignore the chain file
+            output_files.extend(list(root_ca_files.values()))
+        # Check whether the output files exist
+        existing_files = []
+        for file in output_files:
+            if os.path.exists(file):
+                existing_files.append(file)
+        if len(existing_files) > 0:
+            if force:
+                output.info('Following cert files already exist and will be overwritten: %s' % existing_files)
+            else:
+                raise EdgeError('Following cert files already exist. '
+                                'You can use --force option to overwrite existing files: %s' % existing_files)
+        # Generate certs
         edgeCert = EdgeCert(output_dir, '')
         edgeCert.generate_device_ca(valid_days, force, trusted_ca, trusted_ca_key, trusted_ca_key_passphase)
         output.info('Successfully generated device ca. Please find the generated certs at %s' % output_dir)

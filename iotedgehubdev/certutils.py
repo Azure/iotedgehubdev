@@ -243,94 +243,12 @@ class EdgeCertUtil(object):
                 raise EdgeInvalidArgument('Failed to load privake key. Please check your passphase.')
         self._cert_chain[id_str] = cert_dict
 
-    def check_cert_existence(self, id_str):
-        return id_str in list(self._cert_chain.keys())
-
-    def get_cert_dict(self, id_str):
-        if id_str not in list(self._cert_chain.keys()):
-            msg = 'Certificate not in chain. ID: {0}'.format(id_str)
-            raise EdgeValueError(msg)
-        return self._cert_chain[id_str]
-
-    def dump_cert(self, id_str, cert_output_path, key_output_path, overwrite_existing):
-        self.dump_cert_content(id_str, cert_output_path, overwrite_existing)
-        self.dump_cert_key(id_str, key_output_path, overwrite_existing)
-
-    def dump_cert_content(self, id_str, output_path, overwrite_existing):
-        if not overwrite_existing and os.path.exists(output_path):
-            raise EdgeFileAccessError(
-                'Following cert file already exists.', output_path)
-        Utils.mkdir_if_needed(os.path.dirname(output_path))
-        cert_dict = self.get_cert_dict(id_str)
-        cert_obj = cert_dict['cert']
-        try:
-            with open(output_path, 'w') as output_file:
-                output_file.write(crypto.dump_certificate(crypto.FILETYPE_PEM,
-                                                          cert_obj).decode('utf-8'))
-        except IOError as ex:
-            msg = 'IO Error when exporting certs for ID: {0}.\n' \
-                  ' Error seen when exporting file {1}.' \
-                  ' Errno: {2} Error: {3}'.format(id_str, ex.filename, str(ex.errno), ex.strerror)
-            raise EdgeFileAccessError(msg, output_path)
-
-    def dump_cert_key(self, id_str, output_path, overwrite_existing):
-        if not overwrite_existing and os.path.exists(output_path):
-            raise EdgeFileAccessError(
-                'Following cert file already exists.', output_path)
-        Utils.mkdir_if_needed(os.path.dirname(output_path))
-        cert_dict = self.get_cert_dict(id_str)
-        key_obj = cert_dict['key_pair']
-        key_passphrase = cert_dict['passphrase']
-        passphrase = None
-        if key_passphrase and key_passphrase != '':
-            passphrase = key_passphrase.encode('utf-8')
-        cipher = None
-        if passphrase:
-            cipher = 'aes256'
-        try:
-            with open(output_path, 'w') as output_file:
-                output_file.write(crypto.dump_privatekey(crypto.FILETYPE_PEM,
-                                                         key_obj,
-                                                         cipher=cipher,
-                                                         passphrase=passphrase).decode('utf-8'))
-        except IOError as ex:
-            msg = 'IO Error when exporting certs for ID: {0}.\n' \
-                  ' Error seen when exporting file {1}.' \
-                  ' Errno: {2} Error: {3}'.format(id_str, ex.filename, str(ex.errno), ex.strerror)
-            raise EdgeFileAccessError(msg, output_path)
-
-    def dump_cert_chain(self, output_path, overwrite_existing, *id_strs):
-        certs_provided = len(id_strs)
-        if certs_provided < 2:
-            raise EdgeInvalidArgument(
-                'At least two certs are required to generate cert chain. %d cert is provided.' % certs_provided)
-        if not overwrite_existing and os.path.exists(output_path):
-            raise EdgeFileAccessError(
-                'Following cert file already exists.', output_path)
-        Utils.mkdir_if_needed(os.path.dirname(output_path))
-        cert_objs = []
-        for id_str in id_strs:
-            cert_objs.append(self.get_cert_dict(id_str)['cert'])
-        try:
-            for cert_obj in cert_objs:
-                with open(output_path, 'w') as output_file:
-                    output_file.write(crypto.dump_certificate(crypto.FILETYPE_PEM,
-                                                              cert_obj).decode('utf-8'))
-        except IOError as ex:
-            msg = 'IO Error when creating chain cert: {0}.' \
-                  ' Errno: {1} Error: {2}'.format(output_path, str(ex.errno), ex.strerror)
-            raise EdgeFileAccessError(msg, output_path)
-
-    def export_cert_artifacts_to_dir(self, id_str, dir_path):
+    def export_simulator_cert_artifacts_to_dir(self, id_str, dir_path):
         if Utils.check_if_directory_exists(dir_path) is False:
             msg = 'Invalid export directory {0}'.format(dir_path)
             raise EdgeValueError(msg)
 
-        if id_str not in list(self._cert_chain.keys()):
-            msg = 'Certificate not in chain. ID: {0}'.format(id_str)
-            raise EdgeValueError(msg)
-
-        cert_dict = self._cert_chain[id_str]
+        cert_dict = self._get_cert_dict(id_str)
         prefix = id_str
         try:
             path = os.path.realpath(dir_path)
@@ -346,32 +264,13 @@ class EdgeCertUtil(object):
             # export the private key
             priv_key_file_name = prefix + '.key.pem'
             priv_key_file = os.path.join(priv_dir, priv_key_file_name)
-            if 'key_file' in cert_dict:
-                key_file_path = cert_dict['key_file']
-                copy2(key_file_path, priv_key_file)
-            else:
-                key_obj = cert_dict['key_pair']
-                key_passphrase = cert_dict['passphrase']
-                passphrase = None
-                if key_passphrase and key_passphrase != '':
-                    passphrase = key_passphrase.encode('utf-8')
-                with open(priv_key_file, 'w') as ip_file:
-                    cipher = None
-                    if passphrase:
-                        cipher = 'aes256'
-                    ip_file.write(crypto.dump_privatekey(crypto.FILETYPE_PEM,
-                                                         key_obj,
-                                                         cipher=cipher,
-                                                         passphrase=passphrase).decode('utf-8'))
+            self._dump_cert_key(id_str, priv_key_file)
 
             # export the cert
-            cert_obj = cert_dict['cert']
             cert_file_name = prefix + EC.CERT_SUFFIX
             cert_file = os.path.join(cert_dir, cert_file_name)
             current_cert_file_path = cert_file
-            with open(cert_file, 'w') as ip_file:
-                ip_file.write(crypto.dump_certificate(crypto.FILETYPE_PEM,
-                                                      cert_obj).decode('utf-8'))
+            self._dump_cert_content(id_str, cert_file)
 
             # export any chain certs
             if 'ca_chain' in list(cert_dict.keys()):
@@ -395,23 +294,14 @@ class EdgeCertUtil(object):
                   ' Errno: {2} Error: {3}'.format(id_str, ex.filename, str(ex.errno), ex.strerror)
             raise EdgeFileAccessError(msg, path)
 
-    def chain_ca_certs(self, output_prefix, prefixes, certs_dir):
-        file_names = []
-        for prefix in prefixes:
-            if prefix not in list(self._cert_chain.keys()):
-                msg = 'Invalid cert ID: {0}'.format(prefix)
-                raise EdgeValueError(msg)
-            else:
-                cert_dict = self._cert_chain[prefix]
-                if 'ca_chain' in list(cert_dict.keys()):
-                    # this cert contains an existing certificate chain
-                    # pick the chain instead of the actual cert
-                    cert_file_name = prefix + '-chain.cert.pem'
-                else:
-                    cert_file_name = prefix + EC.CERT_SUFFIX
-                cert_file = os.path.join(certs_dir, prefix, 'cert', cert_file_name)
-                path = os.path.realpath(cert_file)
-                file_names.append(path)
+    def export_device_ca_cert_artifacts_to_dir(self, id_str, dir_path):
+        output_files = Utils.get_device_ca_file_paths(dir_path, id_str)
+        cert_path = output_files[id_str + EC.CERT_SUFFIX]
+        key_path = output_files[id_str + EC.KEY_SUFFIX]
+        self._dump_cert_content(id_str, cert_path)
+        self._dump_cert_key(id_str, key_path)
+
+    def chain_simulator_ca_certs(self, output_prefix, prefixes, certs_dir):
         try:
             output_dir = os.path.join(certs_dir, output_prefix)
             Utils.delete_dir(output_dir)
@@ -419,14 +309,16 @@ class EdgeCertUtil(object):
             output_dir = os.path.join(output_dir, 'cert')
             Utils.mkdir_if_needed(output_dir)
             output_file_name = os.path.join(output_dir, output_prefix + EC.CERT_SUFFIX)
-            with open(output_file_name, 'wb') as op_file:
-                for file_name in file_names:
-                    with open(file_name, 'rb') as ip_file:
-                        op_file.write(ip_file.read())
+            self._chain_ca_certs(output_file_name, prefixes, certs_dir, self._simulator_cert_file_path_gen)
         except IOError as ex:
             msg = 'IO Error when creating chain cert: {0}.' \
                   ' Errno: {1} Error: {2}'.format(output_file_name, str(ex.errno), ex.strerror)
             raise EdgeFileAccessError(msg, output_file_name)
+
+    def chain_device_ca_certs(self, output_prefix, id_strs, certs_dir):
+        cert_files = Utils.get_device_ca_file_paths(certs_dir, output_prefix)
+        chain_path = cert_files[output_prefix + EC.CHAIN_CERT_SUFFIX]
+        self._chain_ca_certs(chain_path, id_strs, certs_dir, self._device_ca_cert_file_path_gen)
 
     def is_valid_certificate_subject(self, subject_dict):
         result = True
@@ -592,3 +484,85 @@ class EdgeCertUtil(object):
                                                          min_length, max_length)
                 raise EdgeValueError(msg)
         return result_str
+
+    def _dump_cert_content(self, id_str, output_path, overwrite_existing=True):
+        if not overwrite_existing and os.path.exists(output_path):
+            raise EdgeFileAccessError(
+                'Following cert file already exists.', output_path)
+        Utils.mkdir_if_needed(os.path.dirname(output_path))
+        cert_dict = self._get_cert_dict(id_str)
+        cert_obj = cert_dict['cert']
+        try:
+            with open(output_path, 'w') as output_file:
+                output_file.write(crypto.dump_certificate(crypto.FILETYPE_PEM,
+                                                          cert_obj).decode('utf-8'))
+        except IOError as ex:
+            msg = 'IO Error when exporting certs for ID: {0}.\n' \
+                  ' Error seen when exporting file {1}.' \
+                  ' Errno: {2} Error: {3}'.format(id_str, ex.filename, str(ex.errno), ex.strerror)
+            raise EdgeFileAccessError(msg, output_path)
+
+    def _dump_cert_key(self, id_str, output_path, overwrite_existing=True):
+        if not overwrite_existing and os.path.exists(output_path):
+            raise EdgeFileAccessError(
+                'Following cert file already exists.', output_path)
+        Utils.mkdir_if_needed(os.path.dirname(output_path))
+        cert_dict = self._get_cert_dict(id_str)
+        try:
+            if 'key_file' in cert_dict:
+                key_file_path = cert_dict['key_file']
+                copy2(key_file_path, output_path)
+            else:
+                key_obj = cert_dict['key_pair']
+                key_passphrase = cert_dict['passphrase']
+                passphrase = None
+                if key_passphrase and key_passphrase != '':
+                    passphrase = key_passphrase.encode('utf-8')
+                cipher = None
+                if passphrase:
+                    cipher = 'aes256'
+                with open(output_path, 'w') as output_file:
+                    output_file.write(crypto.dump_privatekey(crypto.FILETYPE_PEM,
+                                                             key_obj,
+                                                             cipher=cipher,
+                                                             passphrase=passphrase).decode('utf-8'))
+        except IOError as ex:
+            msg = 'IO Error when exporting certs for ID: {0}.\n' \
+                  ' Error seen when exporting file {1}.' \
+                  ' Errno: {2} Error: {3}'.format(id_str, ex.filename, str(ex.errno), ex.strerror)
+            raise EdgeFileAccessError(msg, output_path)
+
+    def _get_cert_dict(self, id_str):
+        if id_str not in list(self._cert_chain.keys()):
+            msg = 'Certificate not in chain. ID: {0}'.format(id_str)
+            raise EdgeValueError(msg)
+        return self._cert_chain[id_str]
+
+    def _chain_ca_certs(self, output_path, id_strs, certs_dir, cert_file_path_gen):
+        file_names = []
+        for id_str in id_strs:
+            cert_dict = self._get_cert_dict(id_str)
+            if 'ca_chain' in list(cert_dict.keys()):
+                # this cert contains an existing certificate chain
+                # pick the chain instead of the actual cert
+                cert_file_name = id_str + '-chain.cert.pem'
+            else:
+                cert_file_name = id_str + EC.CERT_SUFFIX
+            cert_file = cert_file_path_gen(id_str, cert_file_name, certs_dir)
+            path = os.path.realpath(cert_file)
+            file_names.append(path)
+        try:
+            with open(output_path, 'wb') as output_file:
+                for file_name in file_names:
+                    with open(file_name, 'rb') as input_file:
+                        output_file.write(input_file.read())
+        except IOError as ex:
+            msg = 'IO Error when creating chain cert: {0}.' \
+                  ' Errno: {1} Error: {2}'.format(output_path, str(ex.errno), ex.strerror)
+            raise EdgeFileAccessError(msg, output_path)
+
+    def _simulator_cert_file_path_gen(self, id_str, cert_file_name, certs_dir):
+        return os.path.join(certs_dir, id_str, 'cert', cert_file_name)
+
+    def _device_ca_cert_file_path_gen(self, id_str, cert_file_name, certs_dir):
+        return os.path.join(certs_dir, cert_file_name)
