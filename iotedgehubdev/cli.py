@@ -350,8 +350,8 @@ def generatedeviceca(output_dir, valid_days, force, trusted_ca, trusted_ca_key, 
         else:
             output.info('Trusted CA and Trusted CA key were not provided. Will create new trusted CA.')
             root_ca_files = Utils.get_device_ca_file_paths(output_dir, EdgeConstants.ROOT_CA_ID)
-            root_ca_files.pop(EdgeConstants.ROOT_CA_ID + EdgeConstants.CHAIN_CERT_SUFFIX, 'Not exist')  # Ignore the chain file
-            output_files.extend(list(root_ca_files.values()))
+            output_files.append(root_ca_files[EdgeConstants.CERT_SUFFIX])
+            output_files.append(root_ca_files[EdgeConstants.KEY_SUFFIX])
         # Check whether the output files exist
         existing_files = []
         for file in output_files:

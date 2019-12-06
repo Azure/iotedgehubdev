@@ -566,7 +566,8 @@ def test_cli_generate_device_ca_with_wrong_ca_passphase(runner):
                                                       '--trusted-ca', trusted_ca_file,
                                                       '--trusted-ca-key', trusted_ca_key_file,
                                                       '--trusted-ca-key-passphase', VALID_TEST_CA_KEY_PASSPHASE + 'wrong'])
-        assert 'Failed to load privake key. Please check your passphase.' in result.output, 'The root ca '
+        assert 'Failed to load private key from %s. ' % trusted_ca_key_file
+        'Please check your passphase first.' in result.output, 'The root ca '
         'expires on November 28, 2022. Please check whether it expires first when test case failed.'
     finally:
         shutil.rmtree(temp_cert_folder, ignore_errors=True)
