@@ -11,12 +11,13 @@ from functools import wraps
 import click
 
 from . import configs, decorators, telemetry
+from .constants import EdgeConstants
 from .edgecert import EdgeCert
 from .edgemanager import EdgeManager
 from .hostplatform import HostPlatform
 from .output import Output
 from .utils import Utils
-from .errors import InvalidConfigError
+from .errors import EdgeError, InvalidConfigError
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'], max_content_width=120)
 output = Output()
@@ -300,12 +301,82 @@ def validateconfig():
     _parse_config_json()
     output.info('Config file is valid.')
 
+@click.command(context_settings=CONTEXT_SETTINGS,
+               help="Create IoT Edge device CA")
+@click.option('--output-dir',
+              '-o',
+              required=False,
+              default=".",
+              help='The output folder of generated certs. '
+              'The tool will create a certs folder under given path to store the certs.')
+@click.option('--valid-days',
+              '-d',
+              required=False,
+              default=90,
+              show_default=True,
+              help='Days before cert expires.')
+@click.option('--force',
+              '-f',
+              required=False,
+              is_flag=True,
+              default=False,
+              show_default=True,
+              help='Whether overwrite existing cert files.')
+@click.option('--trusted-ca',
+              '-c',
+              required=False,
+              help='Path of your own trusted ca used to sign IoT Edge device ca. '
+              'Please also provide trsuted ca private key and related passphase (if have).'
+              )
+@click.option('--trusted-ca-key',
+              '-k',
+              required=False,
+              help='Path of your own trusted ca private key used to sign IoT Edge device ca. '
+              'Please also provide trusted ca and related passphase (if have).')
+@click.option('--trusted-ca-key-passphase',
+              '-p',
+              required=False,
+              help='Passphase of your own trusted ca private key.')
+@_with_telemetry
+def generatedeviceca(output_dir, valid_days, force, trusted_ca, trusted_ca_key, trusted_ca_key_passphase):
+    try:
+        output_dir = os.path.abspath(os.path.join(output_dir, EdgeConstants.CERT_FOLDER))
+        if trusted_ca_key_passphase:
+            trusted_ca_key_passphase = trusted_ca_key_passphase.encode()  # crypto requires byte string
+        # Check whether create new trusted CA and generate files to be created
+        output_files = list(Utils.get_device_ca_file_paths(output_dir, EdgeConstants.DEVICE_CA_ID).values())
+        if trusted_ca and trusted_ca_key:
+            output.info('Trusted CA and trusted CA key were provided. Load trusted CA from given files.')
+        else:
+            output.info('Trusted CA and Trusted CA key were not provided. Will create new trusted CA.')
+            root_ca_files = Utils.get_device_ca_file_paths(output_dir, EdgeConstants.ROOT_CA_ID)
+            output_files.append(root_ca_files[EdgeConstants.CERT_SUFFIX])
+            output_files.append(root_ca_files[EdgeConstants.KEY_SUFFIX])
+        # Check whether the output files exist
+        existing_files = []
+        for file in output_files:
+            if os.path.exists(file):
+                existing_files.append(file)
+        if len(existing_files) > 0:
+            if force:
+                output.info('Following cert files already exist and will be overwritten: %s' % existing_files)
+            else:
+                raise EdgeError('Following cert files already exist. '
+                                'You can use --force option to overwrite existing files: %s' % existing_files)
+        # Generate certs
+        edgeCert = EdgeCert(output_dir, '')
+        edgeCert.generate_device_ca(valid_days, force, trusted_ca, trusted_ca_key, trusted_ca_key_passphase)
+        output.info('Successfully generated device ca. Please find the generated certs at %s' % output_dir)
+    except Exception as e:
+        raise e
+
 
 main.add_command(setup)
 main.add_command(modulecred)
 main.add_command(start)
 main.add_command(stop)
 main.add_command(validateconfig)
+main.add_command(generatedeviceca)
 
 if __name__ == "__main__":
     main()

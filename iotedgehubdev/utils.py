@@ -196,3 +196,11 @@ class Utils(object):
         hash_object = sha256(val.encode('utf-8'))
 
         return str(hash_object.hexdigest()).lower()
+
+    @staticmethod
+    def get_device_ca_file_paths(root_dir, cert_id):
+        result = {}
+        result[EC.CERT_SUFFIX] = os.path.join(root_dir, cert_id + EC.CERT_SUFFIX)
+        result[EC.KEY_SUFFIX] = os.path.join(root_dir, cert_id + EC.KEY_SUFFIX)
+        result[EC.CHAIN_CERT_SUFFIX] = os.path.join(root_dir, cert_id + EC.CHAIN_CERT_SUFFIX)
+        return result

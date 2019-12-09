@@ -186,7 +186,7 @@ class TestEdgeCertUtilAPIExportCertArtifacts(unittest.TestCase):
         cert_util = EdgeCertUtil()
         with self.assertRaises(EdgeValueError):
             mock_chk_dir.return_value = True
-            cert_util.export_cert_artifacts_to_dir('root', 'some_dir')
+            cert_util.export_simulator_cert_artifacts_to_dir('root', 'some_dir')
 
     @mock.patch('iotedgehubdev.utils.Utils.check_if_directory_exists')
     def test_export_cert_artifacts_to_dir_invalid_dir_invalid(self, mock_chk_dir):
@@ -194,23 +194,23 @@ class TestEdgeCertUtilAPIExportCertArtifacts(unittest.TestCase):
         cert_util.create_root_ca_cert('root', subject_dict=VALID_SUBJECT_DICT)
         with self.assertRaises(EdgeValueError):
             mock_chk_dir.return_value = False
-            cert_util.export_cert_artifacts_to_dir('root', 'some_dir')
+            cert_util.export_simulator_cert_artifacts_to_dir('root', 'some_dir')
 
     def test_get_cert_artifacts_file_path(self):
         cert_util = EdgeCertUtil()
         cert_util.create_root_ca_cert('root', subject_dict=VALID_SUBJECT_DICT)
-        cert_util.export_cert_artifacts_to_dir('root', WORKINGDIRECTORY)
+        cert_util.export_simulator_cert_artifacts_to_dir('root', WORKINGDIRECTORY)
         assert cert_util.get_cert_file_path('root', WORKINGDIRECTORY)
 
     def test_get_chain_ca_certs(self):
         cert_util = EdgeCertUtil()
         cert_util.create_root_ca_cert('root', subject_dict=VALID_SUBJECT_DICT)
-        cert_util.chain_ca_certs('root', {'root'}, WORKINGDIRECTORY)
+        cert_util.chain_simulator_ca_certs('root', {'root'}, WORKINGDIRECTORY)
         assert cert_util.get_cert_file_path('root', WORKINGDIRECTORY)
 
     def test_get_pfx_cert_file_path(self):
         cert_util = EdgeCertUtil()
         cert_util.create_root_ca_cert('root', subject_dict=VALID_SUBJECT_DICT)
-        cert_util.chain_ca_certs('root', {'root'}, WORKINGDIRECTORY)
+        cert_util.chain_simulator_ca_certs('root', {'root'}, WORKINGDIRECTORY)
         cert_util.export_pfx_cert('root', WORKINGDIRECTORY)
         assert cert_util.get_cert_file_path('root', WORKINGDIRECTORY)
