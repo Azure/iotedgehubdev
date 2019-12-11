@@ -506,7 +506,7 @@ def test_cli_generate_device_ca(runner):
     os.makedirs(test_temp_cert_dir)
     try:
         result = runner.invoke(cli.generatedeviceca, ['-o', test_temp_cert_dir])
-        assert 'Successfully generated device ca. Please find the generated certs at %s' % test_temp_cert_dir in result.output
+        assert 'Successfully generated device CA. Please find the generated certs at %s' % test_temp_cert_dir in result.output
         assert os.path.exists(os.path.join(test_temp_cert_dir, 'certs', 'azure-iot-test-only.root.ca.cert.pem'))
         assert os.path.exists(os.path.join(test_temp_cert_dir, 'certs', 'azure-iot-test-only.root.ca.key.pem'))
         assert os.path.exists(os.path.join(test_temp_cert_dir, 'certs', 'iot-edge-device-ca.cert.pem'))
@@ -528,7 +528,7 @@ def test_cli_generate_device_ca(runner):
         assert 'iot-edge-device-ca.cert.pem' in result.output
         assert 'iot-edge-device-ca.key.pem' in result.output
         assert 'iot-edge-device-ca-chain.cert.pem' in result.output
-        assert 'Successfully generated device ca. Please find the generated certs at %s' % test_temp_cert_dir in result.output
+        assert 'Successfully generated device CA. Please find the generated certs at %s' % test_temp_cert_dir in result.output
     finally:
         shutil.rmtree(test_temp_cert_dir, ignore_errors=True)
 
@@ -543,7 +543,7 @@ def test_cli_generate_device_ca_with_given_ca(runner):
                                                       '--trusted-ca', trusted_ca_file,
                                                       '--trusted-ca-key', trusted_ca_key_file,
                                                       '--trusted-ca-key-passphase', VALID_TEST_CA_KEY_PASSPHASE])
-        assert 'Successfully generated device ca. '
+        assert 'Successfully generated device CA. '
         'Please find the generated certs at %s' % test_temp_cert_dir in result.output, 'The root ca '
         'expires on November 28, 2022. Please check whether it expires first when test case failed.'
         assert not os.path.exists(os.path.join(test_temp_cert_dir, 'certs', 'azure-iot-test-only.root.ca.cert.pem'))

@@ -346,9 +346,11 @@ def generatedeviceca(output_dir, valid_days, force, trusted_ca, trusted_ca_key, 
         # Check whether create new trusted CA and generate files to be created
         output_files = list(Utils.get_device_ca_file_paths(output_dir, EdgeConstants.DEVICE_CA_ID).values())
         if trusted_ca and trusted_ca_key:
-            output.info('Trusted CA and trusted CA key were provided. Load trusted CA from given files.')
+            output.info('Trusted CA (certification authority) and trusted CA key were provided.'
+                        ' Load trusted CA from given files.')
         else:
-            output.info('Trusted CA and Trusted CA key were not provided. Will create new trusted CA.')
+            output.info('Trusted CA (certification authority) and Trusted CA key were not provided.'
+                        ' Will create new trusted CA.')
             root_ca_files = Utils.get_device_ca_file_paths(output_dir, EdgeConstants.ROOT_CA_ID)
             output_files.append(root_ca_files[EdgeConstants.CERT_SUFFIX])
             output_files.append(root_ca_files[EdgeConstants.KEY_SUFFIX])
@@ -366,7 +368,7 @@ def generatedeviceca(output_dir, valid_days, force, trusted_ca, trusted_ca_key, 
         # Generate certs
         edgeCert = EdgeCert(output_dir, '')
         edgeCert.generate_device_ca(valid_days, force, trusted_ca, trusted_ca_key, trusted_ca_key_passphase)
-        output.info('Successfully generated device ca. Please find the generated certs at %s' % output_dir)
+        output.info('Successfully generated device CA. Please find the generated certs at %s' % output_dir)
     except Exception as e:
         raise e
 
