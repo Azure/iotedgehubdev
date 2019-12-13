@@ -1,7 +1,7 @@
 # Changelog
 
 [![PyPI version](https://badge.fury.io/py/iotedgehubdev.svg)](https://badge.fury.io/py/iotedgehubdev)
-## 0.13.0 - 2019-12-xx
+## 0.13.0 - 2019-12-13
 ### Added
 * Add command to generate cert
 
