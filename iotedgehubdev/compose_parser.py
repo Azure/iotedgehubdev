@@ -270,7 +270,7 @@ COMPOSE_KEY_CREATE_OPTION_MAPPING = {
     # 'tmpfs:':{'API_Info':'Tmpfs','parser_func':service_parser_naive},
     'userns_mode': {'API_Info': {'UsernsMode': "$['HostConfig']['UsernsMode']"}, 'parser_func': service_parser_naive},
     'isolation': {'API_Info': {'Isolation': "$['HostConfig']['Isolation']"}, 'parser_func': service_parser_naive},
-
+    'runtime': {'API_Info':{'Runtime': "$['HostConfig']['Runtime']"}, 'parser_func': service_parser_naive},
     # Volumes
     'volumes': {
         'API_Info': {
