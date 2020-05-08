@@ -167,7 +167,7 @@ class ComposeProject(object):
 
     def parse_routes(self):
         routes = self.module_content['$edgeHub']['properties.desired']['routes']
-        schema_version =  self.module_content['$edgeHub']['properties.desired']['schemaVersion']
+        schema_version = self.module_content['$edgeHub']['properties.desired']['schemaVersion']
         routes_env = []
         route_id = 1
 
