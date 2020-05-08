@@ -167,10 +167,17 @@ class ComposeProject(object):
 
     def parse_routes(self):
         routes = self.module_content['$edgeHub']['properties.desired']['routes']
+        schema_version =  self.module_content['$edgeHub']['properties.desired']['schemaVersion']
         routes_env = []
         route_id = 1
-        for path in routes.values():
-            routes_env.append('routes__r{0}={1}'.format(route_id, path))
+
+        for route in routes.values():
+            if type(route) == str:
+                routes_env.append('routes__r{0}={1}'.format(route_id, route))
+            else:
+                if schema_version == "1.0":
+                    raise Exception("Route priority/TTL is not supported in schema 1.0.")
+                routes_env.append('routes__r{0}={1}'.format(route_id, route["route"]))
             route_id = route_id + 1
         return routes_env
 
