@@ -1,6 +1,10 @@
 # Changelog
 
 [![PyPI version](https://badge.fury.io/py/iotedgehubdev.svg)](https://badge.fury.io/py/iotedgehubdev)
+## 0.14.0 - 2020-05-xx
+### Added
+* Support new route schema
+
 ## 0.13.0 - 2019-12-13
 ### Added
 * Add command to generate cert
