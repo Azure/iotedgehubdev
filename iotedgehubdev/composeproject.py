@@ -8,7 +8,7 @@ import sys
 from collections import OrderedDict
 
 import yaml
-from six import StringIO
+from six import StringIO, string_types
 
 from .compose_parser import CreateOptionParser
 from .output import Output
@@ -172,7 +172,7 @@ class ComposeProject(object):
         route_id = 1
 
         for route in routes.values():
-            if type(route) == str:
+            if isinstance(route, string_types):
                 routes_env.append('routes__r{0}={1}'.format(route_id, route))
             else:
                 if schema_version == "1.0":
