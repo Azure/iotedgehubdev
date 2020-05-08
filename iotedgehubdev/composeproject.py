@@ -175,9 +175,10 @@ class ComposeProject(object):
             if isinstance(route, string_types):
                 routes_env.append('routes__r{0}={1}'.format(route_id, route))
             else:
-                if schema_version == "1.0":
-                    raise Exception("Route priority/TTL is not supported in schema 1.0.")
-                routes_env.append('routes__r{0}={1}'.format(route_id, route["route"]))
+                if schema_version >= "1.1":
+                    routes_env.append('routes__r{0}={1}'.format(route_id, route["route"]))
+                else:
+                    raise Exception("Route priority/TTL is not supported in schema {0}.".format(schema_version))
             route_id = route_id + 1
         return routes_env
 
