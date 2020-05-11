@@ -8,7 +8,7 @@ import sys
 from collections import OrderedDict
 
 import yaml
-from six import StringIO
+from six import StringIO, string_types
 
 from .compose_parser import CreateOptionParser
 from .output import Output
@@ -167,10 +167,18 @@ class ComposeProject(object):
 
     def parse_routes(self):
         routes = self.module_content['$edgeHub']['properties.desired']['routes']
+        schema_version = self.module_content['$edgeHub']['properties.desired']['schemaVersion']
         routes_env = []
         route_id = 1
-        for path in routes.values():
-            routes_env.append('routes__r{0}={1}'.format(route_id, path))
+
+        for route in routes.values():
+            if isinstance(route, string_types):
+                routes_env.append('routes__r{0}={1}'.format(route_id, route))
+            else:
+                if schema_version >= "1.1":
+                    routes_env.append('routes__r{0}={1}'.format(route_id, route["route"]))
+                else:
+                    raise Exception("Route priority/TTL is not supported in schema {0}.".format(schema_version))
             route_id = route_id + 1
         return routes_env
 
