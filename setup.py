@@ -3,7 +3,7 @@ Azure IoT EdgeHub Dev Tool
 """
 from setuptools import find_packages, setup
 
-VERSION = '0.14.0rc0'
+VERSION = '0.14.0'
 # If we have source, validate that our version numbers match
 # This should prevent uploading releases with mismatched versions.
 try:
@@ -58,7 +58,7 @@ setup(
             'iotedgehubdev = iotedgehubdev.cli:main',
         ],
     },
-    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <=3.8',
+    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <3.9',
     classifiers=[
         # As from http://pypi.python.org/pypi?%3Aaction=list_classifiers
         # 'Development Status :: 1 - Planning',
