@@ -1,6 +1,11 @@
 # Changelog
 
 [![PyPI version](https://badge.fury.io/py/iotedgehubdev.svg)](https://badge.fury.io/py/iotedgehubdev)
+
+## 0.14.1 - 2020-05-29
+### Fixed
+* Fix false alarm issue of Windows Defender
+
 ## 0.14.0 - 2020-05-25
 ### Added
 * Support new route schema
