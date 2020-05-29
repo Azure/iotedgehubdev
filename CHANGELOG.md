@@ -1,6 +1,7 @@
 # Changelog
 
 [![PyPI version](https://badge.fury.io/py/iotedgehubdev.svg)](https://badge.fury.io/py/iotedgehubdev)
+
 ## 0.14.1 - 2020-05-29
 ### Fixed
 * Fix threat detected issue of Windows Defender
