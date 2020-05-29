@@ -4,7 +4,7 @@
 
 ## 0.14.1 - 2020-05-29
 ### Fixed
-* Fix threat detected issue of Windows Defender
+* Fix false alarm issue of Windows Defender
 
 ## 0.14.0 - 2020-05-25
 ### Added
