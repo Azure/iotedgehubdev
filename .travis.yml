@@ -15,4 +15,5 @@ install:
   - sudo apt-get install apt-transport-https azure-cli
   - az extension add --name azure-cli-iot-ext
   - az --version
+  - printenv
 script: sudo `which tox`
