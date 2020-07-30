@@ -228,8 +228,14 @@ def modulecred(modules, local, output_file):
               required=False,
               multiple=True,
               help='Environment variables for single module mode, e.g., `-e "Env1=Value1" -e "Env2=Value2"`.')
+@click.option('--pull-all',
+              required=False,
+              help='Pull all modules specified in deployment manifest even if they already exist',
+              is_flag=True,
+              default=False,
+              show_default=True)
 @_with_telemetry
-def start(inputs, port, deployment, verbose, host, environment):
+def start(inputs, port, deployment, verbose, host, environment, pull_all):
     edge_manager = _parse_config_json()
 
     if edge_manager:
@@ -249,7 +255,7 @@ def start(inputs, port, deployment, verbose, host, environment):
                     module_content = json_data['modulesContent']
                 elif 'moduleContent' in json_data:
                     module_content = json_data['moduleContent']
-            edge_manager.start_solution(module_content, verbose, output)
+            edge_manager.start_solution(module_content, verbose, output, pull_all)
             if not verbose:
                 output.info('IoT Edge Simulator has been started in solution mode.')
         else:

@@ -174,7 +174,7 @@ class EdgeManager(object):
         compose_project.compose()
         compose_project.dump(target)
 
-    def start_solution(self, module_content, verbose, output):
+    def start_solution(self, module_content, verbose, output, pull_all):
         try:
             EdgeManager.login_registries(module_content)
         except RegistriesLoginError as e:
@@ -195,8 +195,12 @@ class EdgeManager(object):
         except Exception as e:
             output.warning(str(e))
 
-        cmd_pull = ['docker-compose', '-f', EdgeManager.COMPOSE_FILE, 'pull', EdgeManager.EDGEHUB]
+        cmd_pull = ['docker-compose', '-f', EdgeManager.COMPOSE_FILE, 'pull']
+        if not pull_all:
+            # Only pull edgeHub
+            cmd_pull.append(EdgeManager.EDGEHUB)
         Utils.exe_proc(cmd_pull)
+
         if verbose:
             cmd_up = ['docker-compose', '-f', EdgeManager.COMPOSE_FILE, 'up']
         else:
