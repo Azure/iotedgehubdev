@@ -222,14 +222,21 @@ def modulecred(modules, local, output_file):
 @click.option('--host',
               '-H',
               required=False,
-              help='Docker daemon socket to connect to')
+              help='Docker daemon socket to connect to.')
 @click.option('--environment',
               '-e',
               required=False,
               multiple=True,
               help='Environment variables for single module mode, e.g., `-e "Env1=Value1" -e "Env2=Value2"`.')
+@click.option('--edgehub-image-version',
+              '-img',
+              required=False,
+              multiple=False,
+              default='1.0',
+              show_default=True,
+              help='EdgeHub image version. Currently supported tags are listed at https://mcr.microsoft.com/v2/azureiotedge-hub/tags/list.')
 @_with_telemetry
-def start(inputs, port, deployment, verbose, host, environment):
+def start(inputs, port, deployment, verbose, host, environment, edgehub_image_version):
     edge_manager = _parse_config_json()
 
     if edge_manager:
@@ -264,7 +271,7 @@ def start(inputs, port, deployment, verbose, host, environment):
                 if re.match(r'^[a-zA-Z][a-zA-Z0-9_]*?=.*$', env) is None:
                     raise ValueError('Environment variable: `{0}` is not valid.'.format(env))
 
-            edge_manager.start_singlemodule(input_list, port, environment)
+            edge_manager.start_singlemodule(input_list, port, environment, edgehub_image_version)
 
             data = '--data \'{{"inputName": "{0}","data":"hello world"}}\''.format(input_list[0])
             url = 'http://localhost:{0}/api/v1/messages'.format(port)

@@ -119,7 +119,6 @@ def cli_start_with_deployment(runner, deployment_json_file_path):
     if 'IoT Edge Simulator has been started in solution mode' not in result.output.strip():
         raise Exception(result.stdout)
 
-
 def invoke_module_method():
     invoke_module_method_cmd = 'az iot hub invoke-module-method --device-id "' + device_id + \
         '" --method-name "reset" --module-id "tempSensor" --hub-name "' + \
@@ -501,6 +500,37 @@ def test_cli_start_with_create_options_for_bind(runner):
                               'mcr.microsoft.com/azureiotedge-hub:1.0',
                               'hello-world'])
 
+@pytest.mark.skipif(get_docker_os_type() == 'windows', reason='It does not support windows container')
+def test_cli_start_with_custom_edgehub_image_version(runner):
+    try:
+        cli_setup(runner)
+        result = runner.invoke(cli.start, ['-img', '1.0.9.4'])
+        output = result.output.strip()
+        if result.exit_code == 0:
+            assert 'IoT Edge Simulator has been started in single module mode' in output
+            assert 'curl --header' in output
+        else:
+            raise Exception(result.stdout)
+    finally:
+        result = cli_stop(runner)
+        assert 'IoT Edge Simulator has been stopped successfully' in result.output.strip()
+        remove_docker_networks(['azure-iot-edge-dev'])
+        remove_docker_images(['mcr.microsoft.com/azureiotedge-simulated-temperature-sensor:1.0',
+                              'mcr.microsoft.com/azureiotedge-hub:1.0.9.5',
+                              'hello-world'])
+
+@pytest.mark.skipif(get_docker_os_type() == 'windows', reason='It does not support windows container')
+def test_cli_start_with_invalid_edgehub_image_version(runner):
+    try:
+        cli_setup(runner)
+        result = runner.invoke(cli.start, ['-img', '1.4'])
+    finally:
+        if result.exit_code == 1:
+            output = result.output.strip()    
+            assert 'ERROR: Error during pull for image mcr.microsoft.com/azureiotedge-hub:1.4' in output
+            assert 'manifest for mcr.microsoft.com/azureiotedge-hub:1.4 not found: manifest unknown: manifest tagged by "1.4" is not found' in output
+        else:
+            raise Exception(result.stdout)
 
 def test_cli_generate_device_ca(runner):
     os.makedirs(test_temp_cert_dir)

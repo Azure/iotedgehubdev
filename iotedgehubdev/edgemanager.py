@@ -19,7 +19,7 @@ from .utils import Utils
 
 class EdgeManager(object):
     LABEL = 'iotedgehubdev'
-    EDGEHUB_IMG = 'mcr.microsoft.com/azureiotedge-hub:1.0'
+    EDGEHUB_IMG = 'mcr.microsoft.com/azureiotedge-hub:{0}'
     TESTUTILITY_IMG = 'mcr.microsoft.com/azureiotedge-testing-utility:1.0.0'
     EDGEHUB_MODULE = '$edgeHub'
     EDGEHUB = 'edgeHubDev'
@@ -81,7 +81,7 @@ class EdgeManager(object):
                 '' if compose_err is None else str(compose_err),
                 '' if label_err is None else str(label_err)))
 
-    def start_singlemodule(self, inputs, port, envs):
+    def start_singlemodule(self, inputs, port, envs, edgehub_image_version):
         edgedockerclient = EdgeDockerClient()
         mount_base = self._obtain_mount_path(edgedockerclient)
         if mount_base is None:
@@ -93,7 +93,7 @@ class EdgeManager(object):
         edgeHubConnStr = self.getOrAddModule(EdgeManager.EDGEHUB_MODULE, False)
         inputConnStr = self.getOrAddModule(EdgeManager.INPUT, False)
         routes = self._generateRoutesEnvFromInputs(inputs)
-        self._start_edge_hub(edgedockerclient, edgeHubConnStr, routes, mount_base, envs)
+        self._start_edge_hub(edgedockerclient, edgeHubConnStr, routes, mount_base, envs, edgehub_image_version)
 
         module_mount = EdgeManager.MODULE_MOUNT.format(mount_base)
         edgedockerclient.pullIfNotExist(EdgeManager.TESTUTILITY_IMG, None, None)
@@ -416,8 +416,9 @@ class EdgeManager(object):
         edgedockerclient.create_volume(EdgeManager.HUB_VOLUME)
         edgedockerclient.create_volume(EdgeManager.MODULE_VOLUME)
 
-    def _start_edge_hub(self, edgedockerclient, edgeHubConnStr, routes, mount_base, envs):
-        edgedockerclient.pull(EdgeManager.EDGEHUB_IMG, None, None)
+    def _start_edge_hub(self, edgedockerclient, edgeHubConnStr, routes, mount_base, envs, edgehub_image_version):
+        edgehub_image = EdgeManager.EDGEHUB_IMG.format(edgehub_image_version)
+        edgedockerclient.pull(edgehub_image, None, None)
         network_config = edgedockerclient.create_config_for_network(EdgeManager.NW_NAME, aliases=[self._gatewayhost])
         hub_mount = EdgeManager.HUB_MOUNT.format(mount_base)
         hub_host_config = edgedockerclient.create_host_config(
@@ -439,7 +440,7 @@ class EdgeManager(object):
         hubEnv.extend(list(envs))
 
         hubContainer = edgedockerclient.create_container(
-            EdgeManager.EDGEHUB_IMG,
+            edgehub_image,
             name=EdgeManager.EDGEHUB,
             volumes=[hub_mount],
             host_config=hub_host_config,
