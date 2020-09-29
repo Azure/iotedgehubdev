@@ -234,7 +234,8 @@ def modulecred(modules, local, output_file):
               multiple=False,
               default='1.0',
               show_default=True,
-              help='EdgeHub image version. Currently supported tags are listed at https://mcr.microsoft.com/v2/azureiotedge-hub/tags/list.')
+              help='EdgeHub image version. Currently supported tags '
+              'are listed at https://mcr.microsoft.com/v2/azureiotedge-hub/tags/list.')
 @_with_telemetry
 def start(inputs, port, deployment, verbose, host, environment, edgehub_image_version):
     edge_manager = _parse_config_json()

@@ -526,9 +526,10 @@ def test_cli_start_with_invalid_edgehub_image_version(runner):
         result = runner.invoke(cli.start, ['-img', '1.4'])
     finally:
         if result.exit_code == 1:
-            output = result.output.strip()    
+            output = result.output.strip()
             assert 'ERROR: Error during pull for image mcr.microsoft.com/azureiotedge-hub:1.4' in output
-            assert 'manifest for mcr.microsoft.com/azureiotedge-hub:1.4 not found: manifest unknown: manifest tagged by "1.4" is not found' in output
+            assert 'manifest for mcr.microsoft.com/azureiotedge-hub:1.4 not found: ' in output
+            assert 'manifest unknown: manifest tagged by "1.4" is not found' in output
         else:
             raise Exception(result.stdout)
 
