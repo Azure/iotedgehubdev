@@ -119,6 +119,7 @@ def cli_start_with_deployment(runner, deployment_json_file_path):
     if 'IoT Edge Simulator has been started in solution mode' not in result.output.strip():
         raise Exception(result.stdout)
 
+
 def invoke_module_method():
     invoke_module_method_cmd = 'az iot hub invoke-module-method --device-id "' + device_id + \
         '" --method-name "reset" --module-id "tempSensor" --hub-name "' + \
@@ -516,7 +517,7 @@ def test_cli_start_with_custom_edgehub_image_version(runner):
         assert 'IoT Edge Simulator has been stopped successfully' in result.output.strip()
         remove_docker_networks(['azure-iot-edge-dev'])
         remove_docker_images(['mcr.microsoft.com/azureiotedge-simulated-temperature-sensor:1.0',
-                              'mcr.microsoft.com/azureiotedge-hub:1.0.9.5',
+                              'mcr.microsoft.com/azureiotedge-hub:1.0.9.4',
                               'hello-world'])
 
 @pytest.mark.skipif(get_docker_os_type() == 'windows', reason='It does not support windows container')

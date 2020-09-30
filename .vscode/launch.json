@@ -11,7 +11,7 @@
             "module": "pytest",
             "args": [
                 "-v",
-                "${workspaceFolder}/tests/test_cli.py::test_cli_start_with_invalid_edgehub_image_version"
+                "${workspaceFolder}/tests/test_cli.py::test_cli_start_with_custom_edgehub_image_version"
             ],
             "cwd": "${workspaceFolder}",
             "env": {
