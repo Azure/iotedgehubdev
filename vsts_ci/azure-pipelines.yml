@@ -7,7 +7,7 @@ jobs:
 
   - job: Windows
     pool:
-      vmImage: vs2017-win2016
+      vmImage: vs2019-win2016
     steps:
       - template: win32/continuous-build-win32.yml
 
@@ -29,7 +29,7 @@ jobs:
       - Windows
       - Linux
     pool:
-      vmImage: vs2017-win2016
+      vmImage: vs2019-win2016
     steps:
       - template: standalone-binaries/continuous-build-standalone-binaries-win32.yml
     condition: and(succeeded('Windows'), succeeded('Linux'), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
