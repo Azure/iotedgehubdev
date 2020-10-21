@@ -57,7 +57,7 @@ jobs:
         displayName: "Replace AI Key for PROD"
 
       - script: |
-          pip install --upgrade setuptools
+          pip install --upgrade setuptools>=50
           pip install --upgrade wheel
           pushd $(BUILD.REPOSITORY.LOCALPATH)
           python setup.py bdist_wheel
