@@ -16,6 +16,7 @@ steps:
       ((Get-Content -path "$(BUILD.REPOSITORY.LOCALPATH)\iotedgehubdev\__init__.py" -Raw) -replace "__production__ = 'iotedgehubdev'","__production__ = 'iotedgehubdev-standalone'") | Set-Content -Path "$(BUILD.REPOSITORY.LOCALPATH)\iotedgehubdev\__init__.py"
       pip install -e .
       pip install -r requirements.txt
+      pip install --upgrade setuptools>=50
       pyinstaller iotedgehubdev.spec
       $COMPOSE_VER = pip show docker-compose | select-string -Pattern "Version: (\d+\.\d+\.\d+)" | % {$_.Matches.Groups[1].Value}
       Invoke-WebRequest "https://github.com/docker/compose/releases/download/$COMPOSE_VER/docker-compose-Windows-x86_64.exe" -Out "./standalone-binaries/iotedgehubdev/docker-compose.exe"
