@@ -2,7 +2,6 @@
 # Licensed under the MIT License.
 
 
-import json
 import os
 import sys
 from collections import OrderedDict
@@ -36,9 +35,8 @@ class ComposeProject(object):
         modules.update(self.module_content['$edgeAgent']['properties.desired']['modules'])
         for service_name, config in modules.items():
             self.Services[service_name] = {}
-            create_option_str = ComposeProject._join_create_options(config['settings'])
-            if create_option_str:
-                create_option = json.loads(create_option_str)
+            create_option = ComposeProject._join_create_options(config['settings'])
+            if create_option:
                 create_option_parser = CreateOptionParser(create_option)
                 self.Services[service_name].update(create_option_parser.parse_create_option())
             self.Services[service_name]['image'] = config['settings']['image']
@@ -214,7 +212,7 @@ class ComposeProject(object):
     @staticmethod
     def _join_create_options(settings):
         if 'createOptions' not in settings:
-            return ''
+            return {}
 
         res = settings['createOptions']
 
@@ -223,7 +221,7 @@ class ComposeProject(object):
             i += 1
             key = 'createOptions{0:0=2d}'.format(i)
             if i < CREATE_OPTIONS_MAX_CHUNKS and key in settings:
-                res += settings[key]
+                res.update(settings[key])
             else:
                 break
 
