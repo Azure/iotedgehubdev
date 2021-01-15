@@ -13,6 +13,6 @@ install:
   - curl -L https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
   - sudo apt-get update
   - sudo apt-get install apt-transport-https azure-cli
-  - az extension add --name azure-cli-iot-ext
+  - az extension add --name azure-iot
   - az --version
 script: sudo `which tox`
