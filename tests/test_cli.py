@@ -32,9 +32,6 @@ VALID_CONTAINERREGISTRYUSERNAME = os.environ['CONTAINER_REGISTRY_USERNAME']
 VALID_CONTAINERREGISTRYPASSWORD = os.environ['CONTAINER_REGISTRY_PASSWORD']
 VALID_TEST_CA_KEY_PASSPHASE = os.environ['TEST_CA_KEY_PASSPHASE']
 
-print('platform.system().upper(): ', platform.system().upper())
-print('VALID_DEVICECONNECTIONSTRING value is :', VALID_DEVICECONNECTIONSTRING)
-
 device_id = re.findall(".*DeviceId=(.*);SharedAccessKey.*", VALID_DEVICECONNECTIONSTRING)[0]
 iothub_name = re.findall(".*HostName=(.*);DeviceId.*", VALID_DEVICECONNECTIONSTRING)[0].split('.')[0]
 
