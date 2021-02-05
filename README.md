@@ -1,4 +1,4 @@
-# Azure IoT EdgeHub Dev Tool [![Build Status](https://travis-ci.org/Azure/iotedgehubdev.svg?branch=master)](https://travis-ci.org/Azure/iotedgehubdev)
+# Azure IoT EdgeHub Dev Tool [![Build Status](https://dev.azure.com/mseng/VSIoT/_apis/build/status/Azure%20IoT%20Edge/iotedgehubdev?branchName=master)](https://dev.azure.com/mseng/VSIoT/_build/latest?definitionId=7735&branchName=master)
 The Azure IoT EdgeHub Dev Tool provides a local development experience with a simulator for creating, developing, testing, running, and debugging Azure IoT Edge modules and solutions.
 
 The simulator allows you to run, test and debug your own custom IoT Edge modules locally, without the IoT Edge Runtime, and with the following benefits:
