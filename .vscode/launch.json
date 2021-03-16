@@ -33,7 +33,7 @@
                 // "singlemoduletest"
                 "start",
                 "-img",
-                "1.0.9.4"
+                "1.1"
             ],
             "debugOptions": [
                 "RedirectOutput"
