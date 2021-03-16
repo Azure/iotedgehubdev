@@ -232,7 +232,7 @@ def modulecred(modules, local, output_file):
               '-img',
               required=False,
               multiple=False,
-              default='1.0',
+              default='1.1',
               show_default=True,
               help='EdgeHub image version. Currently supported tags '
               'are listed at https://mcr.microsoft.com/v2/azureiotedge-hub/tags/list.')

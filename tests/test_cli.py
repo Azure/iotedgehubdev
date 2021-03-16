@@ -505,7 +505,7 @@ def test_cli_start_with_create_options_for_bind(runner):
 def test_cli_start_with_custom_edgehub_image_version(runner):
     try:
         cli_setup(runner)
-        result = runner.invoke(cli.start, ['-img', '1.0.9.4'])
+        result = runner.invoke(cli.start, ['-img', '1.1'])
         output = result.output.strip()
         if result.exit_code == 0:
             assert 'IoT Edge Simulator has been started in single module mode' in output
@@ -517,7 +517,7 @@ def test_cli_start_with_custom_edgehub_image_version(runner):
         assert 'IoT Edge Simulator has been stopped successfully' in result.output.strip()
         remove_docker_networks(['azure-iot-edge-dev'])
         remove_docker_images(['mcr.microsoft.com/azureiotedge-simulated-temperature-sensor:1.0',
-                              'mcr.microsoft.com/azureiotedge-hub:1.0.9.4',
+                              'mcr.microsoft.com/azureiotedge-hub:1.1',
                               'hello-world'])
 
 @pytest.mark.skipif(get_docker_os_type() == 'windows', reason='It does not support windows container')
