@@ -2,6 +2,10 @@
 
 [![PyPI version](https://badge.fury.io/py/iotedgehubdev.svg)](https://badge.fury.io/py/iotedgehubdev)
 
+## 0.14.4 - 2021-03-16
+### Changed
+* Default to v1.1 of EdgeHub image
+
 ## 0.14.2 - 2020-09-29
 ### Added
 * Support for running on specific version of EdgeHub image
