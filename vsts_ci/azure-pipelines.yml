@@ -10,6 +10,9 @@ jobs:
       vmImage: vs2017-win2016
     steps:
       - template: win32/continuous-build-win32.yml
+      - task: SDLNativeRules@2
+        inputs:
+          userProvideBuildInfo: 'auto'
 
   - job: Linux
     pool:
@@ -75,8 +78,3 @@ jobs:
           pathtoPublish: $(Build.ArtifactStagingDirectory)
           artifactName: build-artifact-drop
   
-  - job: CheckForMalware
-    steps:
-    - task: SDLNativeRules@2
-      inputs:
-        userProvideBuildInfo: 'auto'
