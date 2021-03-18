@@ -74,3 +74,9 @@ jobs:
         inputs:
           pathtoPublish: $(Build.ArtifactStagingDirectory)
           artifactName: build-artifact-drop
+  
+  - job: CheckForMalware
+    steps:
+    - task: SDLNativeRules@2
+      inputs:
+        userProvideBuildInfo: 'auto'
