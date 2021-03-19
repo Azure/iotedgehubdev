@@ -16,4 +16,5 @@ jsonpath_rw
 docker-compose==1.28.5
 pytest
 pyinstaller==3.6
+urllib3>=1.25.9
 pywin32==227;platform_system=="Windows"
