@@ -16,6 +16,11 @@ jobs:
       vmImage: ubuntu-16.04
     steps:
       - template: linux/continuous-build-linux.yml
+  
+  - job: ScanForVulnerabilities
+    pool:
+      vmImage: ubuntu-16.04
+    steps:
       - task: Bandit@1
         inputs:
           targetsType: 'guardianGlob'
