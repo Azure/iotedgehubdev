@@ -5,7 +5,7 @@ docker[ssh]>=4.4.4
 flake8
 pyOpenSSL>=17.0.0
 python-dotenv
-requests<2.21,>2.19.1
+requests>=2.25.1
 six
 applicationinsights
 prompt_toolkit
