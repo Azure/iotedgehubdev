@@ -29,6 +29,8 @@ jobs:
           ruleset: 'guardian'
           verbose: true
           aggregate: 'file'
+      - script: |
+          guardian export
           
   - job: LegalStatusPolicyCheck
     pool:
