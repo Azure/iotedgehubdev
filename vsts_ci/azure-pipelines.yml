@@ -29,7 +29,6 @@ jobs:
           ruleset: 'guardian'
           verbose: true
           aggregate: 'file'
-          quiet: true
           
   - job: LegalStatusPolicyCheck
     pool:
