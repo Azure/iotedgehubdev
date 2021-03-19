@@ -23,8 +23,9 @@ jobs:
     steps:
       - task: Bandit@1
         inputs:
-          targetsType: 'guardianGlob'
-          targets: 'f|**\*.py;-|.gdn\**'
+          targetsType: 'banditPattern'
+          targetsBandit: '$(Build.SourcesDirectory)'
+          targetsBanditRecursive: true
           ruleset: 'guardian'
           verbose: true
           aggregate: 'file'
