@@ -29,6 +29,8 @@ jobs:
           ruleset: 'guardian'
           verbose: true
           aggregate: 'file'
+      - script: |
+          for /f %%a IN ('dir /b /s "D:\a\1\.gdn\r\*"') DO cat %%a
           
   - job: LegalStatusPolicyCheck
     pool:
