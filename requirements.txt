@@ -13,7 +13,7 @@ rope
 tox
 pyyaml==5.4
 jsonpath_rw
-docker-compose>=1.21.0,<=1.24.0
+docker-compose==1.28.5
 pytest
 pyinstaller==3.5
 pywin32==227;platform_system=="Windows"

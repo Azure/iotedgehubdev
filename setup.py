@@ -32,9 +32,9 @@ dependencies = [
     'requests<2.21,>2.19.1',
     'six',
     'applicationinsights',
-    'pyyaml>=4.1,<=4.2b4',
+    'pyyaml==5.4',
     'jsonpath_rw',
-    'docker-compose>=1.21.0,<=1.24.0',
+    'docker-compose==1.28.5',
     'pywin32==227;platform_system=="Windows"'
 ]
 
