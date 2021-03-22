@@ -251,6 +251,8 @@ def start(inputs, port, deployment, verbose, host, environment, edgehub_image_ve
             if len(environment) > 0:
                 output.info('Environment variables are ignored when start IoT Edge Simulator in solution mode.')
 
+            if len(edgehub_image_version) > 0:
+
             with open(deployment) as json_file:
                 json_data = json.load(json_file)
                 if 'modulesContent' in json_data:
