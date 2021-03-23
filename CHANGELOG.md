@@ -6,6 +6,7 @@
 ### Changed
 * Dependency upgrades to address vulnerability issues
 * Add vulnerability scanner Bandit
+* Revert default edgeHub to v1.0
 
 ## 0.14.4 - 2021-03-16
 ### Changed
