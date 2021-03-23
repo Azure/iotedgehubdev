@@ -13,7 +13,7 @@ services:
     - configSource=local
     - SSL_CERTIFICATE_PATH=/mnt/edgehub/
     - SSL_CERTIFICATE_NAME=edge-hub-server.cert.pfx
-    image: mcr.microsoft.com/azureiotedge-hub:1.1
+    image: mcr.microsoft.com/azureiotedge-hub:1.0
     labels:
       iotedgehubdev: ''
     networks:

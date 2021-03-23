@@ -3,7 +3,7 @@ Azure IoT EdgeHub Dev Tool
 """
 from setuptools import find_packages, setup
 
-VERSION = '0.14.4rc0'
+VERSION = '0.14.5rc0'
 # If we have source, validate that our version numbers match
 # This should prevent uploading releases with mismatched versions.
 try:
@@ -29,7 +29,7 @@ dependencies = [
     'click',
     'docker[ssh]>=4.4.4',
     'pyOpenSSL>=17.0.0',
-    'requests<2.21,>2.19.1',
+    'requests>=2.25.1',
     'six',
     'applicationinsights',
     'pyyaml==5.4',
