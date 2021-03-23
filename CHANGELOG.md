@@ -2,6 +2,12 @@
 
 [![PyPI version](https://badge.fury.io/py/iotedgehubdev.svg)](https://badge.fury.io/py/iotedgehubdev)
 
+## 0.14.5 - 2021-03-19
+### Changed
+* Dependency upgrades to address vulnerability issues
+* Add vulnerability scanner Bandit
+* Revert default edgeHub to v1.0
+
 ## 0.14.4 - 2021-03-16
 ### Changed
 * Default to v1.1 of EdgeHub image

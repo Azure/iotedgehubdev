@@ -5,7 +5,7 @@ docker[ssh]>=4.4.4
 flake8
 pyOpenSSL>=17.0.0
 python-dotenv
-requests<2.21,>2.19.1
+requests>=2.25.1
 six
 applicationinsights
 prompt_toolkit
@@ -15,5 +15,6 @@ pyyaml==5.4
 jsonpath_rw
 docker-compose==1.28.5
 pytest
-pyinstaller==3.5
+pyinstaller==3.6
+urllib3>=1.25.9
 pywin32==227;platform_system=="Windows"
