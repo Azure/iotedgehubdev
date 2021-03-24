@@ -28,15 +28,17 @@ GATEWAY_HOST = 'gatewayhost'
 DOCKER_HOST = 'DOCKER_HOST'
 HUB_CONN_STR = 'iothubConnectionString'
 
+# a set of parameters whose value should be logged as given
+PARAMS_WITH_VALUES = {'edge_runtime_version'}
 
 @decorators.suppress_all_exceptions()
 def _parse_params(*args, **kwargs):
     params = []
     for key, value in kwargs.items():
-        is_none = '='
-        if value is not None:
-            is_none = '!='
-        params.append('{0}{1}None'.format(key, is_none))
+        if (value is None) or (key in PARAMS_WITH_VALUES):
+            params.append('{0}={1}'.format(key, value))
+        else:
+            params.append('{0}!=None'.format(key))
     return params
 
 
@@ -228,16 +230,15 @@ def modulecred(modules, local, output_file):
               required=False,
               multiple=True,
               help='Environment variables for single module mode, e.g., `-e "Env1=Value1" -e "Env2=Value2"`.')
-@click.option('--edgehub-image-version',
-              '-img',
+@click.option('--edge_runtime_version',
+              '-er',
               required=False,
               multiple=False,
               default='1.0',
               show_default=True,
-              help='EdgeHub image version. Currently supported tags '
-              'are listed at https://mcr.microsoft.com/v2/azureiotedge-hub/tags/list.')
+              help='EdgeHub image version. Currently supported tags 1.0x or 1.1x')
 @_with_telemetry
-def start(inputs, port, deployment, verbose, host, environment, edgehub_image_version):
+def start(inputs, port, deployment, verbose, host, environment, edge_runtime_version):
     edge_manager = _parse_config_json()
 
     if edge_manager:
@@ -249,7 +250,10 @@ def start(inputs, port, deployment, verbose, host, environment, edgehub_image_ve
 
         if inputs is None and deployment is not None:
             if len(environment) > 0:
-                output.info('Environment variables are ignored when start IoT Edge Simulator in solution mode.')
+                output.info('Environment variables are ignored in solution mode.')
+
+            if len(edge_runtime_version) > 0:
+                output.info('edgeHub image version is ignored in solution mode.')
 
             with open(deployment) as json_file:
                 json_data = json.load(json_file)
@@ -261,6 +265,11 @@ def start(inputs, port, deployment, verbose, host, environment, edgehub_image_ve
             if not verbose:
                 output.info('IoT Edge Simulator has been started in solution mode.')
         else:
+            if edge_runtime_version is not None:
+                # The only validated versions are 1.0 and 1.1 variants, hence the current limitation
+                if re.match(r'^(1\.0)|(1\.1)', edge_runtime_version) is None:
+                    raise ValueError('-edge-runtime-version `{0}` is not valid.'.format(edge_runtime_version))
+
             if deployment is not None:
                 output.info('Deployment manifest is ignored when inputs are present.')
             if inputs is None:
@@ -272,7 +281,7 @@ def start(inputs, port, deployment, verbose, host, environment, edgehub_image_ve
                 if re.match(r'^[a-zA-Z][a-zA-Z0-9_]*?=.*$', env) is None:
                     raise ValueError('Environment variable: `{0}` is not valid.'.format(env))
 
-            edge_manager.start_singlemodule(input_list, port, environment, edgehub_image_version)
+            edge_manager.start_singlemodule(input_list, port, environment, edge_runtime_version)
 
             data = '--data \'{{"inputName": "{0}","data":"hello world"}}\''.format(input_list[0])
             url = 'http://localhost:{0}/api/v1/messages'.format(port)

@@ -505,7 +505,7 @@ def test_cli_start_with_create_options_for_bind(runner):
 def test_cli_start_with_custom_edgehub_image_version(runner):
     try:
         cli_setup(runner)
-        result = runner.invoke(cli.start, ['-img', '1.0'])
+        result = runner.invoke(cli.start, ['-er', '1.0'])
         output = result.output.strip()
         if result.exit_code == 0:
             assert 'IoT Edge Simulator has been started in single module mode' in output
@@ -524,12 +524,11 @@ def test_cli_start_with_custom_edgehub_image_version(runner):
 def test_cli_start_with_invalid_edgehub_image_version(runner):
     try:
         cli_setup(runner)
-        result = runner.invoke(cli.start, ['-img', '1.4'])
+        result = runner.invoke(cli.start, ['-er', '1.4'])
     finally:
         if result.exit_code == 1:
             output = result.output.strip()
-            assert 'ERROR: Error during pull for image mcr.microsoft.com/azureiotedge-hub:1.4' in output
-            assert 'manifest for mcr.microsoft.com/azureiotedge-hub:1.4 not found' in output
+            assert 'ERROR: -edge-runtime-version `1.4` is not valid.' in output
         else:
             raise Exception(result.stdout)
 
