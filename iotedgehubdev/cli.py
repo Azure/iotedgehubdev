@@ -28,18 +28,17 @@ GATEWAY_HOST = 'gatewayhost'
 DOCKER_HOST = 'DOCKER_HOST'
 HUB_CONN_STR = 'iothubConnectionString'
 
-# a set of parameters whose given value should be logged
+# a set of parameters whose value should be logged as given
 PARAMS_WITH_VALUES = {'edge_runtime_version'}
 
 @decorators.suppress_all_exceptions()
 def _parse_params(*args, **kwargs):
     params = []
     for key, value in kwargs.items():
-        if value is not None:
-            if key in PARAMS_WITH_VALUES:
-                params.append('{0}={1}'.format(key, value))
-            else:
-                params.append('{0}!=None'.format(key))
+        if (value is None) or (key in PARAMS_WITH_VALUES):
+            params.append('{0}={1}'.format(key, value))
+        else:
+            params.append('{0}!=None'.format(key))
     return params
 
 
@@ -237,8 +236,7 @@ def modulecred(modules, local, output_file):
               multiple=False,
               default='1.0',
               show_default=True,
-              help='EdgeHub image version. Currently supported tags '
-              'are listed at https://mcr.microsoft.com/v2/azureiotedge-hub/tags/list.')
+              help='EdgeHub image version. Currently supported tags 1.0x or 1.1x')
 @_with_telemetry
 def start(inputs, port, deployment, verbose, host, environment, edge_runtime_version):
     edge_manager = _parse_config_json()
@@ -268,6 +266,7 @@ def start(inputs, port, deployment, verbose, host, environment, edge_runtime_ver
                 output.info('IoT Edge Simulator has been started in solution mode.')
         else:
             if edge_runtime_version is not None:
+                # The only validated versions are 1.0 and 1.1 variants, hence the current limitation
                 if re.match(r'^(1\.0)|(1\.1)', edge_runtime_version) is None:
                     raise ValueError('-edge-runtime-version `{0}` is not valid.'.format(edge_runtime_version))
 
