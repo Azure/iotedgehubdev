@@ -230,7 +230,7 @@ def modulecred(modules, local, output_file):
               required=False,
               multiple=True,
               help='Environment variables for single module mode, e.g., `-e "Env1=Value1" -e "Env2=Value2"`.')
-@click.option('--edge_runtime_version',
+@click.option('--edge-runtime-version',
               '-er',
               required=False,
               multiple=False,
