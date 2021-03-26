@@ -2,6 +2,11 @@
 
 [![PyPI version](https://badge.fury.io/py/iotedgehubdev.svg)](https://badge.fury.io/py/iotedgehubdev)
 
+## 0.14.6 - 2021-03-26
+### Changed
+* Rename edgeHub version command line parameter to '--edge-runtime-version/-er'
+* Limit support for edge runtime 1.0x and 1.1x
+
 ## 0.14.5 - 2021-03-19
 ### Changed
 * Dependency upgrades to address vulnerability issues
