@@ -234,7 +234,7 @@ def modulecred(modules, local, output_file):
               '-er',
               required=False,
               multiple=False,
-              default='1.0',
+              default='1.1',
               show_default=True,
               help='EdgeHub image version. Currently supported tags 1.0x or 1.1x')
 @_with_telemetry

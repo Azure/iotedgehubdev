@@ -239,7 +239,7 @@ def test_cli_start_with_deployment(runner):
         assert 'IoT Edge Simulator has been stopped successfully' in result.output.strip()
         remove_docker_networks(['azure-iot-edge-dev'])
         remove_docker_images(['mcr.microsoft.com/azureiotedge-simulated-temperature-sensor:1.0',
-                              'mcr.microsoft.com/azureiotedge-hub:1.0',
+                              'mcr.microsoft.com/azureiotedge-hub:1.1',
                               'hello-world'])
 
 
@@ -394,7 +394,7 @@ def test_cli_create_options_for_custom_volume(runner):
         assert 'IoT Edge Simulator has been stopped successfully' in result.output.strip()
         remove_docker_networks(['azure-iot-edge-dev'])
         remove_docker_images(['mcr.microsoft.com/azureiotedge-simulated-temperature-sensor:1.0',
-                              'mcr.microsoft.com/azureiotedge-hub:1.0',
+                              'mcr.microsoft.com/azureiotedge-hub:1.1',
                               'hello-world'])
         remove_docker_volumes(['testVolume', 'testvolume'])
 
@@ -423,7 +423,7 @@ def test_cli_start_with_chunked_create_options(runner):
         assert 'IoT Edge Simulator has been stopped successfully' in result.output.strip()
         remove_docker_networks(['azure-iot-edge-dev'])
         remove_docker_images(['mcr.microsoft.com/azureiotedge-simulated-temperature-sensor:1.0',
-                              'mcr.microsoft.com/azureiotedge-hub:1.0',
+                              'mcr.microsoft.com/azureiotedge-hub:1.1',
                               'hello-world'])
 
 
@@ -442,7 +442,7 @@ def test_cli_start_with_input(runner):
         result = cli_stop(runner)
         assert 'IoT Edge Simulator has been stopped successfully' in result.output.strip()
         remove_docker_networks(['azure-iot-edge-dev'])
-        remove_docker_images(['mcr.microsoft.com/azureiotedge-hub:1.0',
+        remove_docker_images(['mcr.microsoft.com/azureiotedge-hub:1.1',
                               'mcr.microsoft.com/azureiotedge-testing-utility:1.0.0'])
 
 
@@ -464,7 +464,7 @@ def test_cli_start_with_input_and_host(runner):
         result = runner.invoke(cli.stop, ['-H', docker_host])
         assert 'IoT Edge Simulator has been stopped successfully' in result.output.strip()
         remove_docker_networks(['azure-iot-edge-dev'])
-        remove_docker_images(['mcr.microsoft.com/azureiotedge-hub:1.0',
+        remove_docker_images(['mcr.microsoft.com/azureiotedge-hub:1.1',
                               'mcr.microsoft.com/azureiotedge-testing-utility:1.0.0'])
 
 
@@ -498,14 +498,14 @@ def test_cli_start_with_create_options_for_bind(runner):
         assert 'IoT Edge Simulator has been stopped successfully' in result.output.strip()
         remove_docker_networks(['azure-iot-edge-dev'])
         remove_docker_images(['mcr.microsoft.com/azureiotedge-simulated-temperature-sensor:1.0',
-                              'mcr.microsoft.com/azureiotedge-hub:1.0',
+                              'mcr.microsoft.com/azureiotedge-hub:1.1',
                               'hello-world'])
 
 @pytest.mark.skipif(get_docker_os_type() == 'windows', reason='It does not support windows container')
 def test_cli_start_with_custom_edgehub_image_version(runner):
     try:
         cli_setup(runner)
-        result = runner.invoke(cli.start, ['-er', '1.0'])
+        result = runner.invoke(cli.start, ['-er', '1.1'])
         output = result.output.strip()
         if result.exit_code == 0:
             assert 'IoT Edge Simulator has been started in single module mode' in output
