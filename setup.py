@@ -27,12 +27,12 @@ with open('README.md', 'rb') as f:
 
 dependencies = [
     'click',
-    'docker[ssh]>=4.4.4',
+    'docker[ssh]>=3.6.0,<4.0',
     'pyOpenSSL>=17.0.0',
-    'requests>=2.25.1',
+    'requests<2.21,>2.19.1',
     'six',
     'applicationinsights',
-    'pyyaml>=4.2b4,<=5.4',
+    'pyyaml>=4.1,<=4.2b4',
     'jsonpath_rw',
     'docker-compose>=1.24.0,<=1.26.2',
     'pywin32==227;platform_system=="Windows"'
