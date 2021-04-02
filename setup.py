@@ -34,7 +34,7 @@ dependencies = [
     'applicationinsights',
     'pyyaml>=4.2b4,<=5.4',
     'jsonpath_rw',
-    'docker-compose>=1.24.0,<=1.28.5',
+    'docker-compose>=1.24.0,<=1.26.2',
     'pywin32==227;platform_system=="Windows"'
 ]
 
