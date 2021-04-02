@@ -2,6 +2,10 @@
 
 [![PyPI version](https://badge.fury.io/py/iotedgehubdev.svg)](https://badge.fury.io/py/iotedgehubdev)
 
+## 0.14.7 - 2021-04-02
+### Changed
+* Use 1.1 as default for edgeRuntime in single module mode.
+
 ## 0.14.6 - 2021-03-26
 ### Changed
 * Rename edgeHub version command line parameter to '--edge-runtime-version/-er'
