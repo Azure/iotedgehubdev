@@ -15,5 +15,5 @@ pyyaml>=3.10, !=3.13, <=5.4
 jsonpath_rw
 docker-compose>=1.21.0, <=1.26.2
 pytest
-pyinstaller>=3.5
+pyinstaller<=3.5
 pywin32==227;platform_system=="Windows"
