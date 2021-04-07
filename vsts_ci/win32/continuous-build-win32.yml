@@ -12,8 +12,8 @@ steps:
       choco install python --version 3.7.5
       $env:Path += ";C:\Python37;C:\Python37\Scripts"
       python -m pip install --upgrade pip
-      pip install tox
       pip uninstall -r requirements.txt -y
+      pip install tox
       tox
     displayName: "Run tests against iotedgehubdev source code"
     env:
