@@ -9,6 +9,7 @@ steps:
   - script: |
       pip install --upgrade pip
       pip install --upgrade tox
+      pip uninstall -r requirements.txt -y
       az extension add --name azure-iot
       az --version
     displayName: "Update and install required tools"
