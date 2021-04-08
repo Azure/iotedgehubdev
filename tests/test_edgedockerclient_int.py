@@ -96,7 +96,6 @@ class TestEdgeDockerClientSmoke(unittest.TestCase):
         with EdgeDockerClient() as client:
             exception_raised = False
             try:
-                self._reset_host_network(client)
                 status = client.status(self.CONTAINER_NAME)
                 if status is not None:
                     self._destroy_container(client)
