@@ -112,7 +112,7 @@ class EdgeDockerClient(object):
                 else:
                     return self._client.networks.create(network_name, driver='bridge')
         except docker.errors.APIError as ex:
-            msg = 'Could not create docker network: {0}'.format(network_name)
+            msg = 'Could not create docker network: {0}, {1}'.format(network_name, num_networks)
             raise EdgeDeploymentError(msg, ex)
 
     def create_volume(self, volume_name):
