@@ -206,7 +206,7 @@ class EdgeCertUtil(object):
             pfx = crypto.PKCS12()
             pfx.set_privatekey(key_obj)
             pfx.set_certificate(cert_obj)
-            pfx_data = pfx.export('')
+            pfx_data = pfx.export()
             prefix = id_str
             path = os.path.realpath(dir_path)
             path = os.path.join(path, prefix)
