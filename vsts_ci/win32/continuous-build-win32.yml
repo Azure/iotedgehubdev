@@ -8,8 +8,7 @@ steps:
 
   - powershell: |
       $env:Path += ";C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin"
-      choco install python2
-      choco install python --version 3.7.5
+      choco install python --version 3.7.9
       $env:Path += ";C:\Python37;C:\Python37\Scripts"
       python -m pip install --upgrade pip
       pip install tox

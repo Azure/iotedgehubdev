@@ -1,8 +1,8 @@
 steps:
   - task: UsePythonVersion@0
-    displayName: "Use Python 3.7"
+    displayName: "Use Python 3.6"
     inputs:
-      versionSpec: 3.7
+      versionSpec: 3.6.8
       addToPath: true
       architecture: "x64"
 

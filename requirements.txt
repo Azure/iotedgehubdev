@@ -6,7 +6,6 @@ flake8
 pyOpenSSL>=20.0.1
 python-dotenv
 requests>=2.25.1
-six
 applicationinsights
 prompt_toolkit
 rope

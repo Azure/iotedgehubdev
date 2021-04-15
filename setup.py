@@ -30,7 +30,6 @@ dependencies = [
     'docker[ssh]>=5.0',
     'pyOpenSSL>=20.0.1',
     'requests>=2.25.1',
-    'six',
     'applicationinsights',
     'pyyaml==5.4.1',
     'jsonpath_rw',

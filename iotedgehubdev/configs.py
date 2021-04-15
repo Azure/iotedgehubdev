@@ -3,8 +3,8 @@
 
 
 import os
+import configparser
 
-from six.moves import configparser
 from . import decorators
 from .hostplatform import HostPlatform
 

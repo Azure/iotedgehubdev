@@ -4,11 +4,11 @@
 
 import json
 import os
+import io
 import sys
 from collections import OrderedDict
 
 import yaml
-from six import StringIO, string_types
 
 from .compose_parser import CreateOptionParser
 from .output import Output
@@ -172,7 +172,7 @@ class ComposeProject(object):
         route_id = 1
 
         for route in routes.values():
-            if isinstance(route, string_types):
+            if isinstance(route, str):
                 routes_env.append('routes__r{0}={1}'.format(route_id, route))
             else:
                 if schema_version >= "1.1":
@@ -200,7 +200,7 @@ class ComposeProject(object):
         if sys.version_info[0] < 3:
             # Add # noqa: F821 to ignore undefined name 'unicode' error
             yaml.add_representer(unicode, my_unicode_repr)  # noqa: F821
-        yml_stream = StringIO()
+        yml_stream = io.StringIO()
 
         yaml.dump(self.yaml_dict, yml_stream, default_flow_style=False)
         yml_str = yml_stream.getvalue().replace('$', '$$')
