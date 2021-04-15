@@ -1,6 +1,6 @@
 steps:
-  - powershell: |
-      'C:\Program Files\Docker\Docker\DockerCli.exe' -SwitchLinuxEngine
+  - cmd: |
+      "C:\Program Files\Docker\Docker\DockerCli.exe" -SwitchLinuxEngine
     displayName: "docker switch to linux engine"
 
   - powershell: |
