@@ -1,8 +1,14 @@
 steps:
-  - task: UsePythonVersion@0
-    displayName: "Use Python 3.6"
+  - task: InstallPythonVersion@0
+    displayName: "Install Python 3.6"
     inputs:
-      versionSpec: 3.6.13
+      versionSpec: 3.6
+      architecture: "x64"
+
+  - task: UsePythonVersion@0
+    displayName: "Use Python 3.7"
+    inputs:
+      versionSpec: 3.7
       addToPath: true
       architecture: "x64"
 
