@@ -1,5 +1,5 @@
 steps:
-  - task: InstallPythonVersion@0
+  - task: UsePythonVersion@0
     displayName: "Install Python 3.6"
     inputs:
       versionSpec: 3.6
