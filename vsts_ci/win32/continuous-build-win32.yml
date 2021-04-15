@@ -1,10 +1,4 @@
 steps:
-  - script: |
-      where docker.exe
-      dir /s "C:\Program Files"\docker*.exe
-      "C:\Program Files\Docker\Docker\DockerCli.exe" -SwitchLinuxEngine
-    displayName: "docker switch to linux engine"
-
   - powershell: |
       choco install azure-cli
       $env:Path += ";C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin"
@@ -27,3 +21,4 @@ steps:
       CONTAINER_REGISTRY_USERNAME: $(CONTAINER_REGISTRY_USERNAME)
       CONTAINER_REGISTRY_PASSWORD: $(CONTAINER_REGISTRY_PASSWORD)
       TEST_CA_KEY_PASSPHASE: $(TEST_CA_KEY_PASSPHASE)
+      TOXENV: py36,py37

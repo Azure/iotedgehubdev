@@ -1,8 +1,15 @@
+strategy:
+  matrix:
+    Python36:
+      python.version: '3.6'
+    Python37:
+      python.version: '3.7'
+
 steps:
   - task: UsePythonVersion@0
-    displayName: "Use Python 3.7"
+    displayName: "Use Python $(python.version)"
     inputs:
-      versionSpec: 3.7
+      versionSpec: $(python.version)
       addToPath: true
       architecture: "x64"
 
@@ -14,7 +21,7 @@ steps:
     displayName: "Update and install required tools"
 
   - script: |
-      sudo -E `which tox`
+      sudo -E `which tox` -e py
     displayName: "Run tests against iotedgehubdev source code with tox"
     env:
       LINUX_DEVICE_CONNECTION_STRING: $(LINUX_DEVICE_CONNECTION_STRING)

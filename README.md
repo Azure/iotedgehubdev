@@ -23,7 +23,7 @@ The following table compares the requirements to run your solution on the IoT Ed
 [Windows](https://docs.docker.com/docker-for-windows/install/), [macOS](https://docs.docker.com/docker-for-mac/install/) or [Linux](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce)
 
 2. Install [Docker Compose (1.20.0+)](https://docs.docker.com/compose/install/#install-compose) (***Linux only***. *Compose has already been included in Windows/macOS Docker CE installation*)
-3. Install [Python (2.7/3.5/3.6/3.7/3.8) and Pip](https://www.python.org/)
+3. Install [Python (3.6/3.7/3.8/3.9) and Pip](https://www.python.org/)
 4. Install **iotedgehubdev** by running the following command in your terminal:
     ```
     pip install --upgrade iotedgehubdev
