@@ -27,13 +27,13 @@ with open('README.md', 'rb') as f:
 
 dependencies = [
     'click',
-    'docker[ssh]>=5.0',
+    'docker[ssh]>=4.4.4',
     'pyOpenSSL>=20.0.1',
     'requests>=2.25.1',
     'applicationinsights',
-    'pyyaml==5.4.1',
+    'pyyaml==5.3.1',
     'jsonpath_rw',
-    'docker-compose==1.29.0'
+    'docker-compose==1.28.5',
 ]
 
 setup(
@@ -56,7 +56,7 @@ setup(
             'iotedgehubdev = iotedgehubdev.cli:main',
         ],
     },
-    python_requires='>=3.6, !=3.9.3, <=3.9.4',
+    python_requires='>=3.5, <3.9',
     classifiers=[
         # As from http://pypi.python.org/pypi?%3Aaction=list_classifiers
         # 'Development Status :: 1 - Planning',
@@ -79,7 +79,6 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
 
         'Topic :: Software Development :: Libraries :: Python Modules',
     ]

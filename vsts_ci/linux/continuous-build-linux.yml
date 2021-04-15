@@ -1,8 +1,8 @@
 steps:
   - task: UsePythonVersion@0
-    displayName: "Use Python $(python.version)"
+    displayName: "Use Python 3.7"
     inputs:
-      versionSpec: $(python.version)
+      versionSpec: 3.7
       addToPath: true
       architecture: "x64"
 
@@ -14,7 +14,7 @@ steps:
     displayName: "Update and install required tools"
 
   - script: |
-      sudo -E `which tox` -e py
+      sudo -E `which tox`
     displayName: "Run tests against iotedgehubdev source code with tox"
     env:
       LINUX_DEVICE_CONNECTION_STRING: $(LINUX_DEVICE_CONNECTION_STRING)
@@ -23,3 +23,4 @@ steps:
       CONTAINER_REGISTRY_USERNAME: $(CONTAINER_REGISTRY_USERNAME)
       CONTAINER_REGISTRY_PASSWORD: $(CONTAINER_REGISTRY_PASSWORD)
       TEST_CA_KEY_PASSPHASE: $(TEST_CA_KEY_PASSPHASE)
+      TOXENV: py35,py36,py37,py38
