@@ -1,5 +1,7 @@
 steps:
   - script: |
+      where docker.exe
+      dir /s "C:\Program Files"\docker*.exe
       "C:\Program Files\Docker\Docker\DockerCli.exe" -SwitchLinuxEngine
     displayName: "docker switch to linux engine"
 
