@@ -3,7 +3,7 @@ Azure IoT EdgeHub Dev Tool
 """
 from setuptools import find_packages, setup
 
-VERSION = '0.14.7'
+VERSION = '0.14.8rc0'
 # If we have source, validate that our version numbers match
 # This should prevent uploading releases with mismatched versions.
 try:
@@ -28,14 +28,12 @@ with open('README.md', 'rb') as f:
 dependencies = [
     'click',
     'docker[ssh]>=4.4.4',
-    'pyOpenSSL>=17.0.0',
+    'pyOpenSSL>=20.0.1',
     'requests>=2.25.1',
-    'six',
     'applicationinsights',
-    'pyyaml==5.4',
+    'pyyaml==5.3.1',
     'jsonpath_rw',
     'docker-compose==1.28.5',
-    'pywin32==227;platform_system=="Windows"'
 ]
 
 setup(
@@ -58,7 +56,7 @@ setup(
             'iotedgehubdev = iotedgehubdev.cli:main',
         ],
     },
-    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <3.9',
+    python_requires='>=3.5, <3.9',
     classifiers=[
         # As from http://pypi.python.org/pypi?%3Aaction=list_classifiers
         # 'Development Status :: 1 - Planning',
@@ -76,8 +74,6 @@ setup(
         'Operating System :: Unix',
         'Operating System :: Microsoft :: Windows',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',

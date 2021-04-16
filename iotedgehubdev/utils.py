@@ -8,13 +8,13 @@ import shutil
 import socket
 import stat
 import subprocess
+
+
 from base64 import b64decode, b64encode
 from hashlib import sha256
 from hmac import HMAC
 from time import time
-
-from six.moves.urllib.parse import quote_plus, urlencode
-
+from urllib.parse import urlencode, quote_plus
 from .constants import EdgeConstants as EC
 from .decorators import suppress_all_exceptions
 from .errors import EdgeFileAccessError

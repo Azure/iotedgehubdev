@@ -3,8 +3,8 @@
 
 
 import os
+import configparser
 
-from six.moves import configparser
 from . import decorators
 from .hostplatform import HostPlatform
 
@@ -40,7 +40,7 @@ class ProductConfig(object):
                     self.config.write(iniFile)
             else:
                 with open(iniFilePath, 'r') as iniFile:
-                    self.config.readfp(iniFile)
+                    self.config.read_file(iniFile)
                 with open(iniFilePath, 'w') as iniFile:
                     self.config.write(iniFile)
         except Exception:

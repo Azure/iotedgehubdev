@@ -2,16 +2,9 @@
 # Licensed under the MIT License.
 
 
-try:
-    # Python 2.x
-    import urllib2 as HTTPClient
-except ImportError:
-    # Python 3.x
-    import urllib.request as HTTPClient
-
+import urllib.request as HTTPClient
 import sys
 import json
-import six
 
 from applicationinsights import TelemetryClient
 from applicationinsights.exceptions import enable
@@ -52,7 +45,7 @@ def upload(data_to_save):
             properties = {}
             measurements = {}
             for k, v in raw_properties.items():
-                if isinstance(v, six.string_types):
+                if isinstance(v, str):
                     properties[k] = v
                 else:
                     measurements[k] = v
