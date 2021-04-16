@@ -4,12 +4,11 @@
 
 import json
 import os
-import io
 import sys
-from collections import OrderedDict
-
 import yaml
 
+from collections import OrderedDict
+from io import StringIO
 from .compose_parser import CreateOptionParser
 from .output import Output
 
@@ -200,7 +199,7 @@ class ComposeProject(object):
         if sys.version_info[0] < 3:
             # Add # noqa: F821 to ignore undefined name 'unicode' error
             yaml.add_representer(unicode, my_unicode_repr)  # noqa: F821
-        yml_stream = io.StringIO()
+        yml_stream = StringIO()
 
         yaml.dump(self.yaml_dict, yml_stream, default_flow_style=False)
         yml_str = yml_stream.getvalue().replace('$', '$$')
