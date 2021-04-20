@@ -3,7 +3,7 @@ Azure IoT EdgeHub Dev Tool
 """
 from setuptools import find_packages, setup
 
-VERSION = '0.14.8rc0'
+VERSION = '0.14.8rc1'
 # If we have source, validate that our version numbers match
 # This should prevent uploading releases with mismatched versions.
 try:
