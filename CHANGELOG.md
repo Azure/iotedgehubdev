@@ -2,6 +2,9 @@
 
 [![PyPI version](https://badge.fury.io/py/iotedgehubdev.svg)](https://badge.fury.io/py/iotedgehubdev)
 
+## 0.14.8 - 2021-04-22
+* Drop PY 2 suport.
+
 ## 0.14.7 - 2021-04-02
 ### Changed
 * Use 1.1 as default for edgeRuntime in single module mode.
