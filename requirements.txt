@@ -10,7 +10,7 @@ applicationinsights
 prompt_toolkit
 rope
 tox
-pyyaml==5.3.1
+pyyaml==5.4
 jsonpath_rw
 docker-compose==1.28.5
 pytest
