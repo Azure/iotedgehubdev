@@ -4,6 +4,7 @@
 
 ## 0.14.8 - 2021-04-22
 * Drop PY 2 suport.
+* Update status from Beta to Production.
 
 ## 0.14.7 - 2021-04-02
 ### Changed
