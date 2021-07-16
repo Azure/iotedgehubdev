@@ -2,8 +2,11 @@
 # Licensed under the MIT License.
 
 import os
+import re
 
 from jsonpath_rw import parse
+
+from .constants import EdgeConstants
 
 
 class CreateOptionParser(object):
@@ -183,12 +186,22 @@ def service_parser_volumes(create_options_details):
 
         # Port of Docker daemon
         # https://github.com/docker/docker-ce/blob/1c27a55b6259743f35549e96d06334a53d0c0549/components/engine/volume/mounts/linux_parser.go#L18-L28
+        # To catch linux paths 
         parts = bind.split(':')
         if len(parts) == 2 or (len(parts) == 3 and parts[2] in ('ro', 'rw', '')):
             if parts[0] != '':
                 source = parts[0]
                 target = parts[1]
                 read_only = len(parts) == 3 and parts[2] == 'ro'
+        else:
+            # Binds should be in the format [source:]destination[:mode]
+            # Windows format and LCOW format are more strict than Linux format due to colons in Windows paths,
+            # so match with them first
+            match = re.match(EdgeConstants.MOUNT_WIN_REGEX, bind)
+            if match is not None:
+                source = match.group('source') or ''
+                target = match.group('destination')
+                read_only = match.group('mode') == 'ro'
 
         if target is not None:
             volume_info = {
