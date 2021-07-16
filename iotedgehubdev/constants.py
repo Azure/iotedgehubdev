@@ -49,3 +49,4 @@ class EdgeConstants():
     MOUNT_WIN_DEST_REGEX = r'(?P<destination>((?:\\\\\?\\)?([a-z]):((?:[\\/][^\\/:*?"<>\r\n]+)*[\\/]?))|(' + \
         MOUNT_PIPE_REGEX + r'))'
     MOUNT_WIN_REGEX = r'^' + MOUNT_SOURCE_REGEX + MOUNT_WIN_DEST_REGEX + MOUNT_MODE_REGEX + r'$'
+    
