@@ -2,11 +2,8 @@
 # Licensed under the MIT License.
 
 import os
-import re
 
 from jsonpath_rw import parse
-
-from .constants import EdgeConstants
 
 
 class CreateOptionParser(object):
