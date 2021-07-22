@@ -187,7 +187,7 @@ def service_parser_volumes(create_options_details):
         # Binds should be in the format [source:]destination[:mode]
         # Windows format and LCOW format are more strict than Linux format due to colons in Windows paths,
         # so match with them first
-        match = re.match(EdgeConstants.MOUNT_WIN_REGEX, bind) 
+        match = re.match(EdgeConstants.MOUNT_WIN_REGEX, bind)
         if match is None:
             # Port of Docker daemon
             # https://github.com/docker/docker-ce/blob/1c27a55b6259743f35549e96d06334a53d0c0549/components/engine/volume/mounts/linux_parser.go#L18-L28
@@ -201,7 +201,7 @@ def service_parser_volumes(create_options_details):
             source = match.group('source') or ''
             target = match.group('destination')
             read_only = match.group('mode') == 'ro'
-            
+
         if target is not None:
             volume_info = {
                 'type': 'bind' if source and os.path.isabs(source) else 'volume',
