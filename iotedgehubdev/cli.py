@@ -234,9 +234,9 @@ def modulecred(modules, local, output_file):
               '-er',
               required=False,
               multiple=False,
-              default='1.1',
+              default='1.2',
               show_default=True,
-              help='EdgeHub image version. Currently supported tags 1.0x or 1.1x')
+              help='EdgeHub image version. Currently supported tags 1.0x, 1.1x, or 1.2x')
 @_with_telemetry
 def start(inputs, port, deployment, verbose, host, environment, edge_runtime_version):
     edge_manager = _parse_config_json()
@@ -266,8 +266,8 @@ def start(inputs, port, deployment, verbose, host, environment, edge_runtime_ver
                 output.info('IoT Edge Simulator has been started in solution mode.')
         else:
             if edge_runtime_version is not None:
-                # The only validated versions are 1.0 and 1.1 variants, hence the current limitation
-                if re.match(r'^(1\.0)|(1\.1)', edge_runtime_version) is None:
+                # The only validated versions are 1.0, 1.1, and 1.2 variants, hence the current limitation
+                if re.match(r'^(1\.0)|(1\.1)|(1\.2)', edge_runtime_version) is None:
                     raise ValueError('-edge-runtime-version `{0}` is not valid.'.format(edge_runtime_version))
 
             if deployment is not None:
