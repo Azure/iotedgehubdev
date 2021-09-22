@@ -1,0 +1,34 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
+// https://github.com/microsoft/vscode-dev-containers/tree/v0.140.1/containers/dotnetcore
+{
+    "name": "iotedgehubdev",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "context": "..",
+    },
+    "runArgs": [
+        "--network",
+        "host"
+    ],
+    "postCreateCommand": "pip install -e .",
+    "mounts": [
+        // Keep command history 
+        "source=ostf-bashhistory,target=/commandhistory,type=volume",
+        // Use hosts docker socket
+        "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
+    ],
+    // Set *default* container specific settings.json values on container create.
+    "settings": {
+        "#terminal.integrated.defaultProfile.linux#": "/bin/bash",
+    },
+    // Add the IDs of extensions you want installed when the container is created.
+    "extensions": [
+        "ms-python.python",
+        "ms-azuretools.vscode-docker",
+        "redhat.vscode-yaml",
+        "mikestead.dotenv",
+        "streetsidesoftware.code-spell-checker",
+        "yzhang.markdown-all-in-one",
+        "davidanson.vscode-markdownlint"
+    ]
+}
