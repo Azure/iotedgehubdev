@@ -10,7 +10,7 @@ from iotedgehubdev.edgedockerclient import EdgeDockerClient
 
 
 class TestEdgeDockerClientSmoke(unittest.TestCase):
-    IMAGE_NAME = 'mcr.microsoft.com/dotnet/runtime:2.1'
+    IMAGE_NAME = 'mcr.microsoft.com/dotnet/runtime:3.1'
     NETWORK_NAME = 'ctl_int_test_network'
     CONTAINER_NAME = 'ctl_int_test_container'
     VOLUME_NAME = 'ctl_int_int_test_mnt'
