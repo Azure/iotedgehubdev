@@ -1,3 +1,11 @@
+schedules:
+- cron: "0 12 * * 0,2,4"
+  displayName: Scheduled build
+  branches:
+    include:
+    - master
+  always: true
+
 jobs:
   - job: MacOS
     pool:
