@@ -28,7 +28,7 @@ steps:
 
   - task: GitHubRelease@0
     inputs:
-      gitHubConnection: 'github.com_marianan'
+      gitHubConnection: 'github.com_cindydeng1998'
       tagPattern: '^v?[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+$'
       releaseNotesSource: input
       assets: '$(Build.ArtifactStagingDirectory)/iotedgehubdev-$(VERSION_TAG)-win32-ia32.zip'
@@ -37,7 +37,7 @@ steps:
 
   - task: GitHubRelease@0
     inputs:
-      gitHubConnection: 'github.com_marianan'
+      gitHubConnection: 'github.com_cindydeng1998'
       tagPattern: '^v?[0-9]+\.[0-9]+\.[0-9]+$'
       releaseNotesSource: input
       assets: '$(Build.ArtifactStagingDirectory)/iotedgehubdev-$(VERSION_TAG)-win32-ia32.zip'
