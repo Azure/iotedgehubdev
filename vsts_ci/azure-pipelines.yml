@@ -1,3 +1,11 @@
+schedules:
+- cron: "0 12 * * 0,2,4"
+  displayName: Scheduled build
+  branches:
+    include:
+    - master
+  always: true
+
 jobs:
   - job: MacOS
     pool:
@@ -7,7 +15,7 @@ jobs:
 
   - job: Windows
     pool:
-      vmImage: vs2017-win2016
+      vmImage: windows-2019
     steps:
       - template: win32/continuous-build-win32.yml
 
