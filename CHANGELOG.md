@@ -2,6 +2,9 @@
 
 [![PyPI version](https://badge.fury.io/py/iotedgehubdev.svg)](https://badge.fury.io/py/iotedgehubdev)
 
+## 0.14.10 - 2021-10-20
+* Update Python Docker package version to latest
+
 ## 0.14.9 - 2021-08-05
 * Use 1.2 as default for edgeRuntime in single module mode.
 
