@@ -14,11 +14,11 @@ if ($env:BUILD_SOURCEBRANCH -match "^refs/tags/[\s\S]+$") {
     echo "The current branch is tag"
     if ($env:BUILD_SOURCEBRANCH -match "^refs/tags/v?[0-9]+\.[0-9]+\.[0-9]+$") {
        echo "Uploading to production pypi"
-       twine upload -r pypi "$env:SYSTEM_ARTIFACTSDIRECTORY/$env:RELEASE_PRIMARYARTIFACTSOURCEALIAS/$artifact_name/$drop_file_name" --config-file $env:SYSTEM_DEFAULTWORKINGDIRECTORY/.pypirc
+       twine upload -r pypi "$env:SYSTEM_ARTIFACTSDIRECTORY/$env:RELEASE_PRIMARYARTIFACTSOURCEALIAS/$artifact_name/$drop_file_name" -u $(pypiusername) -p $(pypipassword) --repository-url $(pypirepourl)
        pip install --no-cache --upgrade "$tool_name==$tool_version"
     } else {
        echo "Uploading to test pypi"
-       twine upload -r pypitest "$env:SYSTEM_ARTIFACTSDIRECTORY/$env:RELEASE_PRIMARYARTIFACTSOURCEALIAS/$artifact_name/$drop_file_name" --config-file $env:SYSTEM_DEFAULTWORKINGDIRECTORY/.pypirc
+       twine upload -r pypitest "$env:SYSTEM_ARTIFACTSDIRECTORY/$env:RELEASE_PRIMARYARTIFACTSOURCEALIAS/$artifact_name/$drop_file_name"-u $(pytestusername) -p $(pytestuserpassword) --repository-url $(pytestrepourl)
        pip install --no-cache --upgrade "$tool_name==$tool_version" --index-url "https://test.pypi.org/simple/" --extra-index-url "https://pypi.org/simple"
     }
 } else {
