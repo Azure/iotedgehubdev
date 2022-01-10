@@ -52,7 +52,9 @@ jobs:
       - Windows
       - Linux
     pool:
-      vmImage: windows-2019
+      name: Azure-IoT-EdgeExperience-1ES-Hosted-Windows
+      demands:
+        - ImageOverride -equals MMS2019TLS
     steps:
       - template: standalone-binaries/continuous-build-standalone-binaries-win32.yml
     condition: and(succeeded('Windows'), succeeded('Linux'), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
@@ -64,7 +66,9 @@ jobs:
       - Linux
     condition: and(succeeded('Windows'), succeeded('Linux'), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
     pool:
-      vmImage: "ubuntu-18.04"
+      name: Azure-IoT-EdgeExperience-1ES-Hosted-Linux
+      demands:
+        - ImageOverride -equals MMSUbuntu18.04TLS
 
     steps:
       - task: UsePythonVersion@0
@@ -127,6 +131,11 @@ jobs:
           SessionTimeout: '60'
           MaxConcurrency: '50'
           MaxRetryAttempts: '5'
+
+      - task: AzureArtifacts.manifest-generator-task.manifest-generator-task.ManifestGeneratorTask@0
+        displayName: 'SBOM Generation Task'
+        inputs:
+          BuildDropPath: '$(Build.ArtifactStagingDirectory)'
 
       - task: PublishBuildArtifacts@1
         inputs:
