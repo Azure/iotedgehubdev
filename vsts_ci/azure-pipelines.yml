@@ -64,7 +64,7 @@ jobs:
       - MacOS
       - Windows
       - Linux
-    condition: and(succeeded('Windows'), succeeded('Linux'), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+    condition: and(succeeded('Windows'), succeeded('Linux'))
     pool:
       name: Azure-IoT-EdgeExperience-1ES-Hosted-Linux
       demands:
@@ -79,8 +79,7 @@ jobs:
           architecture: "x64"
 
       - powershell: |
-          echo $(BUILD.SOURCEBRANCH)
-          if ("$(BUILD.SOURCEBRANCH)" -match "^refs/tags/v?[0-9]+\.[0-9]+\.[0-9]+$") { ((Get-Content -path "$(BUILD.REPOSITORY.LOCALPATH)\iotedgehubdev\__init__.py" -Raw) -replace "__AIkey__ = '.*'","__AIkey__ = '$(AI_KEY)'") | Set-Content -Path "$(BUILD.REPOSITORY.LOCALPATH)\iotedgehubdev\__init__.py" }
+          ((Get-Content -path "$(BUILD.REPOSITORY.LOCALPATH)\iotedgehubdev\__init__.py" -Raw) -replace "__AIkey__ = '.*'","__AIkey__ = '$(AI_KEY)'") | Set-Content -Path "$(BUILD.REPOSITORY.LOCALPATH)\iotedgehubdev\__init__.py"
         displayName: "Replace AI Key for PROD"
 
       - script: |
