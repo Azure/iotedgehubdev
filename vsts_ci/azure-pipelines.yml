@@ -52,19 +52,23 @@ jobs:
       - Windows
       - Linux
     pool:
-      vmImage: windows-2019
+      name: Azure-IoT-EdgeExperience-1ES-Hosted-Windows
+      demands:
+        - ImageOverride -equals MMS2019TLS
     steps:
       - template: standalone-binaries/continuous-build-standalone-binaries-win32.yml
-    condition: and(succeeded('Windows'), succeeded('Linux'), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+    condition: and(succeeded('Windows'), succeeded('Linux'))
 
   - job: PublishDropFile
     dependsOn:
       - MacOS
       - Windows
       - Linux
-    condition: and(succeeded('Windows'), succeeded('Linux'), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+    condition: and(succeeded('Windows'), succeeded('Linux'))
     pool:
-      vmImage: "ubuntu-18.04"
+      name: Azure-IoT-EdgeExperience-1ES-Hosted-Linux
+      demands:
+        - ImageOverride -equals MMSUbuntu18.04TLS
 
     steps:
       - task: UsePythonVersion@0
@@ -75,7 +79,6 @@ jobs:
           architecture: "x64"
 
       - powershell: |
-          echo $(BUILD.SOURCEBRANCH)
           if ("$(BUILD.SOURCEBRANCH)" -match "^refs/tags/v?[0-9]+\.[0-9]+\.[0-9]+$") { ((Get-Content -path "$(BUILD.REPOSITORY.LOCALPATH)\iotedgehubdev\__init__.py" -Raw) -replace "__AIkey__ = '.*'","__AIkey__ = '$(AI_KEY)'") | Set-Content -Path "$(BUILD.REPOSITORY.LOCALPATH)\iotedgehubdev\__init__.py" }
         displayName: "Replace AI Key for PROD"
 
@@ -127,6 +130,11 @@ jobs:
           SessionTimeout: '60'
           MaxConcurrency: '50'
           MaxRetryAttempts: '5'
+
+      - task: AzureArtifacts.manifest-generator-task.manifest-generator-task.ManifestGeneratorTask@0
+        displayName: 'SBOM Generation Task'
+        inputs:
+          BuildDropPath: '$(Build.ArtifactStagingDirectory)'
 
       - task: PublishBuildArtifacts@1
         inputs:
