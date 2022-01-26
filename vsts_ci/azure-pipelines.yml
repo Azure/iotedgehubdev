@@ -140,3 +140,62 @@ jobs:
         inputs:
           pathtoPublish: $(Build.ArtifactStagingDirectory)
           artifactName: build-artifact-drop
+
+  - job: UploadToStorage
+    dependsOn: 
+      - MacOS
+      - Windows
+      - Linux
+    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+    pool:
+      name: Azure-IoT-EdgeExperience-1ES-Hosted-Windows
+      demands:
+        - ImageOverride -equals MMS2022TLS
+    
+    steps:
+    - task: Bash@3
+      inputs:
+        targetType: 'inline'
+        script: |
+          if [[ $(Build.SourceBranch) =~ ^refs/tags/v?[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          echo "##vso[task.setvariable variable=PYPI_PUBLISH_FLAG;]true"
+          fi
+
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        buildType: 'current'
+        artifactName: 'build-artifact-drop'
+        targetPath: '$(Build.ArtifactStagingDirectory)/Package'
+
+    - task: PowerShell@2
+      inputs:
+        targetType: 'inline'
+        script: |
+          $VersionFormat = Get-Content .\__init__.py | select-string -pattern "version"
+          $PackageVersion = (($VersionFormat -split "=")[1] -split "'")[1]
+          write-host "##vso[task.setvariable variable=version;]$PackageVersion"
+
+    - task: PowerShell@2
+      inputs:
+        targetType: 'inline'
+        script: write-host $(version)
+        
+    # - task: AzureFileCopy@3
+    #   condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'), eq(variables['NPM_PUBLISH_FLAG'], 'true'))
+    #   inputs:
+    #     SourcePath: '$(System.DefaultWorkingDirectory)/artifacts/*'
+    #     azureSubscription: 'azuresdkpartnerdrops'
+    #     Destination: 'AzureBlob'
+    #     storage: 'azuresdkpartnerdrops'
+    #     ContainerName: 'drops'
+    #     BlobPrefix: 'azureiotedge/npm/$(PACKAGEVERSION)'
+
+    - task: AzureFileCopy@3
+      condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'), eq(variables['PYPI_PUBLISH_FLAG'], 'true'))
+      inputs:
+        SourcePath: '$(Build.ArtifactStagingDirectory)/Package/'
+        azureSubscription: 'test'
+        Destination: 'AzureBlob'
+        storage: 'sadevicelabsetup'
+        ContainerName: 'test'
+        BlobPrefix: 'azureiotedge/python/$(version)'
