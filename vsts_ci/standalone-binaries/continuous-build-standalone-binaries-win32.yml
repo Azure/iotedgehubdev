@@ -42,3 +42,8 @@ steps:
       releaseNotesSource: input
       assets: '$(Build.ArtifactStagingDirectory)/iotedgehubdev-$(VERSION_TAG)-win32-ia32.zip'
       addChangeLog: false
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)/iotedgehubdev-$(VERSION_TAG)-win32-ia32.zip'
+      artifactName: build-artifact-drop
