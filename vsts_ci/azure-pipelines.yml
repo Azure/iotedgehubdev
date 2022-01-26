@@ -9,7 +9,7 @@ schedules:
 jobs:
   - job: MacOS
     pool:
-      vmImage: macOS-10.14
+      vmImage: macOS-latest
     steps:
       - template: darwin/continuous-build-darwin.yml
 
@@ -179,7 +179,7 @@ jobs:
       inputs:
         targetType: 'inline'
         script: write-host $(version)
-        
+
     # - task: AzureFileCopy@3
     #   condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'), eq(variables['NPM_PUBLISH_FLAG'], 'true'))
     #   inputs:
