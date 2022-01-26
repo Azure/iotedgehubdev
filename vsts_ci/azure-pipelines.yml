@@ -146,6 +146,8 @@ jobs:
       - MacOS
       - Windows
       - Linux
+      - PublishDropFile
+      - PublishStandaloneBinariesForWin32
     condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
     pool:
       name: Azure-IoT-EdgeExperience-1ES-Hosted-Windows
