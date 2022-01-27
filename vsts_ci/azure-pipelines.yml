@@ -176,7 +176,7 @@ jobs:
       inputs:
         targetType: 'inline'
         script: |
-          $VersionFormat = Get-Content .\__init__.py | select-string -pattern "version"
+          $VersionFormat = Get-Content .\iotedgehubdev\__init__.py | select-string -pattern "version"
           $PackageVersion = (($VersionFormat -split "=")[1] -split "'")[1]
           write-host "##vso[task.setvariable variable=version;]$PackageVersion"
 
