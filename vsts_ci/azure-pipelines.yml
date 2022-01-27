@@ -9,7 +9,7 @@ schedules:
 jobs:
   - job: MacOS
     pool:
-      vmImage: macOS-10.14
+      vmImage: macOS-latest
     steps:
       - template: darwin/continuous-build-darwin.yml
 
