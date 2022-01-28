@@ -14,7 +14,7 @@ steps:
     displayName: "Update and install required tools"
 
   - script: |
-      sudo -E `which tox`
+      sudo -E `which tox` -e "$(TOXENV)"
     displayName: "Run tests against iotedgehubdev source code with tox"
     env:
       LINUX_DEVICE_CONNECTION_STRING: $(LINUX_DEVICE_CONNECTION_STRING)
@@ -23,4 +23,3 @@ steps:
       CONTAINER_REGISTRY_USERNAME: $(CONTAINER_REGISTRY_USERNAME)
       CONTAINER_REGISTRY_PASSWORD: $(CONTAINER_REGISTRY_PASSWORD)
       TEST_CA_KEY_PASSPHASE: $(TEST_CA_KEY_PASSPHASE)
-      TOXENV: py36,py37

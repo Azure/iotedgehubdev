@@ -12,7 +12,7 @@ steps:
       $env:Path += ";C:\Python37;C:\Python37\Scripts"
       python -m pip install --upgrade pip
       pip install tox
-      tox
+      tox -e "$(TOXENV)"
     displayName: "Run tests against iotedgehubdev source code"
     env:
       WINDOWS_DEVICE_CONNECTION_STRING: $(WINDOWS_DEVICE_CONNECTION_STRING)
