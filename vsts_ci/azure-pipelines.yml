@@ -15,7 +15,7 @@ jobs:
 
   - job: Windows
     pool:
-      vmImage: windows-2019
+      vmImage: windows-2022
     strategy:
       matrix:
         Python37:
@@ -30,7 +30,7 @@ jobs:
 
   - job: Linux
     pool:
-      vmImage: ubuntu-18.04
+      vmImage: ubuntu-20.04
     strategy:
       matrix:
         Python37:
