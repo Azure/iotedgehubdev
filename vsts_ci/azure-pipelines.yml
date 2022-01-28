@@ -21,6 +21,9 @@ jobs:
         Python37:
           python.version: "3.7"
           TOXENV: "py37"
+        Python39:
+          python.version: "3.9"
+          TOXENV: "py39"
         Python310:
           python.version: "3.10"
           TOXENV: "py310"
@@ -36,6 +39,9 @@ jobs:
         Python37:
           python.version: "3.7"
           TOXENV: "py37"
+        Python39:
+          python.version: "3.9"
+          TOXENV: "py39"
         Python310:
           python.version: "3.10"
           TOXENV: "py310"
