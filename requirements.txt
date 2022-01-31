@@ -14,5 +14,5 @@ pyyaml>=5.4,<6
 jsonpath_rw
 docker-compose==1.29.2
 pytest
-pyinstaller==4.8
+pyinstaller
 urllib3>=1.26.4
