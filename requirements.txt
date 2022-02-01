@@ -1,7 +1,7 @@
 autopep8
 backports.unittest-mock
 click
-docker
+docker==4.2.2
 flake8
 pyOpenSSL
 python-dotenv
@@ -10,7 +10,7 @@ applicationinsights
 prompt_toolkit
 rope
 tox
-pyyaml
+pyyaml==5.4.1
 jsonpath_rw
 docker-compose
 pytest
