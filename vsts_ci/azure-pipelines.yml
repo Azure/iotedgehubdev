@@ -10,6 +10,21 @@ jobs:
   - job: MacOS
     pool:
       vmImage: macOS-latest
+    strategy:
+      matrix:
+        Python37:
+          python.version: "3.7"
+          TOXENV: "py37"
+        Python38:
+          python.version: "3.8"
+          TOXENV: "py38"
+        Python39:
+          python.version: "3.9"
+          TOXENV: "py39"
+        Python310:
+          python.version: "3.10"
+          TOXENV: "py310"
+      maxParallel: 1
     steps:
       - template: darwin/continuous-build-darwin.yml
 
@@ -21,6 +36,9 @@ jobs:
         Python37:
           python.version: "3.7"
           TOXENV: "py37"
+        Python38:
+          python.version: "3.8"
+          TOXENV: "py38"
         Python39:
           python.version: "3.9"
           TOXENV: "py39"
@@ -39,6 +57,9 @@ jobs:
         Python37:
           python.version: "3.7"
           TOXENV: "py37"
+        Python38:
+          python.version: "3.8"
+          TOXENV: "py38"
         Python39:
           python.version: "3.9"
           TOXENV: "py39"
