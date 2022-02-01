@@ -11,7 +11,8 @@ steps:
     displayName: "Install Azure Cli Extension"
 
   - powershell: |
-      pip install tox
+      pip install --upgrade pip
+      pip install --upgrade tox
       tox -e "$(TOXENV)"
     displayName: "Run tests against iotedgehubdev source code"
     env:

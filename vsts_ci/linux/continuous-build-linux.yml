@@ -1,19 +1,18 @@
 steps:
   - task: UsePythonVersion@0
-    displayName: "Use Python 3.7"
     inputs:
-      versionSpec: 3.7
+      versionSpec: "$(python.version)"
       addToPath: true
       architecture: "x64"
 
   - script: |
-      pip install --upgrade pip
-      pip install --upgrade tox
-      az extension add --name azure-iot
       az --version
-    displayName: "Update and install required tools"
+      az extension add --name azure-iot
+    displayName: "Install Azure Cli Extension"
 
   - script: |
+      pip install --upgrade pip
+      pip install --upgrade tox
       sudo -E `which tox` -e "$(TOXENV)"
     displayName: "Run tests against iotedgehubdev source code with tox"
     env:

@@ -1,15 +1,14 @@
 steps:
   - task: UsePythonVersion@0
-    displayName: "Use Python 3.7"
     inputs:
-      versionSpec: 3.7
+      versionSpec: "$(python.version)"
       addToPath: true
       architecture: "x64"
 
   - script: |
-      az extension add --name azure-iot
       az --version
-    displayName: "Install Azure Cli iot extension"
+      az extension add --name azure-iot
+    displayName: "Install Azure Cli Extension"
 
   - script: |
       pip install --upgrade pip
@@ -33,8 +32,8 @@ steps:
       brew services start docker-machine
       brew install docker-compose
       docker version
-      sudo -E tox
-    displayName: "Install docker and run tests against iotedgehubdev source code with tox"
+      sudo -E `which tox` -e "$(TOXENV)"
+    displayName: "Run tests against iotedgehubdev source code"
     env:
       DARWIN_DEVICE_CONNECTION_STRING: $(DARWIN_DEVICE_CONNECTION_STRING)
       IOTHUB_CONNECTION_STRING: $(IOTHUB_CONNECTION_STRING)
