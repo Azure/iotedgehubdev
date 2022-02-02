@@ -186,7 +186,7 @@ jobs:
     # - task: AzureFileCopy@3
     #   condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'), eq(variables['PYPI_PUBLISH_FLAG'], 'true'))
     #   inputs:
-    #     SourcePath: '$(System.DefaultWorkingDirectory)/artifacts/*'
+    #     SourcePath: '$(Build.ArtifactStagingDirectory)/Package/*'
     #     azureSubscription: 'azuresdkpartnerdrops'
     #     Destination: 'AzureBlob'
     #     storage: 'azuresdkpartnerdrops'
