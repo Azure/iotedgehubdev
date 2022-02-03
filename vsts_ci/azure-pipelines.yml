@@ -157,7 +157,7 @@ jobs:
       - Linux
       - PublishDropFile
       - PublishStandaloneBinariesForWin32
-    # condition: and(succeeded(), eq(dependencies.PublishDropFile.outputs['PublishFlag.PYPI_PUBLISH_FLAG'], 'true'))
+    condition: and(succeeded(), eq(dependencies.PublishDropFile.outputs['PublishFlag.PYPI_PUBLISH_FLAG'], 'true'))
     pool:
       name: Azure-IoT-EdgeExperience-1ES-Hosted-Windows
       demands:
@@ -183,25 +183,17 @@ jobs:
         targetType: 'inline'
         script: write-host $(version)
 
-    # - task: AzureFileCopy@3
-    #   condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'), eq(variables['PYPI_PUBLISH_FLAG'], 'true'))
-    #   inputs:
-    #     SourcePath: '$(Build.ArtifactStagingDirectory)/Package/*'
-    #     azureSubscription: 'azuresdkpartnerdrops'
-    #     Destination: 'AzureBlob'
-    #     storage: 'azuresdkpartnerdrops'
-    #     ContainerName: 'drops'
-    #     BlobPrefix: 'azureiotedge/npm/$(version)'
     - task: PowerShell@2
       inputs:
         targetType: 'inline'
         script: 'Remove-Item $(Build.ArtifactStagingDirectory)/Package/_manifest -recurse'
 
     - task: AzureFileCopy@3
+      condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'), eq(variables['PYPI_PUBLISH_FLAG'], 'true'))
       inputs:
-        SourcePath: '$(Build.ArtifactStagingDirectory)/Package'
-        azureSubscription: 'test'
+        SourcePath: '$(Build.ArtifactStagingDirectory)/Package/*'
+        azureSubscription: 'azuresdkpartnerdrops'
         Destination: 'AzureBlob'
-        storage: 'sadevicelabsetup'
-        ContainerName: 'test'
-        BlobPrefix: 'azureiotedge/python/$(version)'
+        storage: 'azuresdkpartnerdrops'
+        ContainerName: 'drops'
+        BlobPrefix: 'azureiotedge/npm/$(version)'
