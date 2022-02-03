@@ -192,8 +192,8 @@ jobs:
       condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'), eq(variables['PYPI_PUBLISH_FLAG'], 'true'))
       inputs:
         SourcePath: '$(Build.ArtifactStagingDirectory)/Package/*'
-        azureSubscription: 'azuresdkpartnerdrops'
+        azureSubscription: 'azuresdkpartnerdrops-IoTEdgeHub_Dev'
         Destination: 'AzureBlob'
         storage: 'azuresdkpartnerdrops'
         ContainerName: 'drops'
-        BlobPrefix: 'azureiotedge/npm/$(version)'
+        BlobPrefix: 'azureiotedge/python/$(version)'
