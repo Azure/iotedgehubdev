@@ -169,8 +169,8 @@ jobs:
         buildType: 'current'
         artifactName: 'build-artifact-drop'
         itemPattern: |
-          *.whl
-          *.zip
+          **/*.whl
+          **/*.zip
         targetPath: '$(Build.ArtifactStagingDirectory)/Package'
 
     - task: PowerShell@2
