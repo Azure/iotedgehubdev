@@ -178,22 +178,27 @@ jobs:
           $PackageVersion = (($VersionFormat -split "=")[1] -split "'")[1]
           write-host "##vso[task.setvariable variable=version;]$PackageVersion"
 
-    - task: PowerShell@2
-      inputs:
-        targetType: 'inline'
-        script: write-host $(version)
+    # - task: PowerShell@2
+    #   inputs:
+    #     targetType: 'inline'
+    #     script: 'Remove-Item $(Build.ArtifactStagingDirectory)/Package/_manifest -recurse'
 
-    - task: PowerShell@2
-      inputs:
-        targetType: 'inline'
-        script: 'Remove-Item $(Build.ArtifactStagingDirectory)/Package/_manifest -recurse'
+    # - task: AzureFileCopy@3
+    #   condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'), eq(variables['PYPI_PUBLISH_FLAG'], 'true'))
+    #   inputs:
+    #     SourcePath: '$(Build.ArtifactStagingDirectory)/Package/*'
+    #     azureSubscription: 'azuresdkpartnerdrops-IoTEdgeHub_Dev'
+    #     Destination: 'AzureBlob'
+    #     storage: 'azuresdkpartnerdrops'
+    #     ContainerName: 'drops'
+    #     BlobPrefix: 'azureiotedge/python/$(version)'
 
     - task: AzureFileCopy@3
-      condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'), eq(variables['PYPI_PUBLISH_FLAG'], 'true'))
       inputs:
-        SourcePath: '$(Build.ArtifactStagingDirectory)/Package/*'
-        azureSubscription: 'azuresdkpartnerdrops-IoTEdgeHub_Dev'
+        SourcePath: '$(Build.ArtifactStagingDirectory)/Package'
+        azureSubscription: 'test'
         Destination: 'AzureBlob'
-        storage: 'azuresdkpartnerdrops'
-        ContainerName: 'drops'
+        storage: 'sadevicelabsetup'
+        ContainerName: 'test'
         BlobPrefix: 'azureiotedge/python/$(version)'
+        AdditionalArgumentsForBlobCopy: '--include-pattern "*.whl,*.zip"'
