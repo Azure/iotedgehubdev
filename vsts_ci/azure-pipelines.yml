@@ -157,7 +157,7 @@ jobs:
       - Linux
       - PublishDropFile
       - PublishStandaloneBinariesForWin32
-    condition: and(succeeded(), eq(dependencies.PublishDropFile.outputs['PublishFlag.PYPI_PUBLISH_FLAG'], 'true'))
+    # condition: and(succeeded(), eq(dependencies.PublishDropFile.outputs['PublishFlag.PYPI_PUBLISH_FLAG'], 'true'))
     pool:
       name: Azure-IoT-EdgeExperience-1ES-Hosted-Windows
       demands:
@@ -201,4 +201,4 @@ jobs:
         storage: 'sadevicelabsetup'
         ContainerName: 'test'
         BlobPrefix: 'azureiotedge/python/$(version)'
-        AdditionalArgumentsForBlobCopy: '--include-pattern "*.whl,*.zip"'
+        AdditionalArgumentsForBlobCopy: --include-pattern '*.whl,*.zip'
