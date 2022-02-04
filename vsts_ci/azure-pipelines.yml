@@ -204,4 +204,3 @@ jobs:
         storage: 'sadevicelabsetup'
         ContainerName: 'test'
         BlobPrefix: 'azureiotedge/python/$(version)'
-        AdditionalArgumentsForBlobCopy: --include-pattern '*.whl,*.zip'
