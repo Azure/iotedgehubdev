@@ -157,7 +157,7 @@ jobs:
       - Linux
       - PublishDropFile
       - PublishStandaloneBinariesForWin32
-    # condition: and(succeeded(), eq(dependencies.PublishDropFile.outputs['PublishFlag.PYPI_PUBLISH_FLAG'], 'true'))
+    condition: and(succeeded(), eq(dependencies.PublishDropFile.outputs['PublishFlag.PYPI_PUBLISH_FLAG'], 'true'))
     pool:
       name: Azure-IoT-EdgeExperience-1ES-Hosted-Windows
       demands:
@@ -181,26 +181,12 @@ jobs:
           $PackageVersion = (($VersionFormat -split "=")[1] -split "'")[1]
           write-host "##vso[task.setvariable variable=version;]$PackageVersion"
 
-    # - task: PowerShell@2
-    #   inputs:
-    #     targetType: 'inline'
-    #     script: 'Remove-Item $(Build.ArtifactStagingDirectory)/Package/_manifest -recurse'
-
-    # - task: AzureFileCopy@3
-    #   condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'), eq(variables['PYPI_PUBLISH_FLAG'], 'true'))
-    #   inputs:
-    #     SourcePath: '$(Build.ArtifactStagingDirectory)/Package/*'
-    #     azureSubscription: 'azuresdkpartnerdrops-IoTEdgeHub_Dev'
-    #     Destination: 'AzureBlob'
-    #     storage: 'azuresdkpartnerdrops'
-    #     ContainerName: 'drops'
-    #     BlobPrefix: 'azureiotedge/python/$(version)'
-
     - task: AzureFileCopy@3
+      condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'), eq(variables['PYPI_PUBLISH_FLAG'], 'true'))
       inputs:
-        SourcePath: '$(Build.ArtifactStagingDirectory)/Package'
-        azureSubscription: 'test'
+        SourcePath: '$(Build.ArtifactStagingDirectory)/Package/*'
+        azureSubscription: 'azuresdkpartnerdrops-IoTEdgeHub_Dev'
         Destination: 'AzureBlob'
-        storage: 'sadevicelabsetup'
-        ContainerName: 'test'
+        storage: 'azuresdkpartnerdrops'
+        ContainerName: 'drops'
         BlobPrefix: 'azureiotedge/python/$(version)'
