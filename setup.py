@@ -3,7 +3,7 @@ Azure IoT EdgeHub Dev Tool
 """
 from setuptools import find_packages, setup
 
-VERSION = '0.14.11-rc1'
+VERSION = '0.14.11-rc2'
 # If we have source, validate that our version numbers match
 # This should prevent uploading releases with mismatched versions.
 try:
@@ -80,7 +80,6 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
-        'Programming Language :: Python :: 3.10',
 
         'Topic :: Software Development :: Libraries :: Python Modules',
     ]
