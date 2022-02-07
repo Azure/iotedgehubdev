@@ -1,5 +1,5 @@
 # Dependencies versions
-ARG PYTHON_VERSION="3.10.2"
+ARG PYTHON_VERSION="3.9.10"
 
 FROM python:${PYTHON_VERSION}-buster
 
