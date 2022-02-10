@@ -18,6 +18,7 @@ from .utils import Utils
 
 
 class EdgeManager(object):
+    TWIN_API_VERSION = '2020-05-31-preview'
     LABEL = 'iotedgehubdev'
     EDGEHUB_IMG = 'mcr.microsoft.com/azureiotedge-hub:{0}'
     TESTUTILITY_IMG = 'mcr.microsoft.com/azureiotedge-testing-utility:1.0.0'
@@ -379,12 +380,12 @@ class EdgeManager(object):
         return self._generateModuleConnectionStr(res, islocal)
 
     def _getModuleReqUri(self, name):
-        return "https://{0}/devices/{1}/modules/{2}?api-version=2018-06-30".format(
-            self._hostname, self._device_id, name)
+        return "https://{0}/devices/{1}/modules/{2}?api-version={3}".format(
+            self._hostname, self._device_id, name, EdgeManager.TWIN_API_VERSION)
 
     def _get_update_twin_uri(self, name):
-        return "https://{0}/twins/{1}/modules/{2}?api-version=2018-06-30".format(
-            self._hostname, self._device_id, name)
+        return "https://{0}/twins/{1}/modules/{2}?api-version={3}".format(
+            self._hostname, self._device_id, name, EdgeManager.TWIN_API_VERSION)
 
     def _generateModuleConnectionStr(self, response, islocal):
         jsonObj = response.json()
