@@ -16,7 +16,7 @@
             "cwd": "${workspaceFolder}",
             "env": {
                 "IOTHUB_CONNECTION_STRING": "",
-                "WINDOWS_DEVICE_CONNECTION_STRING": "",
+                "DEVICE_CONNECTION_STRING": "",
                 "CONTAINER_REGISTRY_SERVER": "",
                 "CONTAINER_REGISTRY_USERNAME": "",
                 "CONTAINER_REGISTRY_PASSWORD": "",
