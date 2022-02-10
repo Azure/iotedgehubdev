@@ -26,7 +26,7 @@ test_ca_file = 'iotedgehubdev-test-only.root.ca.cert.pem'
 test_ca_key_file = 'iotedgehubdev-test-only.root.ca.key.pem'
 
 VALID_IOTHUBCONNECTIONSTRING = os.environ['IOTHUB_CONNECTION_STRING']
-VALID_DEVICECONNECTIONSTRING = os.environ[platform.system().upper() + 'DEVICE_CONNECTION_STRING']
+VALID_DEVICECONNECTIONSTRING = os.environ[platform.system().upper() + '_DEVICE_CONNECTION_STRING']
 VALID_CONTAINERREGISTRYSERVER = os.environ['CONTAINER_REGISTRY_SERVER']
 VALID_CONTAINERREGISTRYUSERNAME = os.environ['CONTAINER_REGISTRY_USERNAME']
 VALID_CONTAINERREGISTRYPASSWORD = os.environ['CONTAINER_REGISTRY_PASSWORD']
