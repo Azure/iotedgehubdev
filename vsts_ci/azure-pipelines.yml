@@ -181,10 +181,10 @@ jobs:
           $PackageVersion = (($VersionFormat -split "=")[1] -split "'")[1]
           write-host "##vso[task.setvariable variable=version;]$PackageVersion"
 
-    - task: AzureFileCopy@3
+    - task: AzureFileCopy@4
       condition: succeeded()
       inputs:
-        SourcePath: '$(Build.ArtifactStagingDirectory)/Package/*'
+        SourcePath: '$(Build.ArtifactStagingDirectory)/Package/'
         azureSubscription: 'azuresdkpartnerdrops-IoTEdgeHub_Dev'
         Destination: 'AzureBlob'
         storage: 'azuresdkpartnerdrops'
