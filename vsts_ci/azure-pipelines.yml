@@ -39,7 +39,7 @@ jobs:
           aggregate: 'file'
       - script: |
           for /f %%a IN ('dir /b /s "D:\a\1\.gdn\r\*"') DO cat %%a
-          
+
   - job: LegalStatusPolicyCheck
     pool:
       vmImage: ubuntu-18.04
@@ -107,24 +107,24 @@ jobs:
           inlineOperation: |
             [
               {
-                 "KeyCode" : "CP-230012",
-                 "OperationCode" : "SigntoolSign",
-                 "Parameters" : {
-                   "OpusName" : "Microsoft",
-                   "OpusInfo" : "http://www.microsoft.com",
-                   "FileDigest" : "/fd \"SHA256\"",
-                   "PageHash" : "/NPH",
-                   "TimeStamp" : "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
-                 },
-                 "ToolName" : "sign",
-                 "ToolVersion" : "1.0"
+                "KeyCode" : "CP-230012",
+                "OperationCode" : "SigntoolSign",
+                "Parameters" : {
+                  "OpusName" : "Microsoft",
+                  "OpusInfo" : "http://www.microsoft.com",
+                  "FileDigest" : "/fd \"SHA256\"",
+                  "PageHash" : "/NPH",
+                  "TimeStamp" : "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
+                },
+                "ToolName" : "sign",
+                "ToolVersion" : "1.0"
               },
               {
-                 "KeyCode" : "CP-230012",
-                 "OperationCode" : "SigntoolVerify",
-                 "Parameters" : {},
-                 "ToolName" : "sign",
-                 "ToolVersion" : "1.0"
+                "KeyCode" : "CP-230012",
+                "OperationCode" : "SigntoolVerify",
+                "Parameters" : {},
+                "ToolName" : "sign",
+                "ToolVersion" : "1.0"
               }
             ]
           SessionTimeout: '60'
@@ -162,7 +162,7 @@ jobs:
       name: Azure-IoT-EdgeExperience-1ES-Hosted-Windows
       demands:
         - ImageOverride -equals MMS2022TLS
-    
+
     steps:
     - task: DownloadPipelineArtifact@2
       inputs:
@@ -182,7 +182,7 @@ jobs:
           write-host "##vso[task.setvariable variable=version;]$PackageVersion"
 
     - task: AzureFileCopy@3
-      condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'), eq(variables['PublishFlag.PYPI_PUBLISH_FLAG'], 'true'))
+      condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'), eq(dependencies.PublishDropFile.outputs['PublishFlag.PYPI_PUBLISH_FLAG'], 'true'))
       inputs:
         SourcePath: '$(Build.ArtifactStagingDirectory)/Package/*'
         azureSubscription: 'azuresdkpartnerdrops-IoTEdgeHub_Dev'
