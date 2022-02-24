@@ -3,7 +3,7 @@ schedules:
   displayName: Scheduled build
   branches:
     include:
-    - master
+    - main
   always: true
 
 jobs:
@@ -151,7 +151,7 @@ jobs:
         name: PublishFlag
 
   - job: UploadToStorage
-    dependsOn: 
+    dependsOn:
       - MacOS
       - Windows
       - Linux
@@ -182,7 +182,7 @@ jobs:
           write-host "##vso[task.setvariable variable=version;]$PackageVersion"
 
     - task: AzureFileCopy@3
-      condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'), eq(dependencies.PublishDropFile.outputs['PublishFlag.PYPI_PUBLISH_FLAG'], 'true'))
+      condition: succeeded()
       inputs:
         SourcePath: '$(Build.ArtifactStagingDirectory)/Package/*'
         azureSubscription: 'azuresdkpartnerdrops-IoTEdgeHub_Dev'
