@@ -3,7 +3,7 @@ schedules:
   displayName: Scheduled build
   branches:
     include:
-    - master
+    - main
   always: true
 
 jobs:
