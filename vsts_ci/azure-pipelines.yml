@@ -106,27 +106,27 @@ jobs:
           # https://microsoft.sharepoint.com/teams/codesigninfo/Wiki/Json%20Builder%20-%20ESRP%20Client.aspx?kc1=CP-230012&os1=SigntoolSign&cp1=OpusName%3DMicrosoft%3bOpusInfo%3Dhttp%3a//www.microsoft.com%3bFileDigest%3D/fd%20%5c%22SHA256%5c%22%3bPageHash%3D/NPH%3bTimeStamp%3D/tr%20%5c%22http%3a//rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer%5c%22%20/td%20sha256&kc2=CP-230012&os2=SigntoolVerify
           inlineOperation: |
             [
-                    {
-                        "KeyCode" : "CP-230012",
-                        "OperationCode" : "SigntoolSign",
-                        "Parameters" : {
-                            "OpusName" : "Microsoft",
-                            "OpusInfo" : "http://www.microsoft.com",
-                            "FileDigest" : "/fd \"SHA256\"",
-                            "PageHash" : "/NPH",
-                            "TimeStamp" : "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
-                        },
-                        "ToolName" : "sign",
-                        "ToolVersion" : "1.0"
-                    },
-                    {
-                        "KeyCode" : "CP-230012",
-                        "OperationCode" : "SigntoolVerify",
-                        "Parameters" : {},
-                        "ToolName" : "sign",
-                        "ToolVersion" : "1.0"
-                    }
-                ]
+              {
+                 "KeyCode" : "CP-230012",
+                 "OperationCode" : "SigntoolSign",
+                 "Parameters" : {
+                   "OpusName" : "Microsoft",
+                   "OpusInfo" : "http://www.microsoft.com",
+                   "FileDigest" : "/fd \"SHA256\"",
+                   "PageHash" : "/NPH",
+                   "TimeStamp" : "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
+                 },
+                 "ToolName" : "sign",
+                 "ToolVersion" : "1.0"
+              },
+              {
+                 "KeyCode" : "CP-230012",
+                 "OperationCode" : "SigntoolVerify",
+                 "Parameters" : {},
+                 "ToolName" : "sign",
+                 "ToolVersion" : "1.0"
+              }
+            ]
           SessionTimeout: '60'
           MaxConcurrency: '50'
           MaxRetryAttempts: '5'
@@ -146,7 +146,7 @@ jobs:
           targetType: 'inline'
           script: |
             if [[ $(Build.SourceBranch) =~ ^refs/tags/v?[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "##vso[task.setvariable variable=PYPI_PUBLISH_FLAG;isOutput=true]true"
+              echo "##vso[task.setvariable variable=PYPI_PUBLISH_FLAG;isOutput=true]true"
             fi
         name: PublishFlag
 
@@ -182,11 +182,11 @@ jobs:
           write-host "##vso[task.setvariable variable=version;]$PackageVersion"
 
     - task: AzureFileCopy@3
-      condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'), eq(variables['PYPI_PUBLISH_FLAG'], 'true'))
+      condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'), eq(variables['PublishFlag.PYPI_PUBLISH_FLAG'], 'true'))
       inputs:
         SourcePath: '$(Build.ArtifactStagingDirectory)/Package/*'
         azureSubscription: 'azuresdkpartnerdrops-IoTEdgeHub_Dev'
         Destination: 'AzureBlob'
         storage: 'azuresdkpartnerdrops'
         ContainerName: 'drops'
-        BlobPrefix: 'azureiotedge/python/$(version)'
+        BlobPrefix: 'azure-iot-edge-tools/python/$(version)'
