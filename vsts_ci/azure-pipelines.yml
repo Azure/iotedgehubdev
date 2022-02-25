@@ -184,9 +184,9 @@ jobs:
     - task: AzureFileCopy@4
       condition: succeeded()
       inputs:
-        SourcePath: '$(Build.ArtifactStagingDirectory)/Package/'
+        SourcePath: '$(Build.ArtifactStagingDirectory)/Package'
         azureSubscription: 'azuresdkpartnerdrops-IoTEdgeHub_Dev'
-        Destination: 'AzureBlob'
+        Destination: AzureBlob
         storage: 'azuresdkpartnerdrops'
         ContainerName: 'drops'
         BlobPrefix: 'azure-iot-edge-tools/python/$(version)'
