@@ -1,7 +1,7 @@
 autopep8
 backports.unittest-mock
 click
-docker==5.0.0
+docker==5.0.3
 flake8
 pyOpenSSL>=20.0.1
 python-dotenv

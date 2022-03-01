@@ -1,18 +1,19 @@
 steps:
-  - powershell: |
-      choco install azure-cli
-      $env:Path += ";C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin"
-      az extension add --name azure-iot
-      az --version
-    displayName: "Install Azure Cli And Azure Cli Extension"
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: "$(python.version)"
+      addToPath: true
+      architecture: "x64"
 
   - powershell: |
-      $env:Path += ";C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin"
-      choco install python --version 3.7.9
-      $env:Path += ";C:\Python37;C:\Python37\Scripts"
-      python -m pip install --upgrade pip
-      pip install tox
-      tox
+      az --version
+      az extension add --name azure-iot
+    displayName: "Install Azure Cli Extension"
+
+  - powershell: |
+      pip install --upgrade pip
+      pip install --upgrade tox
+      tox -e "$(TOXENV)"
     displayName: "Run tests against iotedgehubdev source code"
     env:
       WINDOWS_DEVICE_CONNECTION_STRING: $(WINDOWS_DEVICE_CONNECTION_STRING)
@@ -21,4 +22,3 @@ steps:
       CONTAINER_REGISTRY_USERNAME: $(CONTAINER_REGISTRY_USERNAME)
       CONTAINER_REGISTRY_PASSWORD: $(CONTAINER_REGISTRY_PASSWORD)
       TEST_CA_KEY_PASSPHASE: $(TEST_CA_KEY_PASSPHASE)
-      TOXENV: py36,py37
