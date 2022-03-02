@@ -43,7 +43,25 @@ jobs:
     steps:
       - template: win32/continuous-build-win32.yml
 
-  - job: Linux
+  - job: Linux18.04
+    pool:
+      vmImage: ubuntu-18.04
+    strategy:
+      matrix:
+        Python37:
+          python.version: "3.7"
+          TOXENV: "py37"
+        Python38:
+          python.version: "3.8"
+          TOXENV: "py38"
+        Python39:
+          python.version: "3.9"
+          TOXENV: "py39"
+      maxParallel: 1
+    steps:
+      - template: linux/continuous-build-linux.yml
+
+  - job: Linux20.04
     pool:
       vmImage: ubuntu-20.04
     strategy:
@@ -86,21 +104,23 @@ jobs:
     dependsOn:
       - MacOS
       - Windows
-      - Linux
+      - Linux18.04
+      - Linux20.04
     pool:
       name: Azure-IoT-EdgeExperience-1ES-Hosted-Windows
       demands:
         - ImageOverride -equals MMS2019TLS
     steps:
       - template: standalone-binaries/continuous-build-standalone-binaries-win32.yml
-    condition: and(succeeded('Windows'), succeeded('Linux'))
+    condition: and(succeeded('Windows'), succeeded('Linux18.04'), succeeded('Linux20.04'))
 
   - job: PublishDropFile
     dependsOn:
       - MacOS
       - Windows
-      - Linux
-    condition: and(succeeded('Windows'), succeeded('Linux'))
+      - Linux18.04
+      - Linux20.04
+    condition: and(succeeded('Windows'), succeeded('Linux18.04'), succeeded('Linux20.04'))
     pool:
       name: Azure-IoT-EdgeExperience-1ES-Hosted-Linux
       demands:
@@ -190,7 +210,8 @@ jobs:
     dependsOn:
       - MacOS
       - Windows
-      - Linux
+      - Linux18.04
+      - Linux20.04
       - PublishDropFile
       - PublishStandaloneBinariesForWin32
     condition: and(succeeded(), eq(dependencies.PublishDropFile.outputs['PublishFlag.PYPI_PUBLISH_FLAG'], 'true'))
