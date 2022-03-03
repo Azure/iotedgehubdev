@@ -2,6 +2,9 @@
 
 [![PyPI version](https://badge.fury.io/py/iotedgehubdev.svg)](https://badge.fury.io/py/iotedgehubdev)
 
+## 0.14.11 - 2022-03-01
+* Update Python support to 3.9
+
 ## 0.14.11 - 2022-02-10
 * Update Device Twin API version to include support for Arrays in desired properties
 
