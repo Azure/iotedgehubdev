@@ -34,6 +34,7 @@ dependencies = [
     'pyyaml>=4.1,<=4.2b4',
     'jsonpath_rw',
     'docker-compose==1.29.1',
+    'pyre2'
 ]
 
 setup(
