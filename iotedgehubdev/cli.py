@@ -5,7 +5,7 @@
 import json
 import os
 import sys
-import re
+import re2
 from functools import wraps
 
 import click
@@ -267,7 +267,7 @@ def start(inputs, port, deployment, verbose, host, environment, edge_runtime_ver
         else:
             if edge_runtime_version is not None:
                 # The only validated versions are 1.0, 1.1, and 1.2 variants, hence the current limitation
-                if re.match(r'^(1\.0)|(1\.1)|(1\.2)', edge_runtime_version) is None:
+                if re2.match(r'^(1\.0)|(1\.1)|(1\.2)', edge_runtime_version) is None:
                     raise ValueError('-edge-runtime-version `{0}` is not valid.'.format(edge_runtime_version))
 
             if deployment is not None:
@@ -278,7 +278,7 @@ def start(inputs, port, deployment, verbose, host, environment, edge_runtime_ver
                 input_list = [input_.strip() for input_ in inputs.strip().split(',')]
 
             for env in environment:
-                if re.match(r'^[a-zA-Z][a-zA-Z0-9_]*?=.*$', env) is None:
+                if re2.match(r'^[a-zA-Z][a-zA-Z0-9_]*?=.*$', env) is None:
                     raise ValueError('Environment variable: `{0}` is not valid.'.format(env))
 
             edge_manager.start_singlemodule(input_list, port, environment, edge_runtime_version)

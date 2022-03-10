@@ -12,9 +12,9 @@ try:
 except OSError:
     pass
 else:
-    import re
+    import re2
     import sys
-    m = re.search(r'__version__\s*=\s*[\'"](.+?)[\'"]', content)
+    m = re2.search(r'__version__\s*=\s*[\'"](.+?)[\'"]', content)
     if not m:
         print('Could not find __version__ in iotedgehubdev/__init__.py')
         sys.exit(1)
