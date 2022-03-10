@@ -4,7 +4,7 @@
 import os
 import pytest
 import platform
-import re2
+import re
 import subprocess
 import shutil
 import time
@@ -32,8 +32,8 @@ VALID_CONTAINERREGISTRYUSERNAME = os.environ['CONTAINER_REGISTRY_USERNAME']
 VALID_CONTAINERREGISTRYPASSWORD = os.environ['CONTAINER_REGISTRY_PASSWORD']
 VALID_TEST_CA_KEY_PASSPHASE = os.environ['TEST_CA_KEY_PASSPHASE']
 
-device_id = re2.findall(".*DeviceId=(.*);SharedAccessKey.*", VALID_DEVICECONNECTIONSTRING)[0]
-iothub_name = re2.findall(".*HostName=(.*);DeviceId.*", VALID_DEVICECONNECTIONSTRING)[0].split('.')[0]
+device_id = re.findall(".*DeviceId=(.*);SharedAccessKey.*", VALID_DEVICECONNECTIONSTRING)[0]
+iothub_name = re.findall(".*HostName=(.*);DeviceId.*", VALID_DEVICECONNECTIONSTRING)[0].split('.')[0]
 
 
 @pytest.fixture
@@ -206,7 +206,7 @@ def remove_docker_networks(networks):
 def update_file_content(file_path, actual_value, expected_value):
     with open(file_path, "r+") as f:
         stream_data = f.read()
-        ret = re2.sub(actual_value, expected_value, stream_data)
+        ret = re.sub(actual_value, expected_value, stream_data)
         f.seek(0)
         f.truncate()
         f.write(ret)

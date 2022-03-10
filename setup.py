@@ -12,9 +12,9 @@ try:
 except OSError:
     pass
 else:
-    import re2
+    import re
     import sys
-    m = re2.search(r'__version__\s*=\s*[\'"](.+?)[\'"]', content)
+    m = re.search(r'__version__\s*=\s*[\'"](.+?)[\'"]', content)
     if not m:
         print('Could not find __version__ in iotedgehubdev/__init__.py')
         sys.exit(1)
@@ -34,7 +34,6 @@ dependencies = [
     'pyyaml>=4.1,<=4.2b4',
     'jsonpath_rw',
     'docker-compose==1.29.1',
-    'pyre2'
 ]
 
 setup(
