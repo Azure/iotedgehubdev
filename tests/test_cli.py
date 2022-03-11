@@ -483,7 +483,7 @@ def test_cli_start_with_create_options_for_bind(runner):
             update_file_content(config_file_path, '/usr:/home/moduleuser/usr',
                                 r'C:\\\\\\\\Windows\\\\\\\\System32:C:/moduleuser/System32')
             update_file_content(config_file_path, '/run:/home/moduleuser/run',
-                               r'C:\\\\\\\\Windows\\\\\\\\System:C:/moduleuser/System')
+                                r'C:\\\\\\\\Windows\\\\\\\\System:C:/moduleuser/System')
 
         cli_setup(runner)
         cli_start_with_deployment(runner, config_file_path)
