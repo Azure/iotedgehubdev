@@ -482,8 +482,8 @@ def test_cli_start_with_create_options_for_bind(runner):
         if get_docker_os_type() == "windows":
             update_file_content(config_file_path, '/usr:/home/moduleuser/usr',
                                 r'C:\\\\\\\\Windows\\\\\\\\System32:C:/moduleuser/System32')
-            # update_file_content(config_file_path, '/run:/home/moduleuser/run',
-            #                    r'C:\\\\\\\\Windows\\\\\\\\System:C:/moduleuser/System')
+            update_file_content(config_file_path, '/run:/home/moduleuser/run',
+                               r'C:\\\\\\\\Windows\\\\\\\\System:C:/moduleuser/System')
 
         cli_setup(runner)
         cli_start_with_deployment(runner, config_file_path)
@@ -492,10 +492,10 @@ def test_cli_start_with_create_options_for_bind(runner):
         wait_verify_docker_output(['docker', 'logs', 'tempSensor'], ['Sending message'])
         if get_docker_os_type() == "windows":
             wait_verify_docker_output('echo dir | docker exec -i -w c:/moduleuser/System32/ tempSensor cmd', ['Public'], True)
-            # wait_verify_docker_output('echo dir | docker exec -i -w c:/moduleuser/System/ tempSensor cmd', ['Public'], True)
+            wait_verify_docker_output('echo dir | docker exec -i -w c:/moduleuser/System/ tempSensor cmd', ['Public'], True)
         else:
             wait_verify_docker_output(['docker', 'exec', 'tempSensor', 'ls', '/home/moduleuser/usr'], ["share"])
-            # wait_verify_docker_output(['docker', 'exec', 'tempSensor', 'ls', '/home/moduleuser/run'], ["share"])
+            wait_verify_docker_output(['docker', 'exec', 'tempSensor', 'ls', '/home/moduleuser/run'], ["config"])
     finally:
         shutil.rmtree(temp_config_folder, ignore_errors=True)
         result = cli_stop(runner)

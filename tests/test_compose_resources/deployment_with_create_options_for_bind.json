@@ -41,7 +41,7 @@
               "restartPolicy": "always",
               "settings": {
                 "image": "mcr.microsoft.com/azureiotedge-simulated-temperature-sensor:1.0",
-                "createOptions": "{\"HostConfig\":{\"Binds\":[\"/usr:/home/moduleuser/usr\"]}}"
+                "createOptions": "{\"HostConfig\":{\"Binds\":[\"/usr:/home/moduleuser/usr\",\"/run:/home/moduleuser/run\"]}}"
               }
             }
           }
