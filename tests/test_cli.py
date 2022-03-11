@@ -495,7 +495,7 @@ def test_cli_start_with_create_options_for_bind(runner):
             wait_verify_docker_output('echo dir | docker exec -i -w c:/moduleuser/System/ tempSensor cmd', ['Public'], True)
         else:
             wait_verify_docker_output(['docker', 'exec', 'tempSensor', 'ls', '/home/moduleuser/usr'], ["share"])
-            wait_verify_docker_output(['docker', 'exec', 'tempSensor', 'ls', '/home/moduleuser/run'], ["config"])
+            # wait_verify_docker_output(['docker', 'exec', 'tempSensor', 'ls', '/home/moduleuser/run'], ["docker"])
     finally:
         shutil.rmtree(temp_config_folder, ignore_errors=True)
         result = cli_stop(runner)
