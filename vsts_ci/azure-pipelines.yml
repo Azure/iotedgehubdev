@@ -109,7 +109,7 @@ jobs:
     pool:
       name: Azure-IoT-EdgeExperience-1ES-Hosted-Windows
       demands:
-        - ImageOverride -equals MMS2016TLS
+        - ImageOverride -equals MMS2022TLS
     steps:
       - template: standalone-binaries/continuous-build-standalone-binaries-win32.yml
 #    condition: and(succeeded('Windows'), succeeded('Linux1804'), succeeded('Linux2004'))
