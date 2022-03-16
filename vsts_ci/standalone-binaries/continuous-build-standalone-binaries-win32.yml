@@ -18,6 +18,9 @@ steps:
       pip -v install -e .
       Write-Host "Starting pip install -r"
       vcpkg install re2:x64-windows pybind11:x64-windows
+      Write-Host "Starting pyre2 install"
+      pip -v install pyre2
+      Write-Host "Done with pyre2 install"
       pip -v install -r requirements.txt
       Write-Host "Done with pip install"
       pip install --upgrade setuptools>=50
