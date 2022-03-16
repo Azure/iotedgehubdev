@@ -17,6 +17,7 @@ steps:
       Write-Host "Starting pip install -e"
       pip -v install -e .
       Write-Host "Starting pip install -r"
+      vcpkg install re2:x64-windows pybind11:x64-windows
       pip -v install -r requirements.txt
       Write-Host "Done with pip install"
       pip install --upgrade setuptools>=50
