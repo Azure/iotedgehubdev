@@ -218,7 +218,7 @@ jobs:
     pool:
       name: Azure-IoT-EdgeExperience-1ES-Hosted-Windows
       demands:
-        - ImageOverride -equals MMS2022TLS
+        - ImageOverride -equals MMS2019TLS
 
     steps:
     - task: DownloadPipelineArtifact@2
