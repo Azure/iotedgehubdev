@@ -7,243 +7,243 @@ schedules:
   always: true
 
 jobs:
-#  - job: MacOS
-#    pool:
-#      vmImage: macOS-latest
-#    strategy:
-#      matrix:
-#        Python37:
-#          python.version: "3.7"
-#          TOXENV: "py37"
-#        Python38:
-#          python.version: "3.8"
-#          TOXENV: "py38"
-#        Python39:
-#          python.version: "3.9"
-#          TOXENV: "py39"
-#      maxParallel: 1
-#    steps:
-#      - template: darwin/continuous-build-darwin.yml
+  - job: MacOS
+    pool:
+      vmImage: macOS-latest
+    strategy:
+      matrix:
+        Python37:
+          python.version: "3.7"
+          TOXENV: "py37"
+        Python38:
+          python.version: "3.8"
+          TOXENV: "py38"
+        Python39:
+          python.version: "3.9"
+          TOXENV: "py39"
+      maxParallel: 1
+    steps:
+      - template: darwin/continuous-build-darwin.yml
 
-# - job: Windows
-#    pool:
-#      vmImage: windows-2019
-#    strategy:
-#      matrix:
-#        Python37:
-#          python.version: "3.7"
-#          TOXENV: "py37"
-#        Python38:
-#          python.version: "3.8"
-#          TOXENV: "py38"
-#        Python39:
-#          python.version: "3.9"
-#          TOXENV: "py39"
-#      maxParallel: 1
-#    steps:
-#      - template: win32/continuous-build-win32.yml
+  - job: Windows
+    pool:
+      vmImage: windows-2019
+    strategy:
+      matrix:
+        Python37:
+          python.version: "3.7"
+          TOXENV: "py37"
+        Python38:
+          python.version: "3.8"
+          TOXENV: "py38"
+        Python39:
+          python.version: "3.9"
+          TOXENV: "py39"
+      maxParallel: 1
+    steps:
+      - template: win32/continuous-build-win32.yml
 
-#  - job: Linux1804
-#    pool:
-#      vmImage: ubuntu-18.04
-#    strategy:
-#      matrix:
-#        Python37:
-#          python.version: "3.7"
-#          TOXENV: "py37"
-#        Python38:
-#          python.version: "3.8"
-#          TOXENV: "py38"
-#        Python39:
-#          python.version: "3.9"
-#          TOXENV: "py39"
-#      maxParallel: 1
-#    steps:
-#      - template: linux/continuous-build-linux.yml
+  - job: Linux1804
+    pool:
+      vmImage: ubuntu-18.04
+    strategy:
+      matrix:
+        Python37:
+          python.version: "3.7"
+          TOXENV: "py37"
+        Python38:
+          python.version: "3.8"
+          TOXENV: "py38"
+        Python39:
+          python.version: "3.9"
+          TOXENV: "py39"
+      maxParallel: 1
+    steps:
+      - template: linux/continuous-build-linux.yml
 
-#  - job: Linux2004
-#    pool:
-#      vmImage: ubuntu-20.04
-#    strategy:
-#      matrix:
-#        Python37:
-#          python.version: "3.7"
-#          TOXENV: "py37"
-#        Python38:
-#          python.version: "3.8"
-#          TOXENV: "py38"
-#        Python39:
-#          python.version: "3.9"
-#          TOXENV: "py39"
-#      maxParallel: 1
-#    steps:
-#      - template: linux/continuous-build-linux.yml
+  - job: Linux2004
+    pool:
+      vmImage: ubuntu-20.04
+    strategy:
+      matrix:
+        Python37:
+          python.version: "3.7"
+          TOXENV: "py37"
+        Python38:
+          python.version: "3.8"
+          TOXENV: "py38"
+        Python39:
+          python.version: "3.9"
+          TOXENV: "py39"
+      maxParallel: 1
+    steps:
+      - template: linux/continuous-build-linux.yml
   
-#  - job: ScanForVulnerabilities
-#    pool:
-#      vmImage: windows-latest
-#    steps:
-#      - task: Bandit@1
-#        inputs:
-#          targetsType: 'banditPattern'
-#          targetsBandit: '$(Build.SourcesDirectory)'
-#          targetsBanditRecursive: true
-#          ruleset: 'guardian'
-#          verbose: true
-#          aggregate: 'file'
-#      - script: |
-#          for /f %%a IN ('dir /b /s "D:\a\1\.gdn\r\*"') DO cat %%a
+  - job: ScanForVulnerabilities
+    pool:
+      vmImage: windows-latest
+    steps:
+      - task: Bandit@1
+        inputs:
+          targetsType: 'banditPattern'
+          targetsBandit: '$(Build.SourcesDirectory)'
+          targetsBanditRecursive: true
+          ruleset: 'guardian'
+          verbose: true
+          aggregate: 'file'
+      - script: |
+          for /f %%a IN ('dir /b /s "D:\a\1\.gdn\r\*"') DO cat %%a
 
-#  - job: LegalStatusPolicyCheck
-#    pool:
-#      vmImage: ubuntu-18.04
-#    steps:
-#      - template: policy/continuous-legal-status-policy-check.yml
+  - job: LegalStatusPolicyCheck
+    pool:
+      vmImage: ubuntu-18.04
+    steps:
+      - template: policy/continuous-legal-status-policy-check.yml
 
   - job: PublishStandaloneBinariesForWin32
-#    dependsOn:
-#      - MacOS
-#      - Windows
-#      - Linux1804
-#      - Linux2004
+    dependsOn:
+      - MacOS
+      - Windows
+      - Linux1804
+      - Linux2004
     pool:
       name: Azure-IoT-EdgeExperience-1ES-Hosted-Windows
       demands:
         - ImageOverride -equals MMS2022TLS
     steps:
       - template: standalone-binaries/continuous-build-standalone-binaries-win32.yml
-#    condition: and(succeeded('Windows'), succeeded('Linux1804'), succeeded('Linux2004'))
+    condition: and(succeeded('Windows'), succeeded('Linux1804'), succeeded('Linux2004'))
 
-#  - job: PublishDropFile
-#    dependsOn:
-#      - MacOS
-#      - Windows
-#      - Linux1804
-#      - Linux2004
-#    condition: and(succeeded('Windows'), succeeded('Linux1804'), succeeded('Linux2004'))
-#    pool:
-#      name: Azure-IoT-EdgeExperience-1ES-Hosted-Linux
-#      demands:
-#        - ImageOverride -equals MMSUbuntu18.04TLS
+  - job: PublishDropFile
+    dependsOn:
+      - MacOS
+      - Windows
+      - Linux1804
+      - Linux2004
+    condition: and(succeeded('Windows'), succeeded('Linux1804'), succeeded('Linux2004'))
+    pool:
+      name: Azure-IoT-EdgeExperience-1ES-Hosted-Linux
+      demands:
+        - ImageOverride -equals MMSUbuntu18.04TLS
 
-#    steps:
-#      - task: UsePythonVersion@0
-#        displayName: "Use Python 3.7"
-#        inputs:
-#          versionSpec: 3.7
-#          addToPath: true
-#          architecture: "x64"
+    steps:
+      - task: UsePythonVersion@0
+        displayName: "Use Python 3.7"
+        inputs:
+          versionSpec: 3.7
+          addToPath: true
+          architecture: "x64"
 
-#      - powershell: |
-#          if ("$(BUILD.SOURCEBRANCH)" -match "^refs/tags/v?[0-9]+\.[0-9]+\.[0-9]+$") { ((Get-Content -path "$(BUILD.REPOSITORY.LOCALPATH)\iotedgehubdev\__init__.py" -Raw) -replace "__AIkey__ = '.*'","__AIkey__ = '$(AI_KEY)'") | Set-Content -Path "$(BUILD.REPOSITORY.LOCALPATH)\iotedgehubdev\__init__.py" }
-#        displayName: "Replace AI Key for PROD"
+      - powershell: |
+          if ("$(BUILD.SOURCEBRANCH)" -match "^refs/tags/v?[0-9]+\.[0-9]+\.[0-9]+$") { ((Get-Content -path "$(BUILD.REPOSITORY.LOCALPATH)\iotedgehubdev\__init__.py" -Raw) -replace "__AIkey__ = '.*'","__AIkey__ = '$(AI_KEY)'") | Set-Content -Path "$(BUILD.REPOSITORY.LOCALPATH)\iotedgehubdev\__init__.py" }
+        displayName: "Replace AI Key for PROD"
 
-#      - script: |
-#          pip install setuptools
-#          pip install wheel
-#          pushd $(BUILD.REPOSITORY.LOCALPATH)
-#          python setup.py bdist_wheel
-#          popd
-#        displayName: "Build drop file"
+      - script: |
+          pip install setuptools
+          pip install wheel
+          pushd $(BUILD.REPOSITORY.LOCALPATH)
+          python setup.py bdist_wheel
+          popd
+        displayName: "Build drop file"
 
-#      - task: CopyFiles@2
-#        inputs:
-#          SourceFolder: $(BUILD.REPOSITORY.LOCALPATH)/dist
-#          TargetFolder: $(Build.ArtifactStagingDirectory)
-#        displayName: "Copy Files to: build artifact staging directory"
+      - task: CopyFiles@2
+        inputs:
+          SourceFolder: $(BUILD.REPOSITORY.LOCALPATH)/dist
+          TargetFolder: $(Build.ArtifactStagingDirectory)
+        displayName: "Copy Files to: build artifact staging directory"
 
-#      - task: EsrpCodeSigning@1
-#        inputs:
-#          ConnectedServiceName: 'IoT Edge NuGet Sign - DDE'
-#          FolderPath: '$(Build.ArtifactStagingDirectory)'
-#          Pattern: 'iotedgehubdev.exe'
-#          signConfigType: 'inlineSignParams'
+      - task: EsrpCodeSigning@1
+        inputs:
+          ConnectedServiceName: 'IoT Edge NuGet Sign - DDE'
+          FolderPath: '$(Build.ArtifactStagingDirectory)'
+          Pattern: 'iotedgehubdev.exe'
+          signConfigType: 'inlineSignParams'
           # 9990 : Microsoft Corporation (Compressed Binaries SHA2 Root - Standard Root)
           # https://microsoft.sharepoint.com/teams/codesigninfo/Wiki/Json%20Builder%20-%20ESRP%20Client.aspx?kc1=CP-230012&os1=SigntoolSign&cp1=OpusName%3DMicrosoft%3bOpusInfo%3Dhttp%3a//www.microsoft.com%3bFileDigest%3D/fd%20%5c%22SHA256%5c%22%3bPageHash%3D/NPH%3bTimeStamp%3D/tr%20%5c%22http%3a//rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer%5c%22%20/td%20sha256&kc2=CP-230012&os2=SigntoolVerify
-#          inlineOperation: |
-#            [
-#              {
-#                "KeyCode" : "CP-230012",
-#                "OperationCode" : "SigntoolSign",
-#                "Parameters" : {
-#                  "OpusName" : "Microsoft",
-#                  "OpusInfo" : "http://www.microsoft.com",
-#                  "FileDigest" : "/fd \"SHA256\"",
-#                  "PageHash" : "/NPH",
-#                  "TimeStamp" : "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
-#                },
-#                "ToolName" : "sign",
-#                "ToolVersion" : "1.0"
-#              },
-#              {
-#                "KeyCode" : "CP-230012",
-#                "OperationCode" : "SigntoolVerify",
-#                "Parameters" : {},
-#                "ToolName" : "sign",
-#                "ToolVersion" : "1.0"
-#              }
-#            ]
-#          SessionTimeout: '60'
-#          MaxConcurrency: '50'
-#          MaxRetryAttempts: '5'
+          inlineOperation: |
+            [
+              {
+                "KeyCode" : "CP-230012",
+                "OperationCode" : "SigntoolSign",
+                "Parameters" : {
+                  "OpusName" : "Microsoft",
+                  "OpusInfo" : "http://www.microsoft.com",
+                  "FileDigest" : "/fd \"SHA256\"",
+                  "PageHash" : "/NPH",
+                  "TimeStamp" : "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
+                },
+                "ToolName" : "sign",
+                "ToolVersion" : "1.0"
+              },
+              {
+                "KeyCode" : "CP-230012",
+                "OperationCode" : "SigntoolVerify",
+                "Parameters" : {},
+                "ToolName" : "sign",
+                "ToolVersion" : "1.0"
+              }
+            ]
+          SessionTimeout: '60'
+          MaxConcurrency: '50'
+          MaxRetryAttempts: '5'
 
-#      - task: AzureArtifacts.manifest-generator-task.manifest-generator-task.ManifestGeneratorTask@0
-#        displayName: 'SBOM Generation Task'
-#        inputs:
-#          BuildDropPath: '$(Build.ArtifactStagingDirectory)'
+      - task: AzureArtifacts.manifest-generator-task.manifest-generator-task.ManifestGeneratorTask@0
+        displayName: 'SBOM Generation Task'
+        inputs:
+          BuildDropPath: '$(Build.ArtifactStagingDirectory)'
 
-#      - task: PublishBuildArtifacts@1
-#        inputs:
-#          pathtoPublish: $(Build.ArtifactStagingDirectory)
-#          artifactName: build-artifact-drop
+      - task: PublishBuildArtifacts@1
+        inputs:
+          pathtoPublish: $(Build.ArtifactStagingDirectory)
+          artifactName: build-artifact-drop
 
-#      - task: Bash@3
-#        inputs:
-#          targetType: 'inline'
-#          script: |
-#            if [[ $(Build.SourceBranch) =~ ^refs/tags/v?[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-#              echo "##vso[task.setvariable variable=PYPI_PUBLISH_FLAG;isOutput=true]true"
-#            fi
-#        name: PublishFlag
+      - task: Bash@3
+        inputs:
+          targetType: 'inline'
+          script: |
+            if [[ $(Build.SourceBranch) =~ ^refs/tags/v?[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "##vso[task.setvariable variable=PYPI_PUBLISH_FLAG;isOutput=true]true"
+            fi
+        name: PublishFlag
 
-#  - job: UploadToStorage
-#    dependsOn:
-#      - MacOS
-#      - Windows
-#      - Linux1804
-#      - Linux2004
-#      - PublishDropFile
-#      - PublishStandaloneBinariesForWin32
-#    condition: and(succeeded(), eq(dependencies.PublishDropFile.outputs['PublishFlag.PYPI_PUBLISH_FLAG'], 'true'))
-#    pool:
-#      name: Azure-IoT-EdgeExperience-1ES-Hosted-Windows
-#      demands:
-#        - ImageOverride -equals MMS2022TLS
+  - job: UploadToStorage
+    dependsOn:
+      - MacOS
+      - Windows
+      - Linux1804
+      - Linux2004
+      - PublishDropFile
+      - PublishStandaloneBinariesForWin32
+    condition: and(succeeded(), eq(dependencies.PublishDropFile.outputs['PublishFlag.PYPI_PUBLISH_FLAG'], 'true'))
+    pool:
+      name: Azure-IoT-EdgeExperience-1ES-Hosted-Windows
+      demands:
+        - ImageOverride -equals MMS2022TLS
 
-#    steps:
-#    - task: DownloadPipelineArtifact@2
-#      inputs:
-#        buildType: 'current'
-#        artifactName: 'build-artifact-drop'
-#        itemPattern: |
-#          **/*.whl
-#          **/*.zip
-#        targetPath: '$(Build.ArtifactStagingDirectory)/Package'
+    steps:
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        buildType: 'current'
+        artifactName: 'build-artifact-drop'
+        itemPattern: |
+          **/*.whl
+          **/*.zip
+        targetPath: '$(Build.ArtifactStagingDirectory)/Package'
 
-#    - task: PowerShell@2
-#      inputs:
-#        targetType: 'inline'
-#        script: |
-#          $VersionFormat = Get-Content .\iotedgehubdev\__init__.py | select-string -pattern "version"
-#          $PackageVersion = (($VersionFormat -split "=")[1] -split "'")[1]
-#          write-host "##vso[task.setvariable variable=version;]$PackageVersion"
+    - task: PowerShell@2
+      inputs:
+        targetType: 'inline'
+        script: |
+          $VersionFormat = Get-Content .\iotedgehubdev\__init__.py | select-string -pattern "version"
+          $PackageVersion = (($VersionFormat -split "=")[1] -split "'")[1]
+          write-host "##vso[task.setvariable variable=version;]$PackageVersion"
 
-#    - task: AzureFileCopy@4
-#      condition: succeeded()
-#      inputs:
-#        SourcePath: '$(Build.ArtifactStagingDirectory)/Package/*$(version)*'
-#        azureSubscription: 'azuresdkpartnerdrops-IoTEdgeHub_Dev'
-#        Destination: AzureBlob
-#        storage: 'azuresdkpartnerdrops'
-#        ContainerName: 'drops'
-#        BlobPrefix: 'azure-iot-edge-tools/python/$(version)'
+    - task: AzureFileCopy@4
+      condition: succeeded()
+      inputs:
+        SourcePath: '$(Build.ArtifactStagingDirectory)/Package/*$(version)*'
+        azureSubscription: 'azuresdkpartnerdrops-IoTEdgeHub_Dev'
+        Destination: AzureBlob
+        storage: 'azuresdkpartnerdrops'
+        ContainerName: 'drops'
+        BlobPrefix: 'azure-iot-edge-tools/python/$(version)'

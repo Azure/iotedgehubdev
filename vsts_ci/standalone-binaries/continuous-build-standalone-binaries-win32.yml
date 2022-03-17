@@ -14,15 +14,8 @@ steps:
       python -m pip install --upgrade pip
       if ("$(BUILD.SOURCEBRANCH)" -match "^refs/tags/v?[0-9]+\.[0-9]+\.[0-9]+$") { ((Get-Content -path "$(BUILD.REPOSITORY.LOCALPATH)\iotedgehubdev\__init__.py" -Raw) -replace "__AIkey__ = '.*'","__AIkey__ = '$(AI_KEY)'") | Set-Content -Path "$(BUILD.REPOSITORY.LOCALPATH)\iotedgehubdev\__init__.py" }
       ((Get-Content -path "$(BUILD.REPOSITORY.LOCALPATH)\iotedgehubdev\__init__.py" -Raw) -replace "__production__ = 'iotedgehubdev'","__production__ = 'iotedgehubdev-standalone'") | Set-Content -Path "$(BUILD.REPOSITORY.LOCALPATH)\iotedgehubdev\__init__.py"
-      Write-Host "Starting pip install -e"
       pip -v install -e .
-      Write-Host "Starting pip install -r"
-      vcpkg install re2:x64-windows pybind11:x64-windows
-      Write-Host "Starting pyre2 install"
-      pip -v install pyre2
-      Write-Host "Done with pyre2 install"
       pip -v install -r requirements.txt
-      Write-Host "Done with pip install"
       pip install --upgrade setuptools>=50
       pyinstaller iotedgehubdev.spec
       $COMPOSE_VER = pip show docker-compose | select-string -Pattern "Version: (\d+\.\d+\.\d+)" | % {$_.Matches.Groups[1].Value}
