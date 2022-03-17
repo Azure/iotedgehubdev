@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 import os
-import re
+import regex
 
 from jsonpath_rw import parse
 
@@ -187,7 +187,7 @@ def service_parser_volumes(create_options_details):
         # Binds should be in the format [source:]destination[:mode]
         # Windows format and LCOW format are more strict than Linux format due to colons in Windows paths,
         # so match with them first
-        match = re.match(EdgeConstants.MOUNT_WIN_REGEX, bind) or re.match(EdgeConstants.MOUNT_LCOW_REGEX, bind)
+        match = regex.match(EdgeConstants.MOUNT_WIN_REGEX, bind) or regex.match(EdgeConstants.MOUNT_LCOW_REGEX, bind)
         if match is not None:
             source = match.group('source') or ''
             target = match.group('destination')
