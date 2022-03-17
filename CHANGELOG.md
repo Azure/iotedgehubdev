@@ -2,7 +2,10 @@
 
 [![PyPI version](https://badge.fury.io/py/iotedgehubdev.svg)](https://badge.fury.io/py/iotedgehubdev)
 
-## 0.14.11 - 2022-03-01
+## 0.14.13 - 2022-03-16
+* Update regex match module
+
+## 0.14.12 - 2022-03-01
 * Update Python support to 3.9
 
 ## 0.14.11 - 2022-02-10
