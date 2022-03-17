@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 import os
+import regex
 
 from jsonpath_rw import parse
 
