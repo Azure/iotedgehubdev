@@ -8,19 +8,15 @@ from .errors import EdgeInvalidArgument
 
 
 class HostPlatform(object):
-    _edge_dir = 'iotedgehubdev'
+    _edge_dir = '.iotedgehubdev'
     _edgehub_config = 'edgehub.json'
     _setting_ini = 'setting.ini'
     _certs = 'certs'
     _data = 'data'
-    _windows_config_path = os.getenv('PROGRAMDATA', '%%PROGRAMDATA%%')
-
     _platforms = {
         'linux': {
             'supported_deployments': ['docker'],
             'default_deployment': 'docker',
-            'default_edge_conf_dir': '/etc/' + _edge_dir,
-            'default_edge_data_dir': '/var/lib/' + _edge_dir,
             'default_edge_meta_dir_env': 'HOME',
             'deployment': {
                 'docker': {
@@ -33,9 +29,7 @@ class HostPlatform(object):
         'windows': {
             'supported_deployments': ['docker'],
             'default_deployment': 'docker',
-            'default_edge_conf_dir': _windows_config_path + '\\' + _edge_dir + '\\config',
-            'default_edge_data_dir': _windows_config_path + '\\' + _edge_dir + '\\data',
-            'default_edge_meta_dir_env': 'USERPROFILE',
+            'default_edge_meta_dir_env': 'LOCALAPPDATA',
             'deployment': {
                 'docker': {
                     'linux': {
@@ -50,8 +44,6 @@ class HostPlatform(object):
         'darwin': {
             'supported_deployments': ['docker'],
             'default_deployment': 'docker',
-            'default_edge_conf_dir': '/etc/' + _edge_dir,
-            'default_edge_data_dir': '/var/lib/' + _edge_dir,
             'default_edge_meta_dir_env': 'HOME',
             'deployment': {
                 'docker': {
@@ -74,13 +66,27 @@ class HostPlatform(object):
     #     return False
 
     @staticmethod
+    def get_edge_dir(host):
+        return os.path.join(os.getenv(HostPlatform._platforms[host]['default_edge_meta_dir_env']), HostPlatform._edge_dir)
+
+    @staticmethod
     def get_config_path():
         host = platform.system()
         if host is None:
             raise EdgeInvalidArgument('host cannot be None')
         host = host.lower()
         if host in HostPlatform._platforms:
-            return HostPlatform._platforms[host]['default_edge_conf_dir']
+            return os.path.join(HostPlatform.get_edge_dir(host), 'config')
+        return None
+
+    @staticmethod
+    def get_data_path():
+        host = platform.system()
+        if host is None:
+            raise EdgeInvalidArgument('host cannot be None')
+        host = host.lower()
+        if host in HostPlatform._platforms:
+            return os.path.join(HostPlatform.get_edge_dir(host), 'data')
         return None
 
     @staticmethod
@@ -104,7 +110,7 @@ class HostPlatform(object):
             raise EdgeInvalidArgument('host cannot be None')
         host = host.lower()
         if host in HostPlatform._platforms:
-            return os.path.join(HostPlatform._platforms[host]['default_edge_data_dir'], HostPlatform._certs)
+            return os.path.join(HostPlatform.get_data_path(), HostPlatform._certs)
         return None
 
     @staticmethod
@@ -114,5 +120,5 @@ class HostPlatform(object):
             raise EdgeInvalidArgument('host cannot be None')
         host = host.lower()
         if host in HostPlatform._platforms:
-            return os.path.join(HostPlatform._platforms[host]['default_edge_data_dir'], HostPlatform._data)
+            return os.path.join(HostPlatform.get_data_path(), HostPlatform._data)
         return None
