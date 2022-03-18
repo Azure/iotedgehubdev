@@ -35,49 +35,46 @@ The following table compares the requirements to run your solution on the IoT Ed
 ## Quickstart
 ### 1. Setup
 
-  ##### Windows
+  ##### Linux/macOS
+  ensure the user is a member of docker group
+  ```
+  sudo usermod -aG docker $USER
+  ```
+
   ```
   iotedgehubdev setup -c "<edge-device-connection-string>"
   ```
 
-  ##### Linux/macOS
-  ```
-  sudo iotedgehubdev setup -c "<edge-device-connection-string>"
-  ```
 
 ### 2. Start/Stop an IoT Edge solution in simulator
 
-  ##### Windows
+  ##### Linux/macOS
+  ensure the user is a member of docker group
+  ```
+  sudo usermod -aG docker $USER
+  ```
+
   ```
   iotedgehubdev start -d <path/to/deployment-manifest>
   iotedgehubdev stop
   ```
 
-  ##### Linux/macOS
-  ```
-  sudo iotedgehubdev start -d <path/to/deployment-manifest>
-  sudo iotedgehubdev stop
-  ```
-
 ### 3. Start and debug a single module natively
+
+  ##### Linux/macOS
+  ensure the user is a member of docker group
+  ```
+  sudo usermod -aG docker $USER
+
+  ```
   1. Start the module with specific input(s) and/or environment variable(s)
 
-      ##### Windows
       ```
       iotedgehubdev start -i "<module-inputs>"
 
       // OR
 
       iotedgehubdev start -i "<module-inputs>" -e "<environment-variable>"
-      ```
-
-      ##### Linux/macOS
-      ```
-      sudo iotedgehubdev start -i "<module-inputs>"
-
-      // OR
-
-      sudo iotedgehubdev start -i "<module-inputs>" -e "<environment-variable>"
       ```
 
       **For example**:  
@@ -98,14 +95,8 @@ The following table compares the requirements to run your solution on the IoT Ed
 
   5. Stop the simulator
 
-      ##### Windows
       ```
       iotedgehubdev stop
-      ```
-
-      ##### Linux/macOS
-      ```
-      sudo iotedgehubdev stop
       ```
 
 ## Other resources
