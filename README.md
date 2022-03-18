@@ -53,7 +53,6 @@ The following table compares the requirements to run your solution on the IoT Ed
 
 ### 3. Start and debug a single module natively
 
-  ```
   1. Start the module with specific input(s) and/or environment variable(s)
 
       ```
