@@ -28,9 +28,7 @@ The following table compares the requirements to run your solution on the IoT Ed
     ```
     pip install --upgrade iotedgehubdev
     ```
-    **Note**: Please install iotedgehubdev to **root** on Linux/macOS (*Don't use '--user' option in the 'pip install' command*).
-5. (Linux / MacOS only)
-    ensure the user is a member of docker group:
+5. Ensure the user is a member of **docker** user group (**Linux / MacOS only**):
     ```
     sudo usermod -aG docker $USER
     ```
