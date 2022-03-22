@@ -28,56 +28,37 @@ The following table compares the requirements to run your solution on the IoT Ed
     ```
     pip install --upgrade iotedgehubdev
     ```
-    **Note**: Please install iotedgehubdev to **root** on Linux/macOS (*Don't use '--user' option in the 'pip install' command*).
+5. Ensure the user is a member of **docker** user group (**Linux / MacOS only**):
+    ```
+    sudo usermod -aG docker $USER
+    ```
 
 **Please make sure there is no Azure IoT Edge runtime running on the same machine as iotedgehubdev since they require the same ports.**
 
 ## Quickstart
 ### 1. Setup
 
-  ##### Windows
   ```
   iotedgehubdev setup -c "<edge-device-connection-string>"
   ```
 
-  ##### Linux/macOS
-  ```
-  sudo iotedgehubdev setup -c "<edge-device-connection-string>"
-  ```
-
 ### 2. Start/Stop an IoT Edge solution in simulator
 
-  ##### Windows
   ```
   iotedgehubdev start -d <path/to/deployment-manifest>
   iotedgehubdev stop
   ```
 
-  ##### Linux/macOS
-  ```
-  sudo iotedgehubdev start -d <path/to/deployment-manifest>
-  sudo iotedgehubdev stop
-  ```
-
 ### 3. Start and debug a single module natively
+
   1. Start the module with specific input(s) and/or environment variable(s)
 
-      ##### Windows
       ```
       iotedgehubdev start -i "<module-inputs>"
 
       // OR
 
       iotedgehubdev start -i "<module-inputs>" -e "<environment-variable>"
-      ```
-
-      ##### Linux/macOS
-      ```
-      sudo iotedgehubdev start -i "<module-inputs>"
-
-      // OR
-
-      sudo iotedgehubdev start -i "<module-inputs>" -e "<environment-variable>"
       ```
 
       **For example**:  
@@ -98,14 +79,8 @@ The following table compares the requirements to run your solution on the IoT Ed
 
   5. Stop the simulator
 
-      ##### Windows
       ```
       iotedgehubdev stop
-      ```
-
-      ##### Linux/macOS
-      ```
-      sudo iotedgehubdev stop
       ```
 
 ## Other resources

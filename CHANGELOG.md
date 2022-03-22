@@ -2,6 +2,9 @@
 
 [![PyPI version](https://badge.fury.io/py/iotedgehubdev.svg)](https://badge.fury.io/py/iotedgehubdev)
 
+## 0.14.14 - 2022-03-18
+* Drop sudo requirement
+
 ## 0.14.13 - 2022-03-16
 * Update regex match module
 

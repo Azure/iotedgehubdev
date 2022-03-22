@@ -93,7 +93,7 @@ def _parse_config_json():
 
 
 def _get_setup_command():
-    return '{0}iotedgehubdev setup -c "<edge-device-connection-string>"'.format('' if os.name == 'nt' else 'sudo ')
+    return 'iotedgehubdev setup -c "<edge-device-connection-string>"'
 
 
 @click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)

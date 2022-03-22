@@ -252,7 +252,7 @@ def test_pre_setup(runner):
     instruction = ('ERROR: Cannot find config file. Please run `iotedgehubdev setup -c "<edge-device-connection-string>"` first.'
                    if platform.system().lower() == 'windows'
                    else 'ERROR: Cannot find config file. '
-                   'Please run `sudo iotedgehubdev setup -c "<edge-device-connection-string>"` first.')
+                   'Please run `iotedgehubdev setup -c "<edge-device-connection-string>"` first.')
 
     result = runner.invoke(cli.start, ['-i', 'input1'])
     assert result.exception
@@ -287,7 +287,7 @@ def test_corrupt_edge_hub_config(runner):
     instruction = ('ERROR: Invalid config file. Please run `iotedgehubdev setup -c "<edge-device-connection-string>"` again.'
                    if platform.system().lower() == 'windows'
                    else 'ERROR: Invalid config file. '
-                   'Please run `sudo iotedgehubdev setup -c "<edge-device-connection-string>"` again.')
+                   'Please run `iotedgehubdev setup -c "<edge-device-connection-string>"` again.')
 
     result = runner.invoke(cli.start, ['-i', 'input1'])
     assert result.exception
