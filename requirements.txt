@@ -14,6 +14,6 @@ pyyaml>=5.4
 jsonpath_rw
 docker-compose==1.29.1
 pytest
-PyInstaller==4.10
+PyInstaller==4.2
 urllib3>=1.26.4
 regex
