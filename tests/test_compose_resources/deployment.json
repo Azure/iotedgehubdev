@@ -49,7 +49,7 @@
             "version": "1.0",
             "type": "docker",
             "status": "running",
-            "restartPolicy": "on-unhealthy",
+            "restartPolicy": "on-failure",
             "settings": {
               "image": "localhost:5000/samplemodule:0.0.1-amd64",
               "createOptions": "{\"Env\":[\"FOO=bar\",\"BAZ=quux\",\"test1\"]}"
