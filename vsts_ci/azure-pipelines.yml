@@ -246,4 +246,4 @@ jobs:
         Destination: AzureBlob
         storage: 'azuresdkpartnerdrops'
         ContainerName: 'drops'
-        BlobPrefix: 'azure-iot-edge-tools/python/$(version)'
+        BlobPrefix: 'azure-iot-edge-tools-iotedgehubdev/python/$(version)'
