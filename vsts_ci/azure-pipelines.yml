@@ -44,6 +44,7 @@ jobs:
       - template: win32/continuous-build-win32.yml
 
   - job: Linux1804
+    dependsOn: Windows
     pool:
       vmImage: ubuntu-18.04
     strategy:
@@ -62,6 +63,7 @@ jobs:
       - template: linux/continuous-build-linux.yml
 
   - job: Linux2004
+    dependsOn: Linux1804
     pool:
       vmImage: ubuntu-20.04
     strategy:
