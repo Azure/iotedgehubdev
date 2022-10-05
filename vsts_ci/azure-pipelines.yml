@@ -99,7 +99,7 @@ jobs:
 
   - job: LegalStatusPolicyCheck
     pool:
-      vmImage: ubuntu-18.04
+      vmImage: ubuntu-20.04
     steps:
       - template: policy/continuous-legal-status-policy-check.yml
 
@@ -107,23 +107,23 @@ jobs:
     dependsOn:
       - MacOS
       - Windows
-      - Linux1804
       - Linux2004
+      - Linux2204
     pool:
       name: Azure-IoT-EdgeExperience-1ES-Hosted-Windows
       demands:
         - ImageOverride -equals MMS2019TLS
     steps:
       - template: standalone-binaries/continuous-build-standalone-binaries-win32.yml
-    condition: and(succeeded('Windows'), succeeded('Linux1804'), succeeded('Linux2004'))
+    condition: and(succeeded('Windows'), succeeded('Linux2004'), succeeded('Linux2204'))
 
   - job: PublishDropFile
     dependsOn:
       - MacOS
       - Windows
-      - Linux1804
       - Linux2004
-    condition: and(succeeded('Windows'), succeeded('Linux1804'), succeeded('Linux2004'))
+      - Linux2204
+    condition: and(succeeded('Windows'), succeeded('Linux2004'), succeeded('Linux2204'))
     pool:
       name: Azure-IoT-EdgeExperience-1ES-Hosted-Linux
       demands:
@@ -213,8 +213,8 @@ jobs:
     dependsOn:
       - MacOS
       - Windows
-      - Linux1804
       - Linux2004
+      - Linux2204
       - PublishDropFile
       - PublishStandaloneBinariesForWin32
     condition: and(succeeded(), eq(dependencies.PublishDropFile.outputs['PublishFlag.PYPI_PUBLISH_FLAG'], 'true'))
