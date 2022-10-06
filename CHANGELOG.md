@@ -1,6 +1,8 @@
 # Changelog
 
 [![PyPI version](https://badge.fury.io/py/iotedgehubdev.svg)](https://badge.fury.io/py/iotedgehubdev)
+## 0.14.15 -2022-10-06
+* Updated pyOpenssl
 
 ## 0.14.14 - 2022-03-18
 * Drop sudo requirement
