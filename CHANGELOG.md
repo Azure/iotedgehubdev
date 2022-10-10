@@ -1,6 +1,9 @@
 # Changelog
 
 [![PyPI version](https://badge.fury.io/py/iotedgehubdev.svg)](https://badge.fury.io/py/iotedgehubdev)
+## 0.14.16 -2022-10-10
+* Updated docker compose
+
 ## 0.14.15 -2022-10-06
 * Updated pyOpenssl
 
