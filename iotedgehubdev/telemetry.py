@@ -28,7 +28,6 @@ class TelemetrySession(object):
         self.parameters = []
         self.result = 'None'
         self.result_summary = None
-        self.exception = None
         self.extra_props = {}
         self.machineId = self._get_hash_mac_address()
         self.events = defaultdict(list)
@@ -51,9 +50,6 @@ class TelemetrySession(object):
 
         if self.result_summary:
             props['ResultSummary'] = self.result_summary
-
-        if self.exception:
-            props['Exception'] = self.exception
 
         props.update(self.extra_props)
 
@@ -105,8 +101,7 @@ def success():
 
 
 @decorators.suppress_all_exceptions()
-def fail(exception, summary):
-    _session.exception = exception
+def fail(summary):
     _session.result = 'Fail'
     _session.result_summary = summary
 

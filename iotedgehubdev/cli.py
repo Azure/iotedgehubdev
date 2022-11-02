@@ -44,7 +44,7 @@ def _parse_params(*args, **kwargs):
 
 def _send_failed_telemetry(e):
     output.error(str(e))
-    telemetry.fail(str(e), 'Command failed')
+    telemetry.fail('Command failed')
     telemetry.flush()
 
 
