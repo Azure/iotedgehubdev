@@ -86,16 +86,16 @@ jobs:
     pool:
       vmImage: windows-latest
     steps:
-      - task: Bandit@1
-        inputs:
-          targetsType: 'banditPattern'
-          targetsBandit: '$(Build.SourcesDirectory)'
-          targetsBanditRecursive: true
-          ruleset: 'guardian'
-          verbose: true
-          aggregate: 'file'
-      - script: |
-          for /f %%a IN ('dir /b /s "D:\a\1\.gdn\r\*"') DO cat %%a
+#      - task: Bandit@1
+#        inputs:
+#          targetsType: 'banditPattern'
+#          targetsBandit: '$(Build.SourcesDirectory)'
+#          targetsBanditRecursive: true
+#          ruleset: 'guardian'
+#          verbose: true
+#          aggregate: 'file'
+#      - script: |
+#          for /f %%a IN ('dir /b /s "D:\a\1\.gdn\r\*"') DO cat %%a
 
   - job: LegalStatusPolicyCheck
     pool:
