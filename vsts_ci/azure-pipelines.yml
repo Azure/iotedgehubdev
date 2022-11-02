@@ -82,10 +82,10 @@ jobs:
       - template: linux/continuous-build-linux.yml
 
   
-  - job: ScanForVulnerabilities
-    pool:
-      vmImage: windows-latest
-    steps:
+#  - job: ScanForVulnerabilities
+#    pool:
+#      vmImage: windows-latest
+#    steps:
 #      - task: Bandit@1
 #        inputs:
 #          targetsType: 'banditPattern'
