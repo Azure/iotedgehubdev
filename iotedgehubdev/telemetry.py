@@ -54,7 +54,7 @@ class TelemetrySession(object):
         props.update(self.extra_props)
 
         self.events[_get_AI_key()].append({
-            'name': '{}/command'.format(PRODUCT_NAME),
+            'name': '{}/commandV2'.format(PRODUCT_NAME),
             'properties': props
         })
 
