@@ -108,3 +108,5 @@ venv.bak/
 tests/output/
 
 .vscode/tags
+.idea
+.DS_Store
