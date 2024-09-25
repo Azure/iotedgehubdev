@@ -13,6 +13,6 @@ tox
 pyyaml>=5.4
 jsonpath_rw
 pytest
-pyinstaller==4.10
+pyinstaller==6.10.0
 urllib3>=1.26.4
 regex
