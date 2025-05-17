@@ -7,12 +7,12 @@ import os
 import sys
 import yaml
 
+
 from collections import OrderedDict
 from io import StringIO
 from .compose_parser import CreateOptionParser
 from .output import Output
 
-COMPOSE_VERSION = 3.6
 
 CREATE_OPTIONS_MAX_CHUNKS = 100
 
@@ -191,7 +191,6 @@ class ComposeProject(object):
         def my_unicode_repr(self, data):
             return self.represent_str(data.encode('utf-8'))
 
-        self.yaml_dict['version'] = str(COMPOSE_VERSION)
         self.yaml_dict['services'] = self.Services
         self.yaml_dict['networks'] = self.Networks
         self.yaml_dict['volumes'] = self.Volumes

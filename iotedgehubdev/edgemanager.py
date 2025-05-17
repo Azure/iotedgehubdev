@@ -67,8 +67,8 @@ class EdgeManager(object):
         label_err = None
         try:
             if os.path.exists(EdgeManager.COMPOSE_FILE):
-                cmd = "docker-compose -f {0} down".format(EdgeManager.COMPOSE_FILE)
-                Utils.exe_proc(cmd.split())
+                cmd_down = ['docker', 'compose', '-f', EdgeManager.COMPOSE_FILE, 'down']
+                Utils.exe_proc(cmd_down)
         except Exception as e:
             compose_err = e
 
@@ -196,12 +196,12 @@ class EdgeManager(object):
         except Exception as e:
             output.warning(str(e))
 
-        cmd_pull = ['docker-compose', '-f', EdgeManager.COMPOSE_FILE, 'pull', EdgeManager.EDGEHUB]
+        cmd_pull = ['docker', 'compose', '-f', EdgeManager.COMPOSE_FILE, 'pull', EdgeManager.EDGEHUB]
         Utils.exe_proc(cmd_pull)
         if verbose:
-            cmd_up = ['docker-compose', '-f', EdgeManager.COMPOSE_FILE, 'up']
+            cmd_up = ['docker', 'compose', '-f', EdgeManager.COMPOSE_FILE, 'up']
         else:
-            cmd_up = ['docker-compose', '-f', EdgeManager.COMPOSE_FILE, 'up', '-d']
+            cmd_up = ['docker', 'compose', '-f', EdgeManager.COMPOSE_FILE, 'up', '-d']
         Utils.exe_proc(cmd_up)
 
     def update_module_twin(self, module_content):

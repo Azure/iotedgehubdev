@@ -27,13 +27,12 @@ with open('README.md', 'rb') as f:
 
 dependencies = [
     'click',
-    'docker==5.0.3',
-    'pyOpenSSL==22.0.0',
-    'requests>=2.25.1',
+    'docker==7.1.0',
+    'pyOpenSSL==24.0.0',
+    'requests>=2.32.3',
     'applicationinsights==0.11.9',
     'pyyaml>=5.4',
     'jsonpath_rw',
-    'docker-compose==1.29.1',
     'regex'
 ]
 

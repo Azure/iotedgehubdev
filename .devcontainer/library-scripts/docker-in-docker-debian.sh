@@ -116,7 +116,7 @@ if type docker-compose > /dev/null 2>&1; then
 else
     target_compose_arch="${architecture}"
     if [ "${target_compose_arch}" != "x86_64" ]; then
-        # Use pip to get a version that runns on this architecture
+        # Use pip to get a version that runs on this architecture
         if ! dpkg -s python3-minimal python3-pip libffi-dev python3-venv > /dev/null 2>&1; then
             apt_get_update_if_needed
             apt-get -y install python3-minimal python3-pip libffi-dev python3-venv
