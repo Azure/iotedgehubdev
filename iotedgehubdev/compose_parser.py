@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 import os
+import posixpath
 import regex
 
 from jsonpath_rw import parse
@@ -204,7 +205,7 @@ def service_parser_volumes(create_options_details):
 
         if target is not None:
             volume_info = {
-                'type': 'bind' if source and os.path.isabs(source) else 'volume',
+                'type': 'bind' if source and (os.path.isabs(source) or posixpath.isabs(source)) else 'volume',
                 'source': source,
                 'target': target
             }

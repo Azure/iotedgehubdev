@@ -12,55 +12,68 @@ jobs:
       vmImage: macOS-latest
     strategy:
       matrix:
-        Python37:
-          python.version: "3.7"
-          TOXENV: "py37"
-        Python38:
-          python.version: "3.8"
-          TOXENV: "py38"
-        Python39:
-          python.version: "3.9"
-          TOXENV: "py39"
+        Python314:
+          python.version: "3.14"
+          TOXENV: "py314"
       maxParallel: 1
     steps:
       - template: darwin/continuous-build-darwin.yml
 
   - job: Windows
     pool:
-      vmImage: windows-2019
+      vmImage: windows-2022
     strategy:
       matrix:
-        Python37:
-          python.version: "3.7"
-          TOXENV: "py37"
-        Python38:
-          python.version: "3.8"
-          TOXENV: "py38"
-        Python39:
-          python.version: "3.9"
-          TOXENV: "py39"
+        Python314:
+          python.version: "3.14"
+          TOXENV: "py314"
       maxParallel: 1
     steps:
+      # GUARD: windows-2022 VMs sometimes boot with the Docker service stopped, which aborts pytest at collection (test_cli.py builds EdgeDockerClient() at import); start the daemon and wait so a cold daemon self-heals or fails here clearly.
+      - powershell: |
+          $ErrorActionPreference = 'Continue'
+          Write-Host '=== ensure Docker service is running ==='
+          $svc = Get-Service docker -ErrorAction SilentlyContinue
+          if ($null -eq $svc) {
+            Write-Host 'Docker service "docker" not found via Get-Service.'
+          } else {
+            Write-Host "Docker service status = $($svc.Status)"
+            if ($svc.Status -ne 'Running') {
+              Write-Host 'Starting Docker service...'
+              Start-Service docker
+            }
+          }
+          Write-Host '=== wait for Docker daemon to respond (up to 3 min) ==='
+          $ok = $false
+          $deadline = (Get-Date).AddMinutes(3)
+          while (-not $ok -and (Get-Date) -lt $deadline) {
+            docker info --format '{{.OSType}}' 2>$null | Out-Null
+            if ($LASTEXITCODE -eq 0) { $ok = $true } else { Start-Sleep -Seconds 5 }
+          }
+          Write-Host "docker daemon reachable = $ok"
+          if (-not $ok) {
+            Write-Error 'Docker daemon did not become reachable; failing early so the cause is unambiguous.'
+            exit 1
+          }
+        displayName: "GUARD: ensure Docker daemon is running"
+
       - template: win32/continuous-build-win32.yml
 
   - job: Linux2004
     dependsOn: Windows
     pool:
-      vmImage: ubuntu-20.04
+      vmImage: ubuntu-22.04
     strategy:
       matrix:
-        Python37:
-          python.version: "3.7"
-          TOXENV: "py37"
-        Python38:
-          python.version: "3.8"
-          TOXENV: "py38"
-        Python39:
-          python.version: "3.9"
-          TOXENV: "py39"
+        Python314:
+          python.version: "3.14"
+          TOXENV: "py314"
       maxParallel: 1
     steps:
+      # Pass the ARM service connection (pipeline var `AZURE_SERVICE_CONNECTION`) so the template runs tests under AzureCLI@2 with Azure AD login; unset = legacy fallback.
       - template: linux/continuous-build-linux.yml
+        parameters:
+          azureServiceConnection: "$(AZURE_SERVICE_CONNECTION)"
 
   - job: Linux2204
     dependsOn: Linux2004
@@ -68,18 +81,15 @@ jobs:
       vmImage: ubuntu-22.04
     strategy:
       matrix:
-        Python37:
-          python.version: "3.7"
-          TOXENV: "py37"
-        Python38:
-          python.version: "3.8"
-          TOXENV: "py38"
-        Python39:
-          python.version: "3.9"
-          TOXENV: "py39"
+        Python314:
+          python.version: "3.14"
+          TOXENV: "py314"
       maxParallel: 1
     steps:
+      # Pass the ARM service connection (pipeline var `AZURE_SERVICE_CONNECTION`) so the template runs tests under AzureCLI@2 with Azure AD login; unset = legacy fallback.
       - template: linux/continuous-build-linux.yml
+        parameters:
+          azureServiceConnection: "$(AZURE_SERVICE_CONNECTION)"
 
   
 #  - job: ScanForVulnerabilities
@@ -99,7 +109,7 @@ jobs:
 
   - job: LegalStatusPolicyCheck
     pool:
-      vmImage: ubuntu-20.04
+      vmImage: ubuntu-22.04
     steps:
       - template: policy/continuous-legal-status-policy-check.yml
 
@@ -131,9 +141,9 @@ jobs:
 
     steps:
       - task: UsePythonVersion@0
-        displayName: "Use Python 3.7"
+        displayName: "Use Python 3.14"
         inputs:
-          versionSpec: 3.7
+          versionSpec: 3.14
           addToPath: true
           architecture: "x64"
 

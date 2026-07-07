@@ -123,7 +123,7 @@ def cli_start_with_deployment(runner, deployment_json_file_path):
 def invoke_module_method():
     invoke_module_method_cmd = 'az iot hub invoke-module-method --device-id "' + device_id + \
         '" --method-name "reset" --module-id "tempSensor" --hub-name "' + \
-        iothub_name + '" --login "' + VALID_IOTHUBCONNECTIONSTRING + '"'
+        iothub_name + '" --auth-type login'
     output = start_process(invoke_module_method_cmd, True)
     if '"status": 200' not in str(output):
         raise Exception('Failed to invoke module method.')
@@ -131,7 +131,7 @@ def invoke_module_method():
 
 def monitor_d2c_message():
     invoke_monitor_events_cmd = 'az iot hub monitor-events -n "' + iothub_name + \
-        '" -d "' + device_id + '" --login "' + VALID_IOTHUBCONNECTIONSTRING + '" -y -t 5'
+        '" -d "' + device_id + '" -y -t 5'
     output = start_process(invoke_monitor_events_cmd, True)
     return output
 
@@ -371,19 +371,19 @@ def test_cli_create_options_for_custom_volume(runner):
 
         if get_docker_os_type() == 'linux':
             expected_volumes = (['testVolume', 'edgemoduledev', 'edgehubdev'])
-            expected_tempsensor_volumes = (['"Source": "testVolume"',
-                                            '"Target": "/mnt_test"',
-                                            '"Source": "edgemoduledev"',
-                                            '"Target": "/mnt/edgemodule"'])
-            expected_edgehubdev_volumes = (['"Source": "edgehubdev"', '"Target": "/mnt/edgehub"'])
+            expected_tempsensor_volumes = (['"Name": "testVolume"',
+                                            '"Destination": "/mnt_test"',
+                                            '"Name": "edgemoduledev"',
+                                            '"Destination": "/mnt/edgemodule"'])
+            expected_edgehubdev_volumes = (['"Name": "edgehubdev"', '"Destination": "/mnt/edgehub"'])
         elif get_docker_os_type() == 'windows':
             expected_volumes = (['testvolume', 'edgemoduledev', 'edgehubdev'])
-            expected_tempsensor_volumes = (['"Source": "testVolume"',
-                                            '"Target": "C:/mnt_test"',
-                                            '"Source": "edgemoduledev"',
-                                            '"Target": "c:/mnt/edgemodule"'])
-            expected_edgehubdev_volumes = (['"Source": "edgehubdev"',
-                                            '"Target": "c:/mnt/edgehub"'])
+            expected_tempsensor_volumes = (['"Name": "testVolume"',
+                                            '"Destination": "C:/mnt_test"',
+                                            '"Name": "edgemoduledev"',
+                                            '"Destination": "c:/mnt/edgemodule"'])
+            expected_edgehubdev_volumes = (['"Name": "edgehubdev"',
+                                            '"Destination": "c:/mnt/edgehub"'])
 
         wait_verify_docker_output(['docker', 'volume', 'ls'], expected_volumes)
         wait_verify_docker_output(['docker', 'inspect', 'tempSensor'], expected_tempsensor_volumes)

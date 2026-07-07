@@ -4,7 +4,11 @@
 import os
 import unittest
 import shutil
+import tempfile
 from unittest import mock
+from cryptography import x509
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.serialization import pkcs12
 from iotedgehubdev.certutils import EdgeCertUtil
 from iotedgehubdev.constants import EdgeConstants as EC
 from iotedgehubdev.errors import EdgeValueError
@@ -214,3 +218,121 @@ class TestEdgeCertUtilAPIExportCertArtifacts(unittest.TestCase):
         cert_util.chain_simulator_ca_certs('root', {'root'}, WORKINGDIRECTORY)
         cert_util.export_pfx_cert('root', WORKINGDIRECTORY)
         assert cert_util.get_cert_file_path('root', WORKINGDIRECTORY)
+
+
+class TestEdgeCertUtilContentParity(unittest.TestCase):
+    """Tier 2 content-parity tests: parse the exported artifacts back and assert on
+    their contents (extensions, PEM format, PFX, validity clamping) to guard the
+    pyOpenSSL -> cryptography migration against on-disk format regressions."""
+
+    def setUp(self):
+        self.tmp_dir = tempfile.mkdtemp()
+
+    def tearDown(self):
+        if os.path.exists(self.tmp_dir):
+            shutil.rmtree(self.tmp_dir)
+
+    def _key_path(self, id_str):
+        return os.path.join(self.tmp_dir, id_str, 'private', id_str + EC.KEY_SUFFIX)
+
+    def _load_cert(self, id_str):
+        with open(EdgeCertUtil.get_cert_file_path(id_str, self.tmp_dir), 'rb') as cert_file:
+            return x509.load_pem_x509_certificate(cert_file.read())
+
+    def test_dumped_cert_and_key_round_trip(self):
+        cert_util = EdgeCertUtil()
+        cert_util.create_root_ca_cert('root', subject_dict=VALID_SUBJECT_DICT)
+        cert_util.export_simulator_cert_artifacts_to_dir('root', self.tmp_dir)
+
+        # Loading the dumped cert + key back must not raise (exercises 'rb' + bytes passphrase path).
+        loader = EdgeCertUtil()
+        loader.load_cert_from_file('root',
+                                   EdgeCertUtil.get_cert_file_path('root', self.tmp_dir),
+                                   self._key_path('root'),
+                                   None)
+
+    def test_dumped_private_key_is_pkcs1_pem(self):
+        cert_util = EdgeCertUtil()
+        cert_util.create_root_ca_cert('root', subject_dict=VALID_SUBJECT_DICT)
+        cert_util.export_simulator_cert_artifacts_to_dir('root', self.tmp_dir)
+
+        with open(self._key_path('root'), 'r') as key_file:
+            content = key_file.read()
+        # TraditionalOpenSSL/PKCS#1 header, not PKCS#8.
+        assert content.startswith('-----BEGIN RSA PRIVATE KEY-----')
+
+    def test_dumped_private_key_with_passphrase_is_encrypted(self):
+        passphrase = 'secretpass'
+        cert_util = EdgeCertUtil()
+        cert_util.create_root_ca_cert('root', subject_dict=VALID_SUBJECT_DICT, passphrase=passphrase)
+        cert_util.export_simulator_cert_artifacts_to_dir('root', self.tmp_dir)
+
+        with open(self._key_path('root'), 'rb') as key_file:
+            content = key_file.read()
+        assert content.startswith(b'-----BEGIN RSA PRIVATE KEY-----')
+        assert b'ENCRYPTED' in content
+        # Decrypts with the correct passphrase ...
+        serialization.load_pem_private_key(content, password=passphrase.encode('utf-8'))
+        # ... and fails with the wrong one.
+        with self.assertRaises(ValueError):
+            serialization.load_pem_private_key(content, password=b'wrongpass')
+
+    def test_root_ca_cert_extensions(self):
+        cert_util = EdgeCertUtil()
+        cert_util.create_root_ca_cert('root', subject_dict=VALID_SUBJECT_DICT)
+        cert_util.export_simulator_cert_artifacts_to_dir('root', self.tmp_dir)
+
+        cert = self._load_cert('root')
+        basic_constraints = cert.extensions.get_extension_for_class(x509.BasicConstraints).value
+        assert basic_constraints.ca is True
+
+        key_usage = cert.extensions.get_extension_for_class(x509.KeyUsage).value
+        assert key_usage.key_cert_sign is True
+        assert key_usage.crl_sign is True
+        assert key_usage.digital_signature is True
+
+        # Subject and Authority Key Identifier extensions must both be present.
+        cert.extensions.get_extension_for_class(x509.SubjectKeyIdentifier)
+        cert.extensions.get_extension_for_class(x509.AuthorityKeyIdentifier)
+
+    def test_server_cert_extensions(self):
+        cert_util = EdgeCertUtil()
+        cert_util.create_root_ca_cert('root', subject_dict=VALID_SUBJECT_DICT)
+        cert_util.create_server_cert('server', 'root', hostname='myhost')
+        cert_util.export_simulator_cert_artifacts_to_dir('server', self.tmp_dir)
+
+        cert = self._load_cert('server')
+        basic_constraints = cert.extensions.get_extension_for_class(x509.BasicConstraints).value
+        assert basic_constraints.ca is False
+
+        san = cert.extensions.get_extension_for_class(x509.SubjectAlternativeName).value
+        dns_names = san.get_values_for_type(x509.DNSName)
+        assert 'localhost' in dns_names
+        assert 'myhost' in dns_names
+
+    def test_pfx_round_trip(self):
+        cert_util = EdgeCertUtil()
+        cert_util.create_root_ca_cert('root', subject_dict=VALID_SUBJECT_DICT)
+        cert_util.chain_simulator_ca_certs('root', {'root'}, self.tmp_dir)
+        cert_util.export_pfx_cert('root', self.tmp_dir)
+
+        with open(EdgeCertUtil.get_pfx_file_path('root', self.tmp_dir), 'rb') as pfx_file:
+            pfx_data = pfx_file.read()
+        # Password is None to match NoEncryption() used on export.
+        key, cert, _ = pkcs12.load_key_and_certificates(pfx_data, None)
+        assert key is not None
+        assert cert is not None
+
+    def test_intermediate_validity_clamped_to_issuer(self):
+        cert_util = EdgeCertUtil()
+        cert_util.create_root_ca_cert('root', subject_dict=VALID_SUBJECT_DICT,
+                                      validity_days_from_now=2)
+        cert_util.create_intermediate_ca_cert('int', 'root', common_name='intname',
+                                              validity_days_from_now=365)
+        cert_util.export_simulator_cert_artifacts_to_dir('root', self.tmp_dir)
+        cert_util.export_simulator_cert_artifacts_to_dir('int', self.tmp_dir)
+
+        root_cert = self._load_cert('root')
+        int_cert = self._load_cert('int')
+        # The intermediate requested 365 days but must be clamped to the issuer's expiry.
+        assert int_cert.not_valid_after_utc <= root_cert.not_valid_after_utc
