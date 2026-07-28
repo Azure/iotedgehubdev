@@ -8,6 +8,7 @@ import subprocess
 
 import docker
 import requests
+import yaml
 
 from .composeproject import ComposeProject
 from .constants import EdgeConstants as EC
@@ -68,8 +69,11 @@ class EdgeManager(object):
         label_err = None
         try:
             if os.path.exists(EdgeManager.COMPOSE_FILE):
-                cmd = "docker compose -f {0} down".format(EdgeManager.COMPOSE_FILE)
-                Utils.exe_proc(cmd.split())
+                with open(EdgeManager.COMPOSE_FILE, 'r') as f:
+                    compose_content = yaml.safe_load(f)
+                if compose_content and compose_content.get('services'):
+                    cmd = "docker compose -f {0} down".format(EdgeManager.COMPOSE_FILE)
+                    Utils.exe_proc(cmd.split())
         except Exception as e:
             compose_err = e
 
