@@ -2,7 +2,7 @@
 
 [![PyPI version](https://badge.fury.io/py/iotedgehubdev.svg)](https://badge.fury.io/py/iotedgehubdev)
 ## 0.14.19 - 2026-06-23
-* Require Python 3.14
+* Require Python 3.11-3.14
 * Replace pyOpenSSL with the cryptography library
 
 ## 0.14.15 -2022-10-06
