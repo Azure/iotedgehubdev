@@ -24,6 +24,15 @@ jobs:
       vmImage: windows-2022
     strategy:
       matrix:
+        Python311:
+          python.version: "3.11"
+          TOXENV: "py311"
+        Python312:
+          python.version: "3.12"
+          TOXENV: "py312"
+        Python313:
+          python.version: "3.13"
+          TOXENV: "py313"
         Python314:
           python.version: "3.14"
           TOXENV: "py314"
@@ -65,6 +74,15 @@ jobs:
       vmImage: ubuntu-22.04
     strategy:
       matrix:
+        Python311:
+          python.version: "3.11"
+          TOXENV: "py311"
+        Python312:
+          python.version: "3.12"
+          TOXENV: "py312"
+        Python313:
+          python.version: "3.13"
+          TOXENV: "py313"
         Python314:
           python.version: "3.14"
           TOXENV: "py314"
@@ -81,6 +99,15 @@ jobs:
       vmImage: ubuntu-22.04
     strategy:
       matrix:
+        Python311:
+          python.version: "3.11"
+          TOXENV: "py311"
+        Python312:
+          python.version: "3.12"
+          TOXENV: "py312"
+        Python313:
+          python.version: "3.13"
+          TOXENV: "py313"
         Python314:
           python.version: "3.14"
           TOXENV: "py314"

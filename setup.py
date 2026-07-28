@@ -28,7 +28,7 @@ with open('README.md', 'rb') as f:
 dependencies = [
     'click',
     'docker>=7.1.0',
-    'cryptography>=43,<47',
+    'cryptography>=43,<50',
     'requests>=2.26.0',
     'applicationinsights==0.11.9',
     'pyyaml>=6.0',
@@ -56,7 +56,7 @@ setup(
             'iotedgehubdev = iotedgehubdev.cli:main',
         ],
     },
-    python_requires='>=3.14',
+    python_requires='>=3.11,<3.15',
     classifiers=[
         # As from http://pypi.python.org/pypi?%3Aaction=list_classifiers
         # 'Development Status :: 1 - Planning',
@@ -75,6 +75,9 @@ setup(
         'Operating System :: Microsoft :: Windows',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
+        'Programming Language :: Python :: 3.13',
         'Programming Language :: Python :: 3.14',
 
         'Topic :: Software Development :: Libraries :: Python Modules',
