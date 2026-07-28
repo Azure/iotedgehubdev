@@ -4,16 +4,16 @@
 
 import json
 import os
+import subprocess
 
 import docker
 import requests
-import yaml
 
 from .composeproject import ComposeProject
 from .constants import EdgeConstants as EC
 from .edgecert import EdgeCert
 from .edgedockerclient import EdgeDockerClient
-from .errors import ResponseError, RegistriesLoginError
+from .errors import EdgeError, ResponseError, RegistriesLoginError
 from .hostplatform import HostPlatform
 from .utils import Utils
 
@@ -68,11 +68,8 @@ class EdgeManager(object):
         label_err = None
         try:
             if os.path.exists(EdgeManager.COMPOSE_FILE):
-                with open(EdgeManager.COMPOSE_FILE, 'r') as f:
-                    compose_content = yaml.safe_load(f)
-                if compose_content and compose_content.get('services'):
-                    cmd = "docker compose -f {0} down".format(EdgeManager.COMPOSE_FILE)
-                    Utils.exe_proc(cmd.split())
+                cmd = "docker compose -f {0} down".format(EdgeManager.COMPOSE_FILE)
+                Utils.exe_proc(cmd.split())
         except Exception as e:
             compose_err = e
 
@@ -179,7 +176,19 @@ class EdgeManager(object):
         compose_project.compose()
         compose_project.dump(target)
 
+    @staticmethod
+    def _ensure_compose_available():
+        try:
+            subprocess.check_call(['docker', 'compose', 'version'],
+                                  stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except Exception as e:
+            raise EdgeError(
+                'Docker Compose V2 was not found. iotedgehubdev requires the Docker CLI '
+                '(>= 20.10) with the Compose V2 plugin, invoked as `docker compose`. '
+                'Install or enable the Compose plugin and try again.', e)
+
     def start_solution(self, module_content, verbose, output):
+        EdgeManager._ensure_compose_available()
         try:
             EdgeManager.login_registries(module_content)
         except RegistriesLoginError as e:
