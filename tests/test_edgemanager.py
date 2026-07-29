@@ -91,7 +91,6 @@ class TestEdgeManager(unittest.TestCase):
                 mock.patch('iotedgehubdev.edgemanager.yaml.safe_load', return_value=safe_load_return), \
                 mock.patch('iotedgehubdev.edgemanager.Utils.exe_proc') as mock_exe_proc:
             EdgeManager.stop(edgedockerclient)
-        # The label-based cleanup must always run, regardless of the compose branch.
         edgedockerclient.stop_remove_by_label.assert_called_once_with(EdgeManager.LABEL)
         return mock_exe_proc
 
