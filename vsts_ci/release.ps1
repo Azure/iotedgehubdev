@@ -19,7 +19,7 @@ if ($env:BUILD_SOURCEBRANCH -match "^refs/tags/[\s\S]+$") {
     } else {
        echo "Uploading to test pypi"
        twine upload -r pypitest "$env:SYSTEM_ARTIFACTSDIRECTORY/$env:RELEASE_PRIMARYARTIFACTSOURCEALIAS/$artifact_name/$drop_file_name"-u $(pytestusername) -p $(pytestuserpassword) --repository-url $(pytestrepourl)
-       pip install --no-cache --upgrade "$tool_name==$tool_version" --index-url "https://test.pypi.org/simple/" --extra-index-url "https://pypi.org/simple"
+       pip --isolated install --no-cache-dir --upgrade "$env:SYSTEM_ARTIFACTSDIRECTORY/$env:RELEASE_PRIMARYARTIFACTSOURCEALIAS/$artifact_name/$drop_file_name" --index-url "https://pypi.org/simple"
     }
 } else {
     echo "The current branch is not a tag"
