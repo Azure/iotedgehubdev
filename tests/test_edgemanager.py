@@ -1,6 +1,7 @@
 import os
 import platform
 import unittest
+from unittest import mock
 from iotedgehubdev.edgemanager import EdgeManager
 from iotedgehubdev.errors import RegistriesLoginError
 
@@ -82,3 +83,29 @@ class TestEdgeManager(unittest.TestCase):
             edge_manager.update_module_twin(module_content)
         except Exception as e:
             self.fail("No exception should be raised to update module twin here: {0}".format(e))
+
+    def _run_stop_with_compose(self, safe_load_return):
+        edgedockerclient = mock.MagicMock()
+        with mock.patch('iotedgehubdev.edgemanager.os.path.exists', return_value=True), \
+                mock.patch('iotedgehubdev.edgemanager.open', mock.mock_open(read_data=''), create=True), \
+                mock.patch('iotedgehubdev.edgemanager.yaml.safe_load', return_value=safe_load_return), \
+                mock.patch('iotedgehubdev.edgemanager.Utils.exe_proc') as mock_exe_proc:
+            EdgeManager.stop(edgedockerclient)
+        # The label-based cleanup must always run, regardless of the compose branch.
+        edgedockerclient.stop_remove_by_label.assert_called_once_with(EdgeManager.LABEL)
+        return mock_exe_proc
+
+    def test_stop_runs_compose_down_when_services_present(self):
+        mock_exe_proc = self._run_stop_with_compose({'services': {'edgeHub': {}}})
+        mock_exe_proc.assert_called_once()
+
+    def test_stop_skips_compose_down_when_no_services(self):
+        for content in [None, {}, {'version': '3.6'}]:
+            with self.subTest(content=content):
+                mock_exe_proc = self._run_stop_with_compose(content)
+                mock_exe_proc.assert_not_called()
+
+    def test_stop_skips_compose_down_when_content_not_a_mapping(self):
+
+        mock_exe_proc = self._run_stop_with_compose('just a string')
+        mock_exe_proc.assert_not_called()

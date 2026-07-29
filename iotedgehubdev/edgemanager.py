@@ -71,7 +71,7 @@ class EdgeManager(object):
             if os.path.exists(EdgeManager.COMPOSE_FILE):
                 with open(EdgeManager.COMPOSE_FILE, 'r') as f:
                     compose_content = yaml.safe_load(f)
-                if compose_content and compose_content.get('services'):
+                if isinstance(compose_content, dict) and compose_content.get('services'):
                     cmd = "docker compose -f {0} down".format(EdgeManager.COMPOSE_FILE)
                     Utils.exe_proc(cmd.split())
         except Exception as e:
