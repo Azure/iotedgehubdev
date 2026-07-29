@@ -3,7 +3,7 @@ import platform
 import unittest
 from unittest import mock
 from iotedgehubdev.edgemanager import EdgeManager
-from iotedgehubdev.errors import RegistriesLoginError
+from iotedgehubdev.errors import EdgeError, RegistriesLoginError
 
 
 class TestEdgeManager(unittest.TestCase):
@@ -96,7 +96,8 @@ class TestEdgeManager(unittest.TestCase):
 
     def test_stop_runs_compose_down_when_services_present(self):
         mock_exe_proc = self._run_stop_with_compose({'services': {'edgeHub': {}}})
-        mock_exe_proc.assert_called_once()
+        expected_cmd = "docker compose -f {0} down".format(EdgeManager.COMPOSE_FILE).split()
+        mock_exe_proc.assert_called_once_with(expected_cmd)
 
     def test_stop_skips_compose_down_when_no_services(self):
         for content in [None, {}, {'version': '3.6'}]:
@@ -108,3 +109,16 @@ class TestEdgeManager(unittest.TestCase):
 
         mock_exe_proc = self._run_stop_with_compose('just a string')
         mock_exe_proc.assert_not_called()
+
+    def test_ensure_compose_available_passes_when_plugin_present(self):
+        with mock.patch('iotedgehubdev.edgemanager.subprocess.check_call') as mock_check_call:
+            EdgeManager._ensure_compose_available()
+        mock_check_call.assert_called_once_with(
+            ['docker', 'compose', 'version'],
+            stdout=mock.ANY, stderr=mock.ANY)
+
+    def test_ensure_compose_available_raises_when_plugin_missing(self):
+        with mock.patch('iotedgehubdev.edgemanager.subprocess.check_call',
+                        side_effect=OSError('not found')):
+            with self.assertRaises(EdgeError):
+                EdgeManager._ensure_compose_available()
