@@ -10,11 +10,17 @@ from iotedgehubdev.edgedockerclient import EdgeDockerClient
 
 
 class TestEdgeDockerClientSmoke(unittest.TestCase):
-    IMAGE_NAME = 'mcr.microsoft.com/dotnet/core/runtime:3.1'
+    LINUX_IMAGE_NAME = 'mcr.microsoft.com/dotnet/core/runtime:3.1'
+    WINDOWS_IMAGE_NAME = 'mcr.microsoft.com/windows/servercore:ltsc2022'
     NETWORK_NAME = 'ctl_int_test_network'
     CONTAINER_NAME = 'ctl_int_test_container'
     VOLUME_NAME = 'ctl_int_int_test_mnt'
     LABEL_NAME = 'ctl_int_test_label'
+
+    def _image_name(self, client):
+        if client.get_os_type().lower() == 'windows':
+            return self.WINDOWS_IMAGE_NAME
+        return self.LINUX_IMAGE_NAME
 
     def test_get_os_type(self):
         with EdgeDockerClient() as client:
@@ -30,7 +36,7 @@ class TestEdgeDockerClientSmoke(unittest.TestCase):
     def test_pull(self):
         with EdgeDockerClient() as client:
             exception_raised = False
-            image_name = self.IMAGE_NAME
+            image_name = self._image_name(client)
             try:
                 local_sha_1 = client.get_local_image_sha_id(image_name)
                 is_updated = client.pull(image_name, None, None)
@@ -44,14 +50,14 @@ class TestEdgeDockerClientSmoke(unittest.TestCase):
             self.assertFalse(exception_raised)
 
     def _create_container(self, client):
-        image_name = self.IMAGE_NAME
+        image_name = self._image_name(client)
         os_type = client.get_os_type().lower()
         if os_type == 'linux':
             volume_path = '/{0}'.format(self.VOLUME_NAME)
             script = 'sleep 20s'
         elif os_type == 'windows':
             volume_path = 'c:/{0}'.format(self.VOLUME_NAME)
-            script = 'ping -n 20 127.0.0.1 > nul'
+            script = 'ping -n 20 127.0.0.1'
         env_dict = {}
         env_dict['TEST_VOLUME_NAME'] = self.VOLUME_NAME
         client.pull(image_name, None, None)

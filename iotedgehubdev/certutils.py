@@ -3,9 +3,13 @@
 
 
 import os
-from OpenSSL import crypto
 from shutil import copy2
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
+from cryptography import x509
+from cryptography.x509.oid import NameOID
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.serialization import pkcs12
 from .errors import EdgeFileAccessError, EdgeInvalidArgument, EdgeValueError
 from .constants import EdgeConstants as EC
 from .utils import Utils
@@ -23,8 +27,14 @@ class EdgeCertUtil(object):
     SERVER_KEY_LEN = 2048
     MIN_COMMON_NAME_LEN = 1
     MAX_COMMON_NAME_LEN = 64
-    DIGEST = 'sha256'
-    _type_dict = {TYPE_RSA: crypto.TYPE_RSA}
+    _name_oid_map = {
+        'C': NameOID.COUNTRY_NAME,
+        'ST': NameOID.STATE_OR_PROVINCE_NAME,
+        'L': NameOID.LOCALITY_NAME,
+        'O': NameOID.ORGANIZATION_NAME,
+        'OU': NameOID.ORGANIZATIONAL_UNIT_NAME,
+        'CN': NameOID.COMMON_NAME,
+    }
     _subject_validation_dict = {
         EC.SUBJECT_COUNTRY_KEY: {'MIN': 2, 'MAX': 2},
         EC.SUBJECT_STATE_KEY: {'MIN': 0, 'MAX': 128},
@@ -108,18 +118,18 @@ class EdgeCertUtil(object):
             issuer_cert_dict = self._cert_chain[issuer_id_str]
             issuer_cert = issuer_cert_dict['cert']
 
-            not_after_ts = issuer_cert.get_notAfter()
-            valid_days = self._get_maximum_validity_days(not_after_ts,
+            valid_days = self._get_maximum_validity_days(issuer_cert.not_valid_after_utc,
                                                          validity_days_from_now)
 
             issuer_key = issuer_cert_dict['key_pair']
+            issuer_subject = issuer_cert.subject
             key_obj = self._create_key_pair(EdgeCertUtil.TYPE_RSA, EdgeCertUtil.CA_KEY_LEN)
             csr_obj = self._create_csr(key_obj,
-                                       C=issuer_cert.get_subject().countryName,
-                                       ST=issuer_cert.get_subject().stateOrProvinceName,
-                                       L=issuer_cert.get_subject().localityName,
-                                       O=issuer_cert.get_subject().organizationName,
-                                       OU=issuer_cert.get_subject().organizationalUnitName,
+                                       C=self._get_subject_attr(issuer_subject, NameOID.COUNTRY_NAME),
+                                       ST=self._get_subject_attr(issuer_subject, NameOID.STATE_OR_PROVINCE_NAME),
+                                       L=self._get_subject_attr(issuer_subject, NameOID.LOCALITY_NAME),
+                                       O=self._get_subject_attr(issuer_subject, NameOID.ORGANIZATION_NAME),
+                                       OU=self._get_subject_attr(issuer_subject, NameOID.ORGANIZATIONAL_UNIT_NAME),
                                        CN=common_name)
 
             validity_secs_from_now = valid_days * 24 * 60 * 60
@@ -165,16 +175,16 @@ class EdgeCertUtil(object):
             issuer_cert_dict = self._cert_chain[issuer_id_str]
             issuer_cert = issuer_cert_dict['cert']
             issuer_key = issuer_cert_dict['key_pair']
+            issuer_subject = issuer_cert.subject
             key_obj = self._create_key_pair(EdgeCertUtil.TYPE_RSA, EdgeCertUtil.SERVER_KEY_LEN)
             csr_obj = self._create_csr(key_obj,
-                                       C=issuer_cert.get_subject().countryName,
-                                       ST=issuer_cert.get_subject().stateOrProvinceName,
-                                       L=issuer_cert.get_subject().localityName,
-                                       O=issuer_cert.get_subject().organizationName,
-                                       OU=issuer_cert.get_subject().organizationalUnitName,
+                                       C=self._get_subject_attr(issuer_subject, NameOID.COUNTRY_NAME),
+                                       ST=self._get_subject_attr(issuer_subject, NameOID.STATE_OR_PROVINCE_NAME),
+                                       L=self._get_subject_attr(issuer_subject, NameOID.LOCALITY_NAME),
+                                       O=self._get_subject_attr(issuer_subject, NameOID.ORGANIZATION_NAME),
+                                       OU=self._get_subject_attr(issuer_subject, NameOID.ORGANIZATIONAL_UNIT_NAME),
                                        CN=common_name)
-            not_after_ts = issuer_cert.get_notAfter()
-            valid_days = self._get_maximum_validity_days(not_after_ts,
+            valid_days = self._get_maximum_validity_days(issuer_cert.not_valid_after_utc,
                                                          validity_days_from_now)
             validity_secs_from_now = valid_days * 24 * 60 * 60
             cert_obj = self._create_server_cert(csr_obj,
@@ -203,10 +213,12 @@ class EdgeCertUtil(object):
             cert_dict = self._cert_chain[id_str]
             cert_obj = cert_dict['cert']
             key_obj = cert_dict['key_pair']
-            pfx = crypto.PKCS12()
-            pfx.set_privatekey(key_obj)
-            pfx.set_certificate(cert_obj)
-            pfx_data = pfx.export()
+            pfx_data = pkcs12.serialize_key_and_certificates(
+                name=None,
+                key=key_obj,
+                cert=cert_obj,
+                cas=None,
+                encryption_algorithm=serialization.NoEncryption())
             prefix = id_str
             path = os.path.realpath(dir_path)
             path = os.path.join(path, prefix)
@@ -234,16 +246,19 @@ class EdgeCertUtil(object):
         cert_dict = {}
         # Load cert
         try:
-            with open(cert_path, 'r') as cert_file:
+            with open(cert_path, 'rb') as cert_file:
                 cert_content = cert_file.read()
-                cert_dict['cert'] = crypto.load_certificate(crypto.FILETYPE_PEM, cert_content)
+                cert_dict['cert'] = x509.load_pem_x509_certificate(cert_content)
         except Exception as ex:
             raise EdgeInvalidArgument('Failed to load cert from %s. Error: %s' % (cert_path, ex), ex)
         # Load key
         try:
-            with open(key_path, 'r') as key_file:
+            password = None
+            if key_passphrase:
+                password = key_passphrase.encode('utf-8') if isinstance(key_passphrase, str) else key_passphrase
+            with open(key_path, 'rb') as key_file:
                 key_content = key_file.read()
-                cert_dict['key_pair'] = crypto.load_privatekey(crypto.FILETYPE_PEM, key_content, key_passphrase)
+                cert_dict['key_pair'] = serialization.load_pem_private_key(key_content, password=password)
         except Exception as ex:
             raise EdgeInvalidArgument(
                 'Failed to load private key from %s. Please check your passphase first. Error: %s' % (key_path, ex), ex)
@@ -347,14 +362,21 @@ class EdgeCertUtil(object):
                 break
         return result
 
-    def _create_csr(self, key_pair, **kwargs):
-        csr = crypto.X509Req()
-        subj = csr.get_subject()
-        for key, value in list(kwargs.items()):
+    def _build_name(self, **kwargs):
+        attributes = []
+        for key in ('C', 'ST', 'L', 'O', 'OU', 'CN'):
+            value = kwargs.get(key)
             if value:
-                setattr(subj, key, value)
-        csr.set_pubkey(key_pair)
-        csr.sign(key_pair, EdgeCertUtil.DIGEST)
+                attributes.append(x509.NameAttribute(EdgeCertUtil._name_oid_map[key], value))
+        return x509.Name(attributes)
+
+    def _get_subject_attr(self, subject, oid):
+        attributes = subject.get_attributes_for_oid(oid)
+        return attributes[0].value if attributes else None
+
+    def _create_csr(self, key_pair, **kwargs):
+        csr = x509.CertificateSigningRequestBuilder().subject_name(
+            self._build_name(**kwargs)).sign(key_pair, hashes.SHA256())
         return csr
 
     def _create_cert_common(self,
@@ -362,15 +384,15 @@ class EdgeCertUtil(object):
                             issuer_cert,
                             validity_period):
         not_before, not_after = validity_period
-        cert = crypto.X509()
-        cert.set_serial_number(self._serial_number)
-        cert.gmtime_adj_notBefore(not_before)
-        cert.gmtime_adj_notAfter(not_after)
-        cert.set_issuer(issuer_cert.get_subject())
-        cert.set_subject(csr.get_subject())
-        cert.set_pubkey(csr.get_pubkey())
-        cert.set_version(2)
-        return cert
+        now = datetime.now(timezone.utc)
+        builder = x509.CertificateBuilder()
+        builder = builder.serial_number(self._serial_number)
+        builder = builder.not_valid_before(now + timedelta(seconds=not_before))
+        builder = builder.not_valid_after(now + timedelta(seconds=not_after))
+        builder = builder.issuer_name(issuer_cert.subject)
+        builder = builder.subject_name(csr.subject)
+        builder = builder.public_key(csr.public_key())
+        return builder
 
     def _create_ca_cert(self,
                         csr,
@@ -378,31 +400,35 @@ class EdgeCertUtil(object):
                         issuer_key_pair,
                         validity_period,
                         path_len_zero):
-        cert = self._create_cert_common(csr, issuer_cert, validity_period)
-        val = b'CA:TRUE'
-        if path_len_zero:
-            val += b', pathlen:0'
-        extensions = []
-        extensions.append(crypto.X509Extension(b'basicConstraints',
-                                               critical=True, value=val))
-        extensions.append(crypto.X509Extension(b'subjectKeyIdentifier',
-                                               False,
-                                               b'hash',
-                                               subject=cert))
-        extensions.append(crypto.X509Extension(b'keyUsage',
-                                               critical=True,
-                                               value=b'digitalSignature, cRLSign, keyCertSign'))
-        # authorityKeyIdentifier requires subjectKeyIdentifier in issuer cert, add it first
-        cert.add_extensions(extensions)
-
-        del extensions[:]
-        extensions.append(crypto.X509Extension(b'authorityKeyIdentifier',
-                                               False,
-                                               b'keyid:always,issuer:always',
-                                               issuer=issuer_cert if isinstance(issuer_cert, crypto.X509) else cert))
-        cert.add_extensions(extensions)
-        cert.sign(issuer_key_pair, EdgeCertUtil.DIGEST)
-        return cert
+        builder = self._create_cert_common(csr, issuer_cert, validity_period)
+        subject_public_key = csr.public_key()
+        builder = builder.add_extension(
+            x509.BasicConstraints(ca=True, path_length=0 if path_len_zero else None),
+            critical=True)
+        builder = builder.add_extension(
+            x509.SubjectKeyIdentifier.from_public_key(subject_public_key),
+            critical=False)
+        builder = builder.add_extension(
+            x509.KeyUsage(digital_signature=True,
+                          content_commitment=False,
+                          key_encipherment=False,
+                          data_encipherment=False,
+                          key_agreement=False,
+                          key_cert_sign=True,
+                          crl_sign=True,
+                          encipher_only=False,
+                          decipher_only=False),
+            critical=True)
+        # authorityKeyIdentifier derives from the issuer's public key; for a
+        # self-signed root the issuer is the CSR, so use the subject's own key.
+        if isinstance(issuer_cert, x509.Certificate):
+            issuer_public_key = issuer_cert.public_key()
+        else:
+            issuer_public_key = subject_public_key
+        builder = builder.add_extension(
+            x509.AuthorityKeyIdentifier.from_issuer_public_key(issuer_public_key),
+            critical=False)
+        return builder.sign(issuer_key_pair, hashes.SHA256())
 
     def _create_server_cert(self,
                             csr,
@@ -410,37 +436,34 @@ class EdgeCertUtil(object):
                             issuer_key_pair,
                             validity_period,
                             hostname):
-        cert = self._create_cert_common(csr,
-                                        issuer_cert,
-                                        validity_period)
-
-        extensions = []
-        extensions.append(crypto.X509Extension(b'basicConstraints',
-                                               critical=False,
-                                               value=b'CA:FALSE'))
-        altDns = ','.join(['DNS:localhost', 'DNS:{0}'.format(hostname)]).encode('utf-8')
-        extensions.append(crypto.X509Extension(b'subjectAltName',
-                                               critical=False,
-                                               value=altDns))
-        cert.add_extensions(extensions)
-        cert.sign(issuer_key_pair, EdgeCertUtil.DIGEST)
-        return cert
+        builder = self._create_cert_common(csr,
+                                           issuer_cert,
+                                           validity_period)
+        builder = builder.add_extension(
+            x509.BasicConstraints(ca=False, path_length=None),
+            critical=False)
+        builder = builder.add_extension(
+            x509.SubjectAlternativeName([x509.DNSName('localhost'),
+                                         x509.DNSName(hostname)]),
+            critical=False)
+        return builder.sign(issuer_key_pair, hashes.SHA256())
 
     def _create_key_pair(self, private_key_type, key_bit_len):
-        key_pair = crypto.PKey()
-        key_pair.generate_key(EdgeCertUtil._type_dict[private_key_type], key_bit_len)
-        return key_pair
+        return rsa.generate_private_key(public_exponent=65537,
+                                        key_size=key_bit_len)
 
-    def _get_maximum_validity_days(self, not_after_ts_asn1, validity_days_from_now):
+    def _get_maximum_validity_days(self, expiration_date, validity_days_from_now):
         result = 0
         try:
-            expiration_date = datetime.strptime(not_after_ts_asn1.decode('utf-8'), "%Y%m%d%H%M%SZ")
-            expires_in = expiration_date - datetime.now()
+            now = datetime.now(timezone.utc)
+            if expiration_date.tzinfo is None:
+                expiration_date = expiration_date.replace(tzinfo=timezone.utc)
+            expires_in = expiration_date - now
             if expires_in.days > 0:
                 result = min(expires_in.days, validity_days_from_now)
             return result
         except Exception:
-            msg = 'Certificate date format incompatible {0}'.format(not_after_ts_asn1)
+            msg = 'Certificate date format incompatible {0}'.format(expiration_date)
             raise EdgeValueError(msg)
 
     def _get_kwargs_validity(self, **kwargs):
@@ -497,8 +520,8 @@ class EdgeCertUtil(object):
         cert_obj = cert_dict['cert']
         try:
             with open(output_path, 'w') as output_file:
-                output_file.write(crypto.dump_certificate(crypto.FILETYPE_PEM,
-                                                          cert_obj).decode('utf-8'))
+                output_file.write(cert_obj.public_bytes(
+                    serialization.Encoding.PEM).decode('utf-8'))
         except IOError as ex:
             msg = 'IO Error when exporting certs.\n' \
                   ' Error seen when exporting file {0}.' \
@@ -517,14 +540,15 @@ class EdgeCertUtil(object):
                 passphrase = None
                 if key_passphrase and key_passphrase != '':
                     passphrase = key_passphrase.encode('utf-8')
-                cipher = None
                 if passphrase:
-                    cipher = 'aes256'
+                    encryption = serialization.BestAvailableEncryption(passphrase)
+                else:
+                    encryption = serialization.NoEncryption()
                 with open(output_path, 'w') as output_file:
-                    output_file.write(crypto.dump_privatekey(crypto.FILETYPE_PEM,
-                                                             key_obj,
-                                                             cipher=cipher,
-                                                             passphrase=passphrase).decode('utf-8'))
+                    output_file.write(key_obj.private_bytes(
+                        encoding=serialization.Encoding.PEM,
+                        format=serialization.PrivateFormat.TraditionalOpenSSL,
+                        encryption_algorithm=encryption).decode('utf-8'))
         except IOError as ex:
             msg = 'IO Error when exporting certs.\n' \
                   ' Error seen when exporting file {0}.' \

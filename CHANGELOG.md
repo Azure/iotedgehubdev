@@ -1,6 +1,11 @@
 # Changelog
 
 [![PyPI version](https://badge.fury.io/py/iotedgehubdev.svg)](https://badge.fury.io/py/iotedgehubdev)
+## 0.14.19 - 2026-06-23
+* Require Python 3.11-3.14
+* Replace pyOpenSSL with the cryptography library
+* Require Docker Compose V2 (`docker compose`)
+
 ## 0.14.15 -2022-10-06
 * Updated pyOpenssl
 

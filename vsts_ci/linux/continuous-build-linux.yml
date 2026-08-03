@@ -1,3 +1,9 @@
+# Optional azureServiceConnection param: empty = legacy flow; set = wrap tox in AzureCLI@2 for Azure AD sign-in (--auth-type login). The service principal needs the "IoT Hub Data Contributor" role.
+parameters:
+  - name: azureServiceConnection
+    type: string
+    default: ""
+
 steps:
   - task: UsePythonVersion@0
     inputs:
@@ -5,20 +11,52 @@ steps:
       addToPath: true
       architecture: "x64"
 
-  - script: |
-      az --version
-      az extension add --name azure-iot
-    displayName: "Install Azure Cli Extension"
+  - ${{ if eq(parameters.azureServiceConnection, '') }}:
+      # ---- upstream default: SAS-based flow, unchanged ----
+      - script: |
+          az --version
+          az extension add --name azure-iot
+        displayName: "Install Azure Cli Extension"
 
-  - script: |
-      pip install --upgrade pip
-      pip install --upgrade tox
-      sudo -E `which tox` -e "$(TOXENV)"
-    displayName: "Run tests against iotedgehubdev source code"
-    env:
-      LINUX_DEVICE_CONNECTION_STRING: $(LINUX_DEVICE_CONNECTION_STRING)
-      IOTHUB_CONNECTION_STRING: $(IOTHUB_CONNECTION_STRING)
-      CONTAINER_REGISTRY_SERVER: $(CONTAINER_REGISTRY_SERVER)
-      CONTAINER_REGISTRY_USERNAME: $(CONTAINER_REGISTRY_USERNAME)
-      CONTAINER_REGISTRY_PASSWORD: $(CONTAINER_REGISTRY_PASSWORD)
-      TEST_CA_KEY_PASSPHASE: $(TEST_CA_KEY_PASSPHASE)
+      - script: |
+          pip install --upgrade pip
+          pip install --upgrade tox
+          sudo -E `which tox` -e "$(TOXENV)"
+        displayName: "Run tests against iotedgehubdev source code"
+        env:
+          LINUX_DEVICE_CONNECTION_STRING: $(LINUX_DEVICE_CONNECTION_STRING)
+          IOTHUB_CONNECTION_STRING: $(IOTHUB_CONNECTION_STRING)
+          CONTAINER_REGISTRY_SERVER: $(CONTAINER_REGISTRY_SERVER)
+          CONTAINER_REGISTRY_USERNAME: $(CONTAINER_REGISTRY_USERNAME)
+          CONTAINER_REGISTRY_PASSWORD: $(CONTAINER_REGISTRY_PASSWORD)
+          TEST_CA_KEY_PASSPHASE: $(TEST_CA_KEY_PASSPHASE)
+
+  - ${{ else }}:
+      # ---- AAD flow: run tests under an authenticated service principal ----
+      - task: AzureCLI@2
+        displayName: "Run tests against iotedgehubdev source code (AAD)"
+        inputs:
+          azureSubscription: ${{ parameters.azureServiceConnection }}
+          scriptType: bash
+          scriptLocation: inlineScript
+          inlineScript: |
+            set -e
+            az --version
+            # Install azure-iot into THIS task's AZURE_CONFIG_DIR so the SP login
+            # and the extension live where `--auth-type login` will read from.
+            az extension add --name azure-iot --only-show-errors
+            az account show -o table
+            pip install --upgrade pip
+            pip install --upgrade tox
+            # sudo runs tox as root; carry AZURE_CONFIG_DIR (set by AzureCLI@2)
+            # across the sudo boundary so the root-run `az ... --auth-type login`
+            # in the tests reuses this task's SP login + extension. -E preserves
+            # the other env vars.
+            sudo -E env "AZURE_CONFIG_DIR=$AZURE_CONFIG_DIR" `which tox` -e "$(TOXENV)"
+        env:
+          LINUX_DEVICE_CONNECTION_STRING: $(LINUX_DEVICE_CONNECTION_STRING)
+          IOTHUB_CONNECTION_STRING: $(IOTHUB_CONNECTION_STRING)
+          CONTAINER_REGISTRY_SERVER: $(CONTAINER_REGISTRY_SERVER)
+          CONTAINER_REGISTRY_USERNAME: $(CONTAINER_REGISTRY_USERNAME)
+          CONTAINER_REGISTRY_PASSWORD: $(CONTAINER_REGISTRY_PASSWORD)
+          TEST_CA_KEY_PASSPHASE: $(TEST_CA_KEY_PASSPHASE)
