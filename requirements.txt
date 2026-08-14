@@ -3,7 +3,7 @@ backports.unittest-mock
 click
 docker>=7.1.0
 flake8>=7.0.0
-cryptography>=46,<50
+cryptography>=46,<51
 python-dotenv
 requests>=2.26.0
 applicationinsights==0.11.9
