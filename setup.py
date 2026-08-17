@@ -28,7 +28,7 @@ with open('README.md', 'rb') as f:
 dependencies = [
     'click',
     'docker>=7.1.0',
-    'cryptography>=46,<50',
+    'cryptography>=46,<51',
     'requests>=2.26.0',
     'applicationinsights==0.11.9',
     'pyyaml>=6.0',
