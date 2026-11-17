@@ -1,6 +1,9 @@
 # Changelog
 
 [![PyPI version](https://badge.fury.io/py/iotedgehubdev.svg)](https://badge.fury.io/py/iotedgehubdev)
+## 0.14.20 - 2026-11-16
+* Deprecate the Azure IoT EdgeHub Dev Tool
+
 ## 0.14.19 - 2026-06-23
 * Require Python 3.11-3.14
 * Replace pyOpenSSL with the cryptography library
